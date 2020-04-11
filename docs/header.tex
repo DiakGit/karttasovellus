@@ -1,0 +1,292 @@
+
+\usepackage[left=1cm,right=1cm,top=1.5cm,bottom=2cm]{geometry}
+\usepackage{xcolor}
+\usepackage{array}
+\newcolumntype{R}[1]{>{\raggedleft\let\newline\\\arraybackslash\hspace{0pt}}p{#1}}
+  % \usepackage[finnish]{babel}
+  % % Modifying the title
+  % 
+  \makeatletter
+  \renewcommand{\maketitle}{\bgroup\setlength{\parindent}{0pt}
+    \begin{flushleft}
+    % \LARGE \@title
+    
+    \vspace{-45mm}
+    \Large \@author
+    
+    \vspace{-3mm}
+    \normalsize \@date
+    
+    \tableofcontents
+    
+    \end{flushleft}\egroup
+  }
+  
+  
+  % ------------------------------------------------ %
+    %                                                  %
+    %              Fonts and typography                %
+    %                                                  %
+    % ------------------------------------------------ %
+    
+    %% Typography
+  % \usepackage[no-math]{fontspec}
+  \usepackage{color}
+  
+  %% Fonts
+  % \setmainfont{PT Sans}
+  % \setsansfont{PT Sans}
+  % \setmonofont{PT Sans}
+  % 
+  % \newfontfamily\PT SansBlack{PT Sans Black}
+  
+  \usepackage{lmodern}
+  % \usepackage{helvet} % or 
+  % \usepackage{tgheros}
+% 
+%%% we want that the default font family is sans serif
+\renewcommand{\rmdefault}{\sfdefault}
+  
+\usepackage{etoolbox}
+\AtBeginEnvironment{tabular}{\sffamily}
+  
+  %% Sans serif as main font
+  %\renewcommand{\familydefault}{\sfdefault}
+  
+  %% Set Sans font in headings
+  %\usepackage{sectsty}
+  %\allsectionsfont{\sffamily}
+  
+  %% Set polyglossia language
+  % \usepackage{polyglossia}
+  % \setdefaultlanguage{finnish}
+  % disable hyphenation
+  %\hyphenpenalty = 10000
+  
+  %% Emphasizing inline code output
+  \usepackage{alltt}
+  
+  
+  % ------------------------------------------------ %
+    %                                                  %
+    %              Settings for knitr                  %
+    %                                                  %
+    % ------------------------------------------------ %
+    
+    %% for Shaded environment in knitr
+  \usepackage{framed}
+  \usepackage{fancyhdr}
+  
+  %% landscape mode
+  \usepackage{lscape}
+  
+  %% Encoding
+  %\usepackage[UTF-8]{inputenc}
+  
+  % rowspacing
+  % \usepackage{setspace}
+  
+  % ------------------------------------------------ %
+    %                                                  %
+    %              Page settings                       %
+    %                                                  %
+    % ------------------------------------------------ %
+    
+    % \input{preamb_a4.tex}
+  
+  
+  %% Set line spacing
+  \usepackage{setspace}
+  \setstretch{1.0}
+  
+  %% Disable paragraph indentation
+  \usepackage{parskip}
+  
+  %% Custom headers
+  % \usepackage{fancyhdr}
+  
+  %% Multicolumns
+  \usepackage{multicol}
+  
+  % ------------------------------------------------ %
+    %                                                  %
+    %                  Headings                        %
+    %                                                  %
+    % ------------------------------------------------ %
+    
+    
+    \usepackage{enumerate}
+  
+  
+  % ------------------------------------------------ %
+    %                                                  %
+    %               Table of content                   %
+    %                                                  %
+    % ------------------------------------------------ %
+    
+    % dotted lines for table of content
+  
+  \makeatletter
+  \renewcommand*\l@section{\@dottedtocline{1}{1.5em}{2.3em}}
+  \makeatother
+  \setcounter{tocdepth}{1}
+  
+  % ------------------------------------------------ %
+    %                                                  %
+    %               % Colors                           %
+  %                                                  %
+    % ------------------------------------------------ %
+    
+    
+    %% Tango color scheme
+  \definecolor{SkyBlue}{HTML}{3465A4}
+  \definecolor{DarkSkyBlue}{HTML}{204A87}
+  \definecolor{Plum}{HTML}{75507B}
+  \definecolor{ScarletRed}{HTML}{CC0000}
+  \definecolor{Aluminium1}{HTML}{EEEEEC}
+  \definecolor{Aluminium6}{HTML}{2e3436}
+  \definecolor{Black}{HTML}{000000}
+  
+  % ------------------------------------------------ %
+    %                                                  %
+    %               Links                              %
+    %                                                  %
+    % ------------------------------------------------ %
+    
+    %% Hyperref
+  \usepackage{hyperref}
+  
+  \hypersetup {
+    linkcolor = Aluminium6,
+    citecolor = DarkSkyBlue,
+    filecolor = DarkSkyBlue,
+    urlcolor = DarkSkyBlue
+  }
+  
+  %% Don’t use Mono font for URLs
+  \urlstyle{same}
+  
+  
+  % ------------------------------------------------ %
+    %                                                  %
+    %               Images & tables                    %
+    %                                                  %
+    % ------------------------------------------------ %
+    
+    % Images
+  \usepackage{graphicx}
+  % tables
+  \usepackage{longtable}
+  \usepackage{booktabs}
+  \usepackage{float}
+  \restylefloat{table}
+  \usepackage{wrapfig}
+  
+  \renewcommand\arraystretch{1.1} % table rowheight
+  % see: http://everythingyouforgetaboutlatex.blogspot.fi/2008/10/formatting-tables.html
+  \setlength{\intextsep}{-0.1cm} % spacing between floats
+  
+  
+  % SHADOWS FOR FLAGS
+  
+  \usepackage{tikz}
+  \usetikzlibrary{shadows,calc}
+  
+  % code adapted from https://tex.stackexchange.com/a/11483/3954
+  
+  % some parameters for customization
+  \def\shadowshift{3pt,-3pt}
+  \def\shadowradius{6pt}
+  
+  \colorlet{innercolor}{black!60}
+  \colorlet{outercolor}{gray!05}
+  
+  % this draws a shadow under a rectangle node
+  \newcommand\drawshadow[1]{
+    \begin{pgfonlayer}{shadow}
+    \shade[outercolor,inner color=innercolor,outer color=outercolor] ($(#1.south west)+(\shadowshift)+(\shadowradius/2,\shadowradius/2)$) circle (\shadowradius);
+      \shade[outercolor,inner color=innercolor,outer color=outercolor] ($(#1.north west)+(\shadowshift)+(\shadowradius/2,-\shadowradius/2)$) circle (\shadowradius);
+        \shade[outercolor,inner color=innercolor,outer color=outercolor] ($(#1.south east)+(\shadowshift)+(-\shadowradius/2,\shadowradius/2)$) circle (\shadowradius);
+          \shade[outercolor,inner color=innercolor,outer color=outercolor] ($(#1.north east)+(\shadowshift)+(-\shadowradius/2,-\shadowradius/2)$) circle (\shadowradius);
+            \shade[top color=innercolor,bottom color=outercolor] ($(#1.south west)+(\shadowshift)+(\shadowradius/2,-\shadowradius/2)$) rectangle ($(#1.south east)+(\shadowshift)+(-\shadowradius/2,\shadowradius/2)$);
+              \shade[left color=innercolor,right color=outercolor] ($(#1.south east)+(\shadowshift)+(-\shadowradius/2,\shadowradius/2)$) rectangle ($(#1.north east)+(\shadowshift)+(\shadowradius/2,-\shadowradius/2)$);
+                \shade[bottom color=innercolor,top color=outercolor] ($(#1.north west)+(\shadowshift)+(\shadowradius/2,-\shadowradius/2)$) rectangle ($(#1.north east)+(\shadowshift)+(-\shadowradius/2,\shadowradius/2)$);
+                  \shade[outercolor,right color=innercolor,left color=outercolor] ($(#1.south west)+(\shadowshift)+(-\shadowradius/2,\shadowradius/2)$) rectangle ($(#1.north west)+(\shadowshift)+(\shadowradius/2,-\shadowradius/2)$);
+                    \filldraw ($(#1.south west)+(\shadowshift)+(\shadowradius/2,\shadowradius/2)$) rectangle ($(#1.north east)+(\shadowshift)-(\shadowradius/2,\shadowradius/2)$);
+                      \end{pgfonlayer}
+  }
+  
+  % create a shadow layer, so that we don't need to worry about overdrawing other things
+% \pgfdeclarelayer{shadow} 
+% \pgfsetlayers{shadow,main}
+% 
+% \newsavebox\mybox
+% \newlength\mylen
+% 
+% \newcommand\shadowimage[2][]{%
+% \setbox0=\hbox{\includegraphics[#1]{#2}}
+% \setlength\mylen{\wd0}
+% \ifnum\mylen<\ht0
+% \setlength\mylen{\ht0}
+% \fi
+% \divide \mylen by 120
+% \def\shadowshift{\mylen,-\mylen}
+% \def\shadowradius{\the\dimexpr\mylen+\mylen+\mylen\relax}
+% \begin{tikzpicture}
+% \node[anchor=south west,inner sep=0] (image) at (0,0) {\includegraphics[#1]{#2}};
+% \drawshadow{image}
+% \end{tikzpicture}}
+
+
+
+
+% ------------------------------------------------ %
+%                                                  %
+%               First page graphics                %
+%                                                  %
+% ------------------------------------------------ %
+
+%\usepackage[showframe,textwidth=3.0in]{geometry}
+\usepackage{xstring}% for string comparrison
+\usepackage{calc}%    for \widthof
+\usepackage{pgf}%     for math calclations
+
+
+\usepackage{caption}
+\captionsetup{labelformat=empty, justification=justified, font={large,it}}
+\usepackage{float}
+\floatstyle{plaintop}
+\restylefloat{table}
+
+% https://texfaq.org/FAQ-vertposfp
+\makeatletter
+\setlength{\@fptop}{0pt}
+\makeatother
+
+
+% <!--- Define Headers and Footers --->
+% \fancypagestyle{plain}{%
+%   \renewcommand{\headrulewidth}{1pt}%
+%   \fancyhf{}%
+%   \setlength\footskip{0pt}
+% }
+% \pagestyle{plain}
+% %
+% \setlength\headheight{35pt}
+% \lhead{Huono-osaisuus Suomessa - Alueprofiilit}
+% \rhead{\includegraphics[width=2.0cm]{diak-logo-1.pdf}}
+% \fancyfoot[C]{\thepage}
+
+% \pagestyle{fancy}
+% \setlength\headheight{35pt}
+% \fancyhf{}
+% \lhead{\Large{Huono-osaisuus Suomessa - Alueprofiilit}}
+% \rhead{\includegraphics[width=1.0cm]{diak-logo-1.pdf}}
+% \fancyfoot[C]{\thepage}
+
+% \pagestyle{fancy}
+% \head{}
+% \cfoot{}
+
+\thispagestyle{empty}
+

@@ -1,0 +1,283 @@
+---
+title: ""
+date: "`r Sys.time()`"
+documentclass: scrartcl
+classoption: table
+output: 
+  pdf_document:
+      latex_engine: pdflatex
+      template: null
+      toc: no
+      includes:
+          in_header: header.tex
+params:
+  region: NA
+  region_level: NA
+  data: NA
+editor_options: 
+  chunk_output_type: console
+---
+
+\vspace{-35mm}
+\includegraphics[width=1.8cm]{diak-logo-1.pdf} \LARGE \quad Huono-osaisuus Suomessa
+\vspace{-3mm}
+\newline
+\noindent\makebox[\linewidth]{\rule{\textwidth}{1pt}} 
+\vspace{-10mm}
+\normalsize
+
+# Alueprofiili `r params$region` (`r params$region_level`)
+
+
+
+```{r knitr_setup, include = FALSE}
+knitr::opts_chunk$set(list(echo=FALSE,
+                         eval=TRUE,
+                         cache=FALSE,
+                         warning=FALSE,
+                         message=FALSE,
+                         dev = "cairo_pdf"))
+
+libs <- c("tidyverse","hrbrthemes","knitr","patchwork","stringr","xtable","extrafont","forcats","viridis","purrr")
+lapply(libs, require, character.only = TRUE)
+loadfonts(quiet=TRUE)
+
+add_line_break2 <- function(x = "very many many characters and words and sentences",
+                            n = 20){
+  y <- gsub(paste0("(.{1,",n,"})(\\s|$)"), "\\1\n", x)
+  y <- sub("\n$", "", y)
+  return(y)
+} 
+
+
+create_table <- function(df, varclass){
+
+df %>% 
+  filter(var_class == varclass) %>% 
+  select(-var_class) -> tmptbl
+## setNames(NULL) %>% 
+print(xtable(x = tmptbl, digits = 1 
+             # caption = varclass 
+             # table.placement = "!htbp"
+             # ,align = "lp{8.3cm}R{0.9cm}R{0.9cm}l}"
+            # ,align = "lp{8.3cm}rrlll}"
+            ,align= c("p{0.02\\textwidth}", 
+"p{0.43\\textwidth}", "R{0.06\\textwidth}", "R{0.03\\textwidth}", "p{0.18\\textwidth}", "p{0.18\\textwidth}")
+             ), 
+      type = "latex", 
+      booktabs = TRUE, 
+      include.rownames = FALSE, 
+      comment = FALSE, 
+      format.args = list(decimal.mark = ","), 
+      size = "\\fontsize{10pt}{10pt}\\selectfont")
+  
+}
+
+theme_set(
+  theme_minimal(base_family = "PT Sans", base_size = 7) +
+          theme(axis.text.y = element_blank(), 
+            panel.grid = element_blank(),
+            # strip.background = element_rect(color = "white"),
+            # plot.background = element_rect(fill = alpha(colour = "#fffff0", 1/3), color = NA),
+            plot.title = element_text(size = 9, family = "bold"),
+            plot.subtitle = element_text(size = 12, family = "bold"))
+)
+
+
+create_plot <- function(varclass, reglevel = params$region_level, regname = params$region){
+  params$data %>% 
+    filter(var_class %in% varclass,
+           regio_level == reglevel) -> dattemp 
+  
+  # if (reglevel != "Kunnat"){
+  #   params$data %>% 
+  #   filter(var_class %in% varclass) -> datmuni 
+  # }
+  
+
+dattemp %>% 
+  distinct(variable) %>% 
+    pull(variable) -> vars
+  gg_x <- list()
+for (i in 1:length(vars)){
+    
+    plot_dat <- dattemp %>% filter(variable %in% vars[i])
+    
+    # if (reglevel != "Kunnat") datmuni2 <- datmuni %>% filter(variable %in% vars[i])
+    
+    plot_dat00 <- plot_dat[plot_dat$aluenimi == regname,]
+    if (nrow(plot_dat00) == 0) next()
+    plot_dat01 <- plot_dat[grepl("Helsi|Uude|Uusim", plot_dat$aluenimi),]
+    plot_dat02 <- plot_dat %>% arrange(desc(value)) %>% slice(1)
+    plot_dat03 <- plot_dat %>% arrange(value) %>% slice(1)
+    plot_dat1 <- bind_rows(plot_dat01,plot_dat02,plot_dat03) %>%
+      distinct()
+    
+    p <- ggplot(data = plot_dat, aes(x = reorder(aluenimi, value),
+                         xend = reorder(aluenimi, value),
+                         y = value, 
+                         label = aluenimi)) +
+      
+      geom_segment(aes(y = 0, yend = value), 
+                   color = alpha("black", 1/20)) +
+      
+      geom_segment(data = plot_dat1, 
+                   aes(y = 0, yend = value), 
+                   show.legend = FALSE, 
+                   color = alpha("black", 1/6)) +
+      
+      geom_segment(data = plot_dat00, 
+                   aes(y = 0, yend = value), 
+                   show.legend = FALSE, 
+                   color = "purple") +
+      
+      geom_label(data = plot_dat00, 
+                 show.legend = FALSE, 
+                 size = 2.5, 
+                 family = "PT Sans", 
+                 alpha = .6, 
+                 nudge_x = .3, nudge_y = 20,
+                 color = "purple", 
+                 label.padding = unit(.1, "lines")) +
+      
+      ggrepel::geom_text_repel(data = plot_dat1,
+                               family = "PT Sans",
+                               alpha = .8,
+                               segment.colour = "dim grey",
+                               size = 2.5,
+                               nudge_x = .3, nudge_y = 20,
+                               min.segment.length = unit(x = .1, units = "lines")) +
+      # scale_color_viridis_d() +
+      scale_y_continuous(limits = c(0,NA)) +
+      labs(x = NULL, y = NULL, title = add_line_break2(vars[i], n = 35)) +
+      coord_flip() +
+      expand_limits(y = c(0, max(plot_dat$value)*1.2))
+    
+    
+    gg_x[[i]] <- p
+}
+  
+  gg_x2 <- purrr::compact(gg_x)
+
+wrap_plots(gg_x2, ncol = 3) +
+  plot_annotation(
+    subtitle = glue("Kuhunkin kuvioon on merkitty alueen '{regname}' lisäksi kunkin \nindikaattorin suurin ja pienin alue sekä väestömäärältään suurin alue"),
+    theme = theme_minimal() + theme(plot.background = element_rect(fill = NA, color = alpha(colour = "dim grey", 1/6)))# + 
+      # theme(plot.title = element_text(face = "bold", size = 12))
+  )
+}
+
+```
+
+
+```{r data}
+dat <- params$data
+dat[dat$regio_level %in% params$region_level & dat$aluenimi %in% params$region,] %>% 
+  select(var_class,variable,value) -> tmpdat
+## 
+dat[dat$regio_level %in% params$region_level,] %>% 
+  group_by(var_class,variable) %>% 
+  arrange(desc(value)) %>% 
+  slice(1) %>% 
+  ungroup() %>% 
+  mutate(maksimi = glue("{round(value, 1)} ({ifelse(nchar(aluenimi) > 10, paste0(substr(aluenimi, 1, 10),'...'), aluenimi)})")) %>% 
+  select(variable,maksimi) -> max_dat
+
+dat[dat$regio_level %in% params$region_level,] %>% 
+  group_by(variable) %>% 
+  arrange(value) %>% 
+  slice(1) %>% 
+  ungroup() %>% 
+  mutate(minimi = glue("{round(value, 1)} ({ifelse(nchar(aluenimi) > 10, paste0(substr(aluenimi, 1, 10),'...'), aluenimi)})")) %>% 
+  select(variable,minimi) -> min_dat
+
+dat[dat$regio_level %in% params$region_level,] %>% 
+  group_by(variable) %>% 
+  arrange(desc(value)) %>%
+  mutate(sija = 1:n(),
+         n = n()) %>% 
+  # mutate(sija = glue("{sija}/{n}")) %>% 
+  ungroup() %>% 
+  filter(aluenimi %in% params$region) %>% 
+  select(variable,sija) -> rank_dat
+
+left_join(tmpdat,max_dat) %>% 
+  left_join(min_dat) %>% 
+  left_join(rank_dat) %>% 
+  mutate(#variable = add_line_break(gsub("_", " ", variable), 60),
+    value = round(value, 1)) %>% 
+  rename(muuttuja = variable,
+         arvo = value) %>% 
+  filter(!is.na(arvo)) %>% 
+  select(muuttuja,arvo,sija,everything()) -> tabdat
+```
+
+Mauris aliquam commodo nisl. Praesent a urna sed magna tincidunt viverra. Sed dignissim, nisl non condimentum aliquet, nibh turpis bibendum metus, ac porta leo lacus sit amet purus. Duis varius, neque in ornare convallis, arcu velit sagittis lorem, nec pretium velit lacus sit amet magna. Mauris eu interdum purus. Suspendisse et leo ex. Suspendisse at consectetur lectus. Fusce rutrum, velit tincidunt mattis pulvinar, enim dui consequat quam, vel posuere orci lacus in mi. Sed vitae leo vel dui mattis facilisis.
+
+## Summamuuttujat
+
+
+```{r, results = "asis", eval= TRUE}
+create_table(tabdat, "Summamuuttujat")
+```
+
+\vspace{10mm}
+
+```{r, fig.width=8,3, fig.height=11/1.7, eval = TRUE, results = "asis"}
+create_plot(varclass = "Summamuuttujat")
+```
+
+\newpage
+
+
+
+## Inhimillinen huono-osaisuus
+
+\vspace{5mm}
+
+```{r, results = "asis", eval= TRUE}
+create_table(tabdat, "Inhimillinen huono-osaisuus")
+```
+
+\vspace{10mm}
+
+```{r, fig.width=8.3, fig.height=13/1.7, eval = TRUE, results = "asis"}
+create_plot(varclass = "Inhimillinen huono-osaisuus")
+```
+
+\newpage
+
+
+
+## Huono-osaisuuden sosiaaliset seuraukset
+
+\vspace{5mm}
+
+```{r, results = "asis", eval = TRUE}
+create_table(tabdat, "Huono-osaisuuden sosiaaliset seuraukset")
+```
+
+\vspace{10mm}
+
+```{r, fig.width=8.3, fig.height=13/1.7, eval = TRUE, results = "asis"}
+create_plot(varclass = "Huono-osaisuuden sosiaaliset seuraukset")
+```
+
+
+\newpage
+
+
+## Huono-osaisuuden taloudelliset seuraukset
+
+\vspace{5mm}
+
+```{r, results = "asis", eval = TRUE}
+create_table(tabdat, "Huono-osaisuuden taloudelliset seuraukset")
+```
+
+\vspace{10mm}
+
+```{r, fig.width=8.3, fig.height=13/1.7, eval = TRUE, results = "asis"}
+create_plot(varclass = "Huono-osaisuuden taloudelliset seuraukset")
+```
+
