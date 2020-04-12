@@ -49,6 +49,8 @@ ekaiso <- function(x) {
 }
 df$variable <- ekaiso(tolower(sub("^. - ", "", df$variable)))
 
+df$variable <- ifelse(df$variable == "Huono-osaisuus", "Huono-osaisuus yhteensä", df$variable)
+
 # Otetaan seutukuntanimiksi Tilastokeskuksen lyhyemmät
 geofi::municipality_key_2018 %>% 
   count(sk_name,sk_code) %>% 
@@ -89,7 +91,7 @@ saveRDS(regio_Seutukunnat,
 saveRDS(regio_Kunnat, 
         here("data/regio_Kunnat.RDS"))
 
-
+if (F){
 
 # Luodaan raaka muuttujakuvaus
 readRDS("./data/df_v20200320.RDS") %>% 
@@ -101,4 +103,4 @@ readRDS("./data/df_v20200320.RDS") %>%
 
 writexl::write_xlsx(x = dada, path = "./data/muuttujakuvaukset.xlsx")
 
-
+}
