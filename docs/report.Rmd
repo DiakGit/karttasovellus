@@ -30,6 +30,8 @@ editor_options:
 
 
 
+
+
 ```{r knitr_setup, include = FALSE}
 knitr::opts_chunk$set(list(echo=FALSE,
                          eval=TRUE,
@@ -212,7 +214,7 @@ left_join(tmpdat,max_dat) %>%
   select(muuttuja,arvo,sija,everything()) -> tabdat
 ```
 
-Mauris aliquam commodo nisl. Praesent a urna sed magna tincidunt viverra. Sed dignissim, nisl non condimentum aliquet, nibh turpis bibendum metus, ac porta leo lacus sit amet purus. Duis varius, neque in ornare convallis, arcu velit sagittis lorem, nec pretium velit lacus sit amet magna. Mauris eu interdum purus. Suspendisse et leo ex. Suspendisse at consectetur lectus. Fusce rutrum, velit tincidunt mattis pulvinar, enim dui consequat quam, vel posuere orci lacus in mi. Sed vitae leo vel dui mattis facilisis.
+
 
 ## Summamuuttujat
 

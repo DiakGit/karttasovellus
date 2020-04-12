@@ -113,31 +113,31 @@ shinyUI(bs4DashPage(
             bs4TabItem(
                 tabName = "info",
                 fluidRow(
-                    box(
+                    bs4SocialCard(src = "database.png",
                         title = "Aineisto",
-                        width = 9,
-                        tags$p("Mauris molestie sagittis risus, cursus posuere magna dapibus sed. Sed sed mauris enim. Proin consequat bibendum facilisis. 
-            Morbi eget rhoncus odio. Proin pretium, tellus id ornare pulvinar, magna eros sollicitudin magna, nec fringilla enim dui at erat. 
-            Sed vulputate neque odio, vel aliquet enim accumsan nec. Pellentesque dictum, justo ut ullamcorper dictum, massa nisl facilisis lacus, 
-            quis malesuada odio metus at quam. Integer vel imperdiet turpis."),
+                        width = 8,
                         tags$h4("Muuttujakuvaus"),
                         DT::dataTableOutput("variable_desctiption")
                     ),
-                    box(
-                        title = "Verkkosovellus",
-                        width = 3,
+                    bs4SocialCard(src = "chart-bar.png",
+                        title = "Sovellus",
+                        width = 4,
                         
-                        tags$p("Tämä verkkosovellus on tehty",tags$a(href = "https://www.r-project.org/", "R"),"-kielellä ja erityisesti ",
-                               tags$a(href = "https://shiny.rstudio.com", "Shiny"),"-paketin avulla. 
-                 Sovelluksen lähdekoodi on avoimesti lisensöity (MIT-lisenssi) ja se löytyy ",
+                        tags$strong("Huono-osaisuus Suomessa -verkkosovellus"),
+                        tags$p("Sovellusversio", tags$code("0.1.0"),tags$br(),"Aineistoversio", tags$code("0.1.0")),
+
+                        tags$p("Tämä verkkosovellus on tehty",tags$a(href = "https://www.r-project.org/", "R"),"-kielellä",
+                               tags$a(href = "https://shiny.rstudio.com", "Shiny"),"-kirjaston avulla. 
+                 Sovelluksen lähdekoodi on avoimesti lisensöity ja saatavilla ",
                                tags$a(href = "https://gitlab.com/muuankarski/diak_app", "Gitlab"),"-palvelusta."),
-                        tags$p("Löysitkö ohjelmasta bugin? Eikö jokin ominaisuus toimi toivotulla tavalla? Tuliko sinulle mieleen jokin parannusehdotus? 
-          Ei hätää, tapoja osallistua sovelluksen kehittämiseen on monia:"),
+                        
+                        
+                        tags$p("Mikäli löysit sovelluksesta bugin tai sinulla on idea tai toteutus uudesta ominaisuudesta voit:"),
                         tags$ul(
-                            tags$li("Toteuta korjaus tai uusi omainaisuus itse ja jätä ",tags$a(href = "https://gitlab.com/muuankarski/diak_app/-/merge_requests", "Gitlab"),"-palvelussa pull request."),
-                            tags$li("Avaa uusi ",tags$a(href = "https://gitlab.com/muuankarski/diak_app/-/issues", "issue"),
-                                    "GitLab-palvelussa ja kuvaa havaitsemasi bugi tai toive uudesta ominaisuudesta siellä."),
-                            tags$li("Lähetä meiliä osoitteeseen ",tags$a(href = "mailto:sakari.kainulainen@diak.fi", tags$code("sakari.kainulainen@diak.fi")))
+                            tags$li("toteuttaa ominaisuuden/korjauksen ja jättää",tags$a(href = "https://gitlab.com/muuankarski/diak_app/-/merge_requests", "merge requestin"),"Gitlab-palvelussa,"),
+                            tags$li("avata uuden ",tags$a(href = "https://gitlab.com/muuankarski/diak_app/-/issues", "issuen"),
+                                    "GitLab-palvelussa ja kuvata bugin/ominaisuuden siinä tai"),
+                            tags$li("laittaa meiliä osoitteeseen ",tags$a(href = "mailto:sakari.kainulainen@diak.fi", tags$code("sakari.kainulainen@diak.fi")))
                         )
                     )
                 )
