@@ -124,7 +124,7 @@ shinyUI(bs4DashPage(
                         width = 4,
                         
                         tags$strong("Huono-osaisuus Suomessa -verkkosovellus"),
-                        tags$p("Sovellusversio", tags$code("0.1.0"),tags$br(),"Aineistoversio", tags$code("0.1.0")),
+                        tags$p("Sovellusversio", tags$code("0.1.0"),tags$br(),"Aineistoversio", tags$code("0.1.1")),
 
                         tags$p("Tämä verkkosovellus on tehty",tags$a(href = "https://www.r-project.org/", "R"),"-kielellä",
                                tags$a(href = "https://shiny.rstudio.com", "Shiny"),"-kirjaston avulla. 
