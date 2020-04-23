@@ -4,7 +4,7 @@ source("./global.R")
 shinyServer(function(input, output) {
 
     get_dat <- reactive({
-        dat <- readRDS("./data/df_v20200320.RDS")
+        dat <- readRDS("./data/df_v20200423.RDS")
         return(dat)
     })
     
@@ -333,10 +333,10 @@ shinyServer(function(input, output) {
                                     kableExtra::kable_styling() %>% 
                                     HTML(),
                                 
-                                tags$h5("Huono-osaisuuden taloudelliset seuraukset"),
+                                tags$h5("Huono-osaisuuden taloudelliset yhteydet"),
                                 
                                 tabdat %>% 
-                                    filter(var_class == "Huono-osaisuuden taloudelliset seuraukset") %>% 
+                                    filter(var_class == "Huono-osaisuuden taloudelliset yhteydet") %>% 
                                     select(-var_class) %>% 
                                     knitr::kable(format = "html") %>% 
                                     kableExtra::kable_styling() %>% 

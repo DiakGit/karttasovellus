@@ -8,48 +8,39 @@ library(here)
 #options(tibble.print_max = 200)
 dir_create(here("./data"))
 
-dir_ls(here("./data_raw"), glob = "*.xlsx") -> flies
+# dir_ls(here("./data_raw/"), glob = "*.xlsx") -> flies
+dd <- read_excel("./data_raw/Kopio_Huono-osaisuuden mittarit - KAIKKI.xlsx")
 
-# ensin tsekataan nimet
-namelist <- list()
-aluetaso <- c("Kunnat","Maakunnat","Seutukunnat")
-for (i in 1:3){
-  namelist[[i]] <- tibble(names = read_excel(flies[i]) %>% 
-                            names(.), taso = aluetaso[i])
-}
-do.call(bind_rows, namelist) %>% 
-  count(names)
-
-# Sitten pinotaan datat
-datalist <- list()
-aluetaso <- c("Kunnat","Maakunnat","Seutukunnat")
-for (i in 1:3){
-  datalist[[i]] <- read_excel(flies[i]) %>% 
-    mutate(regio_level = aluetaso[i])
-}
-df <- do.call(bind_rows, datalist) %>%
-  # setNames(tolower(names(.))) %>%
+df_tmp <- dd %>%
   rename(aluekoodi = Aluekoodi,
-         aluenimi = Aluenimi) %>% 
+         aluenimi = Aluenimi,
+         regio_level = Aluetaso) %>% 
   mutate(aluekoodi = as.integer(ifelse(regio_level == "Maakunnat", sub("^MK", "", aluekoodi),
                                        ifelse(regio_level == "Seutukunnat", sub("^SK", "", aluekoodi), aluekoodi)))) %>% 
-  select(regio_level,everything()) %>% 
-  pivot_longer(names_to = "variable", values_to = "value", cols = 4:ncol(.))
+  select(regio_level,everything())  
 
-# Luokitellaan taustamuuttujat
-df$var_class <- ifelse(grepl("^I ", df$variable), "Inhimillinen huono-osaisuus", 
-                       ifelse(grepl("^S ", df$variable), "Huono-osaisuuden sosiaaliset seuraukset",
-                              ifelse(grepl("^T ", df$variable), "Huono-osaisuuden taloudelliset seuraukset", 
-                                     "Summamuuttujat")))
-table(df$var_class)
-# Siistitään muuttujanimet
+
 ekaiso <- function(x) {
   substr(x, 1, 1) <- toupper(substr(x, 1, 1))
   x
 }
-df$variable <- ekaiso(tolower(sub("^. - ", "", df$variable)))
 
-df$variable <- ifelse(df$variable == "Huono-osaisuus", "Huono-osaisuus yhteensä", df$variable)
+# Tsekataan mitkä muuttujat
+df_var_class <- tibble(
+  nms = names(df_tmp)
+) %>% 
+  mutate(nms_sani = gsub(" |-", "", nms)) %>% 
+  mutate(all_upper = grepl("^[[:upper:]]+$", nms_sani)) %>% 
+  mutate(var_class = ifelse(all_upper, nms, NA)) %>% 
+  mutate(var_class = zoo::na.locf0(var_class)) %>% 
+  mutate(var_class = ifelse(all_upper, "Summamuuttujat", ekaiso(tolower(var_class)))) 
+
+df <- df_tmp %>% 
+  pivot_longer(names_to = "variable", values_to = "value", cols = 4:ncol(.)) %>% 
+  left_join(df_var_class %>% select(nms,var_class,all_upper), 
+            by = c("variable" = "nms")) %>% 
+  # Piennetään ALL_UPPER nimet
+  mutate(variable = ifelse(all_upper, ekaiso(tolower(variable)), variable))
 
 # Otetaan seutukuntanimiksi Tilastokeskuksen lyhyemmät
 geofi::municipality_key_2018 %>% 
@@ -63,7 +54,7 @@ df2 <- left_join(df,sk_names) %>%
   filter(!variable %in% c("Inhimillinen","Sosiaalinen","Taloudellinen"),
          !is.na(value)) 
 
-saveRDS(df2, here("./data/df_v20200320.RDS"), 
+saveRDS(df2, here("./data/df_v20200423.RDS"), 
         compress = FALSE)
 
 # Apudata karttojen tekoon

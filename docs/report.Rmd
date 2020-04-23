@@ -269,17 +269,17 @@ create_plot(varclass = "Huono-osaisuuden sosiaaliset seuraukset")
 \newpage
 
 
-## Huono-osaisuuden taloudelliset seuraukset
+## Huono-osaisuuden taloudelliset yhteydet
 
 \vspace{5mm}
 
 ```{r, results = "asis", eval = TRUE}
-create_table(tabdat, "Huono-osaisuuden taloudelliset seuraukset")
+create_table(tabdat, "Huono-osaisuuden taloudelliset yhteydet")
 ```
 
 \vspace{10mm}
 
 ```{r, fig.width=8.3, fig.height=13/1.7, eval = TRUE, results = "asis"}
-create_plot(varclass = "Huono-osaisuuden taloudelliset seuraukset")
+create_plot(varclass = "Huono-osaisuuden taloudelliset yhteydet")
 ```
 
