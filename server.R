@@ -98,7 +98,7 @@ shinyServer(function(input, output) {
                                 tags$br(),
                                 "Kartan aluetta koskemalla tiedot siirtyvät oikean reunan taulukkoon ja alueprofiiliin. 
                  Taulukosta näet osoittimen arvot suuruusjärjestyksessä valitsemallasi aluetasolla.
-                 Alueprofiilista näet kartalta valitsemasi alueen tiedot kaikista osoittimista. Voit tallentaa sen laitteellesi.")
+                 Alueprofiilista näet kartalta valitsemasi alueen tiedot kaikista osoittimista. Voit tallentaa sen laitteellesi.",tags$a(href = "http://yle.fi", "Lue lisää Diakin blogista!"))
                 )
             )
         } else {
