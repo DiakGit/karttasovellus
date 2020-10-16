@@ -1,0 +1,235 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+    <link href="vendor/bootstrap/css/bootstrap.css" rel="stylesheet">
+    <link href="vendor/bootstrap/css/bootstrap-reboot.css" rel="stylesheet">
+    <link href="vendor/bootstrap/css/bootstrap-grid.css" rel="stylesheet">
+    <link href="custom.css" rel="stylesheet">
+    
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+
+  <script type="application/shiny-singletons"></script>
+  <script type="application/html-dependencies">json2[2014.02.04];jquery[3.5.1];shiny[1.5.0];htmlwidgets[1.5.1];leaflet[1.3.1];leafletfix[1.0.0];Proj4Leaflet[1.0.1];rstudio_leaflet[1.3.1];leaflet-binding[2.0.3];bootstrap[3.4.1]</script>
+<script src="local/json2-min.js"></script>
+<script src="local/jquery.min.js"></script>
+<link href="local/shiny.css" rel="stylesheet" />
+<script src="local/shiny.min.js"></script>
+<script src="local/htmlwidgets.js"></script>
+<link href="local/leaflet.css" rel="stylesheet" />
+<script src="local/leaflet.js"></script>
+<link href="local/leafletfix.css" rel="stylesheet" />
+<script src="local/proj4-compressed.js"></script>
+<script src="local/proj4leaflet.js"></script>
+<link href="local/rstudio_leaflet.css" rel="stylesheet" />
+<script src="local/leaflet-binding-2.0.3/leaflet.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link href="local/datatables-crosstalk.css" rel="stylesheet" />
+<script src="local/datatables.js"></script>
+<link href="local/crosstalk.css" rel="stylesheet" />
+<script src="local/crosstalk.min.js"></script>
+<!--link href="shared/bootstrap/css/bootstrap.min.css" rel="stylesheet" />
+<script src="shared/bootstrap/js/bootstrap.min.js"></script>
+<script src="shared/bootstrap/shim/html5shiv.min.js"></script>
+<script src="shared/bootstrap/shim/respond.min.js"></script-->
+</head>
+    
+<body>
+  
+    <!-- Navigation -->
+  <nav class="navbar navbar-expand-lg navbar-dark bg-secondary sticky-top">
+    <div class="container">
+      <a class="navbar-brand" href="#">Koti</a>
+      <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarResponsive" aria-controls="navbarResponsive" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse" id="navbarResponsive">
+        <ul class="navbar-nav ml-auto">
+          <li class="nav-item">
+            <a class="nav-link" href="#valikot">Valikot</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="#kartta">Kartta</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="#taulukko">Taulukko</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="#alueprofiili">Alueprofiili</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="#info">Lisätietoja</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="#saavutettavuus">Saavutettavuusseloste</a>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </nav>
+
+  <div class="container">
+    <div class="row">
+      <div class="col-lg-12">
+        <h1 class="mt-5">Huono-osaisuus Suomessa</h1>
+        <p class="lead">Saavutettava versio shiny-sovelluksesta</p>
+        
+        <div class="alert alert-info" role="alert">
+  <h2>Näin käytät sovellusta!</h2>
+  <p>
+  <strong>Valitse muuttujaluokka</strong>-valikosta voit säädellä haluatko katsoa huono-osaisuuden summatietoja vai tarkemmin kunkin 
+  huono-osaisuuden ulottuvuuden osoittimia. Kartan voit tallentaa laitteellesi <strong>Tallenna kartta</strong>-vällehdeltä.
+  <strong>Valitse muuttuja</strong>-valikosta voit valita tarkemman osoittimen. 
+          Kartan yläpuolelta voit valita aluetason: <i>maakunnat, seutukunnat ja kunnat.</i>
+  <br/>
+  Kartan aluetta koskemalla tiedot siirtyvät oikean reunan taulukkoon ja alueprofiiliin. 
+  Taulukosta näet osoittimen arvot suuruusjärjestyksessä valitsemallasi aluetasolla.
+  Alueprofiilista näet kartalta valitsemasi alueen tiedot kaikista osoittimista. Voit tallentaa sen laitteellesi.
+    <a href="https://dialogi.diak.fi/2020/05/13/uusi-karttasivusto-paljastaa-miten-huono-osaisuus-vaihtelee-alueiden-valilla/">Lue lisää Diakin blogista!</a>
+  </p>
+</div>
+        
+    <h2 id = "valikot">Valikot</h2>
+    
+    <div class="container">
+  <div class="row">
+    <div class="col-sm">
+    <div id="output_indicator_class" class="shiny-html-output"></div>
+    </div>
+    <div class="col-sm">
+    <div id="output_indicator" class="shiny-html-output"></div>
+    </div>
+    <div class="col-sm">
+    <div id="output_regio_level" class="shiny-html-output"></div>
+    </div>
+  </div>
+</div>
+    
+    
+    <h2 id = "kartta">Kartta</h2>
+    <div id="map1" style="width:90%; height:685px; " class="leaflet html-widget html-widget-output"></div>
+    
+    <h2 id = "taulukko">Taulukko</h2>
+    <div id="rank_tbl" style="width:100%; height:auto; " class="datatables html-widget html-widget-output"></div>
+    
+    <h2 id = "alueprofiili">Alueprofiili</h2>
+    <div id="region_profile_html" class="shiny-html-output"></div>
+    
+    
+    
+    
+    
+    <h2 id = "info">Lisätietoja</h2>
+    <h3>Aineisto</h3>
+    <div id="variable_desctiption" style="width:100%; height:auto; " class="datatables html-widget html-widget-output"></div>
+    
+    <h3>Sovellus</h3>
+    
+    <strong>Huono-osaisuus Suomessa -verkkosovellus</strong>
+    <p>Sovellusversio
+    <code>0.1.1</code><br/>
+    Aineistoversio
+    <code>0.1.2</code>
+    </p>
+    <p>Tämä verkkosovellus on tehty
+    <a href="https://www.r-project.org/">R</a>-kielellä
+    <a href="https://shiny.rstudio.com">Shiny</a>-kirjaston avulla. 
+    Sovelluksen lähdekoodi on avoimesti lisensöity ja saatavilla 
+    <a href="https://gitlab.com/muuankarski/diak_app">Gitlab</a>-palvelusta.</p>
+    
+    <p>Mikäli löysit sovelluksesta bugin tai sinulla on idea tai toteutus uudesta ominaisuudesta voit:</p>
+    <ul>
+    <li>
+    toteuttaa ominaisuuden/korjauksen ja jättää
+    <a href="https://gitlab.com/muuankarski/diak_app/-/merge_requests">merge requestin</a>Gitlab-palvelussa,
+    </li>
+    <li>
+    avata uuden <a href="https://gitlab.com/muuankarski/diak_app/-/issues">issuen</a> GitLab-palvelussa 
+    ja kuvata bugin/ominaisuuden siinä tai
+    </li>
+    <li>
+    laittaa meiliä osoitteeseen 
+    <a href="mailto:sakari.kainulainen@diak.fi"><code>sakari.kainulainen@diak.fi</code></a>
+    </li>
+    </ul>
+    
+    
+    <h2 id = "saavutettavuus">Saavutettavuusseloste</h2>
+    
+    <p>
+    <i>Saavutettavuudella</i> tarkoitetaan, että verkkosivut ja mobiilisovellukset sekä niiden sisällöt ovat sellaisia,     että kuka tahansa voisi niitä käyttää ja ymmärtää mitä niissä sanotaan.
+    </p>
+    <p>Diakin verkkosivuja koskee laki digitaalisten palvelujen tarjoamisesta, joka pohjautuu  EU:n saavutettavuusdirektiiviin. Lain mukaan kaikilla tulee olla tasavertaiset mahdollisuudet käyttää digitaalisia palveluita.</p>
+    <p>Tämä saavutettavuusseloste koskee <a href="https://www.thl.fi/sokra">Sokra-hankkeessa</a>
+    toteutettu <a href="https://diak.shinyapps.io/karttasovellus/">karttasivusto</a> on julkaistu 23.4.2020,
+    joka tarkoittaa sitä, että sivuston tulee noudattaa WCAG 2.1 –kriteeristön AA-tasoa 23.9.2020 mennessä.
+    </p>
+    <h3>Digipalvelun saavutettavuuden tila</h3>
+    <p>
+    Diakin itsearviona toteutetun saavutettavuusarvioinnin mukaan mahdollisia saavutettavuuspuutteita sivustolla
+    <a href="https://diak.shinyapps.io/karttasovellus/">diak.shinyapps.io/karttasovellus/</a>
+    saattaa olla:
+    </p>
+    <li> 
+    On todennäköistä, että ruudunlukuohjelma pystyy lukemaan sivustoa heikosti
+    </li>
+    <li>
+      Sivustolla navigointi ilman hiirtä on kankeaa
+      </li>
+    <li>
+      Kartalla näkyvien värien kontrastit eivät välttämättä ole riittäviä, 
+      väriskaalan soveltuvuus värisokeille epävarma.Karttakuvioiden informaatio on kuitenkin tarjolla samaan aikaan kirjoitetussa muodossa oikean reunan alueprofiileissa, mikä auttaa sivuston käyttämistä ilman karttakuvia.
+      </li>
+      <li>
+      PDF:ien värikontrasteissa osa maakuntien väreistä on liian vaaleita,jotta päällä oleva teksti näkyisi riittävän hyvin saavutettavuusstandardin mukaan
+      </li>
+    <p>
+    Karttasivustoa koskeva seloste on laadittu 19.9.2020. Seloste perustuu itsearvioon ja käyttäjiltä saatuun palautteeseen. Syyskuun aikana valmistuu raportti ulkopuolisen tekemästä auditoinnista, jossa arvioidaan palvelun tekninen toimivuus ja ladattavien karttojen auditointi.
+    </p>
+    <p>
+      Näiden arvioiden ja raportin perustella karttasivustoon tullaan tekemään saavutettavuutta parantavia korjauksia.
+    </p>
+    <h3>Palautetta saavutettavuudesta?</h3>
+    <p>Huomasitko saavutettavuuspuutteen digipalvelussamme? Kerro se meille ja eemme parhaamme puutteen korjaamiseksi
+    </p>
+    <p>
+    Ilmoita puute tällä <a href="https://www.diak.fi/diak/anna-palautetta/">verkkolomakkeella</a>. 
+    Valitse kohta verkkosivuston saavutettavuus. Kerro palautteessa, mitä Diakin hallinnoimaa sivustoa palaute koskee.
+    </p>
+    <p>
+      Jos huomaat sivustolla saavutettavuusongelmia, anna ensin palautetta sivuston ylläpitäjälle. 
+      Vastauksessa voi mennä 14 päivää. Jos et ole tyytyväinen saamaasi vastaukseen tai 
+      et saa vastausta lainkaan kahden viikon aikana, voit ilmoittaa asiasta valvontaviranomaiselle.
+    </p>
+    <strong>Valvontaviranomaisen yhteystiedot:</strong>
+    <p>
+      Etelä-Suomen aluehallintovirasto<br/>
+      Saavutettavuuden valvonnan yksikkö<br/>
+      www.saavutettavuusvaatimukset.fi<br/>
+      saavutettavuus(at)avi.fi<br/>
+      puhelinnumero vaihde 0295 016 000
+    </p>
+
+        </div>
+    </div>
+  </div>
+  
+    <footer class="footer">
+      <div class="container">
+        <!--span class="text-muted">Place sticky footer content here.</span-->
+                          
+                        <p style="text-align: right;">
+                          <strong>DIAK 2020</strong>
+                          <img src="app_diak.png" style="height: 62px; padding-left:20px;"/>
+                          <img src="app_vipu.png" style="height: 62px; padding-left:20px;"/>
+                          <img src="app_eu.png" style="height: 62px; padding-left:20px;"/>
+                          <img src="app_sokra.png" style="height: 62px;  padding-left:20px; padding-right:20px;"/>
+                        </p>
+      </div>
+    </footer>
+  
+  <!--script src="vendor/jquery/jquery.slim.min.js"></script-->
+  <script src="vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
