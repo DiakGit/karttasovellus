@@ -3,7 +3,9 @@
 html {
   position: relative;
   min-height: 100%;
+  scroll-behavior: smooth;
 }
+
 body {
   /* Margin bottom by footer height */
   margin-bottom: 60px;
@@ -24,8 +26,18 @@ body {
 /* Not required for template or sticky footer method. */
 
 body > .container {
-  padding: 60px 15px 0;
+  padding: 10px 15px 0;
 }
+
+h2 {
+  padding: 45px 5px 0;
+}
+
+h3 {
+  padding: 15px 15px 0;
+}
+
+
 
 .footer > .container {
   padding-right: 15px;
@@ -35,3 +47,12 @@ body > .container {
 code {
   font-size: 80%;
 }
+
+/*DIAK-kustomoinnit*/
+
+.bg-light {
+    background-color: rgb(248, 249, 250, .85) !important;
+}
+
+
+
