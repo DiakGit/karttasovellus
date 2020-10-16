@@ -2,10 +2,12 @@
 <!DOCTYPE html>
 <html>
 <head>
+  <title>Huono-osaisuus Suomessa</title>
   <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
     <link href="vendor/bootstrap/css/bootstrap.css" rel="stylesheet">
     <link href="vendor/bootstrap/css/bootstrap-reboot.css" rel="stylesheet">
     <link href="vendor/bootstrap/css/bootstrap-grid.css" rel="stylesheet">
+    <link href="cosmo/bootstrap.css" rel="stylesheet" />
     <link href="custom.css" rel="stylesheet">
     
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
@@ -38,22 +40,16 @@
 <body>
   
     <!-- Navigation -->
-  <nav class="navbar navbar-expand-lg navbar-dark bg-secondary sticky-top">
+  <nav class="navbar navbar-expand-lg navbar-light bg-light sticky-top">
     <div class="container">
-      <a class="navbar-brand" href="#">Koti</a>
+      <a class="navbar-brand" href="#"><img src = "https://www.diak.fi/wp-content/themes/diak/dist/images/diak-logo-1.svg" style = "height: 25px; padding-right: 5px;" alt = "Diakonia-ammattikorkeakoulun logo"><small>Huono-osaisuus Suomessa</small></a>
       <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarResponsive" aria-controls="navbarResponsive" aria-expanded="false" aria-label="Toggle navigation">
         <span class="navbar-toggler-icon"></span>
       </button>
       <div class="collapse navbar-collapse" id="navbarResponsive">
         <ul class="navbar-nav ml-auto">
           <li class="nav-item">
-            <a class="nav-link" href="#valikot">Valikot</a>
-          </li>
-          <li class="nav-item">
-            <a class="nav-link" href="#kartta">Kartta</a>
-          </li>
-          <li class="nav-item">
-            <a class="nav-link" href="#taulukko">Taulukko</a>
+            <a class="nav-link" href="#kartta">Kartta ja taulukko</a>
           </li>
           <li class="nav-item">
             <a class="nav-link" href="#alueprofiili">Alueprofiili</a>
@@ -68,30 +64,32 @@
       </div>
     </div>
   </nav>
+  
+  <div class="container">
+    <div class="row">
+      <div class="col-lg-8">
 
+  <h1>Huono-osaisuus Suomessa</h1>
+    
+  <p class="lead">Näin käytät sovellusta!</p>
+<p>
+  <strong>Valitse muuttujaluokka</strong>-valikosta voit säädellä haluatko katsoa huono-osaisuuden summatietoja 
+  vai tarkemmin kunkin  huono-osaisuuden ulottuvuuden osoittimia. 
+  <strong>Valitse muuttuja</strong>-valikosta voit valita tarkemman osoittimen. 
+  <strong>Valitse aluetaso</strong>-valikosta voit valita aluetason: <i>maakunnat, seutukunnat ja kunnat.</i>
+  <br/>
+  Kartan aluetta koskemalla tiedot siirtyvät oikean reunan taulukkoon sekä alueprofiiliin.
+  Taulukosta näet osoittimen arvot suuruusjärjestyksessä valitsemallasi aluetasolla.
+  Alueprofiilista näet kartalta valitsemasi alueen tiedot kaikista osoittimista.
+    <a href="https://dialogi.diak.fi/2020/05/13/uusi-karttasivusto-paljastaa-miten-huono-osaisuus-vaihtelee-alueiden-valilla/" style= "color: white; font-weight: 800;">Lue lisää Diakin blogista!</a>
+    </p>
+</div>
+</div>  
+</div>
   <div class="container">
     <div class="row">
       <div class="col-lg-12">
-        <h1 class="mt-5">Huono-osaisuus Suomessa</h1>
-        <p class="lead">Saavutettava versio shiny-sovelluksesta</p>
-        
-        <div class="alert alert-info" role="alert">
-  <h2>Näin käytät sovellusta!</h2>
-  <p>
-  <strong>Valitse muuttujaluokka</strong>-valikosta voit säädellä haluatko katsoa huono-osaisuuden summatietoja vai tarkemmin kunkin 
-  huono-osaisuuden ulottuvuuden osoittimia. Kartan voit tallentaa laitteellesi <strong>Tallenna kartta</strong>-vällehdeltä.
-  <strong>Valitse muuttuja</strong>-valikosta voit valita tarkemman osoittimen. 
-          Kartan yläpuolelta voit valita aluetason: <i>maakunnat, seutukunnat ja kunnat.</i>
-  <br/>
-  Kartan aluetta koskemalla tiedot siirtyvät oikean reunan taulukkoon ja alueprofiiliin. 
-  Taulukosta näet osoittimen arvot suuruusjärjestyksessä valitsemallasi aluetasolla.
-  Alueprofiilista näet kartalta valitsemasi alueen tiedot kaikista osoittimista. Voit tallentaa sen laitteellesi.
-    <a href="https://dialogi.diak.fi/2020/05/13/uusi-karttasivusto-paljastaa-miten-huono-osaisuus-vaihtelee-alueiden-valilla/">Lue lisää Diakin blogista!</a>
-  </p>
-</div>
-        
-    <h2 id = "valikot">Valikot</h2>
-    
+
     <div class="container">
   <div class="row">
     <div class="col-sm">
@@ -105,19 +103,48 @@
     </div>
   </div>
 </div>
+
+
+</div>
+</div>  
+</div>  
+
+  <div class="container">
+      <div class="row">
+        <div class="col-lg-12">    
+            <h2 id = "kartta">Kartta ja taulukko</h2>
+</div>  
+</div>  
     
     
-    <h2 id = "kartta">Kartta</h2>
-    <div id="map1" style="width:90%; height:685px; " class="leaflet html-widget html-widget-output"></div>
+      <div class="row">
+        <div class="col-lg-7">
+          <div id="output_save_map" class="shiny-html-output"></div>
+          <div id="map1" style="width:90%; height:720px ; " class="leaflet html-widget html-widget-output"></div>
+        </div>
+        
+        <div class="col-lg-5">
+          <div id="rank_tbl" style="width:90%; height:auto ; " class="datatables html-widget html-widget-output"></div>
+        </div>
     
-    <h2 id = "taulukko">Taulukko</h2>
-    <div id="rank_tbl" style="width:100%; height:auto; " class="datatables html-widget html-widget-output"></div>
+</div>
+</div>  
+
+  <div class="container">
+    <div class="row">
+      <div class="col-lg-12">
+    
     
     <h2 id = "alueprofiili">Alueprofiili</h2>
     <div id="region_profile_html" class="shiny-html-output"></div>
     
-    
-    
+</div>  
+</div>      
+    </div>      
+
+  <div class="container">
+    <div class="row">
+      <div class="col-lg-12">
     
     
     <h2 id = "info">Lisätietoja</h2>
@@ -154,6 +181,13 @@
     </li>
     </ul>
     
+    </div>  
+</div>      
+    </div>      
+
+      <div class="container">
+    <div class="row">
+      <div class="col-lg-9">
     
     <h2 id = "saavutettavuus">Saavutettavuusseloste</h2>
     
