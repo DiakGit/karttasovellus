@@ -44,13 +44,14 @@ df <- df_tmp %>%
 
 # Otetaan seutukuntanimiksi Tilastokeskuksen lyhyemmät
 geofi::municipality_key_2018 %>% 
-  count(sk_name,sk_code) %>% 
-  rename(aluekoodi = sk_code) %>% 
+  count(seutukunta_name_fi,seutukunta_code) %>% 
+  rename(aluekoodi = seutukunta_code,
+         aluename = seutukunta_name_fi) %>% 
   select(-n) -> sk_names
 
 df2 <- left_join(df,sk_names) %>% 
-  mutate(aluenimi = ifelse(regio_level == "Seutukunnat", sk_name, aluenimi)) %>% 
-  select(-sk_name) %>% 
+  mutate(aluenimi = ifelse(regio_level == "Seutukunnat", aluename, aluenimi)) %>% 
+  select(-aluename) %>% 
   filter(!variable %in% c("Inhimillinen","Sosiaalinen","Taloudellinen"),
          !is.na(value)) 
 
@@ -58,16 +59,17 @@ saveRDS(df2, here("./data/df_v20200423.RDS"),
         compress = FALSE)
 
 # Apudata karttojen tekoon
-muni <- geofi::get_municipalities(year = 2017) %>% 
-  filter(mk_name != "Ahvenanmaa")
+muni <- geofi::get_municipalities(year = 2017) %>%
+  filter(maakunta_name_fi != "Ahvenanmaa")
 regio_Seutukunnat <- muni %>% 
-  group_by(sk_code) %>% 
-  summarise() %>% rename(aluekoodi = sk_code) 
+  group_by(seutukunta_code) %>% 
+  summarise() %>% rename(aluekoodi = seutukunta_code) 
 regio_Maakunnat <- muni %>% 
-  group_by(mk_code) %>% 
-  summarise() %>% rename(aluekoodi = mk_code)
+  group_by(maakunta_code) %>% 
+  summarise() %>% rename(aluekoodi = maakunta_code)
 regio_Kunnat <- muni %>% 
-  select(kunta) %>% rename(aluekoodi = kunta)
+  select(municipality_code) %>% 
+  rename(aluekoodi = municipality_code)
 regio_Suomi <- muni %>% 
   mutate(maa = "Suomi") %>% 
   group_by(maa) %>% 
@@ -81,6 +83,29 @@ saveRDS(regio_Seutukunnat,
         here("data/regio_Seutukunnat.RDS"))
 saveRDS(regio_Kunnat, 
         here("data/regio_Kunnat.RDS"))
+
+
+# tehdään aluekoodi/aluenimi -data vielä
+bind_rows(
+geofi::municipality_key_2017 %>% 
+  count(municipality_code,municipality_name_fi) %>% 
+  select(-n) %>% 
+  setNames(c("aluekoodi","aluenimi")) %>% 
+  mutate(aluetaso = "Kunnat"),
+geofi::municipality_key_2017 %>% 
+  count(seutukunta_code,seutukunta_name_fi) %>% 
+  select(-n) %>% 
+  setNames(c("aluekoodi","aluenimi")) %>% 
+  mutate(aluetaso = "Seutukunnat"),
+geofi::municipality_key_2017 %>% 
+  count(maakunta_code,maakunta_name_fi) %>% 
+  select(-n) %>% 
+  setNames(c("aluekoodi","aluenimi")) %>% 
+  mutate(aluetaso = "Maakunnat")
+) %>% 
+  saveRDS(here("data/regiokey.RDS"))
+
+
 
 if (F){
 
