@@ -10,8 +10,6 @@
     <link href="cosmo/bootstrap.css" rel="stylesheet" />
     <link href="custom.css" rel="stylesheet">
     
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
-
   <script type="application/shiny-singletons"></script>
   <script type="application/html-dependencies">json2[2014.02.04];jquery[3.5.1];shiny[1.5.0];htmlwidgets[1.5.1];leaflet[1.3.1];leafletfix[1.0.0];Proj4Leaflet[1.0.1];rstudio_leaflet[1.3.1];leaflet-binding[2.0.3];bootstrap[3.4.1]</script>
 <script src="local/json2-min.js"></script>
@@ -35,6 +33,11 @@
 <script src="shared/bootstrap/js/bootstrap.min.js"></script>
 <script src="shared/bootstrap/shim/html5shiv.min.js"></script>
 <script src="shared/bootstrap/shim/respond.min.js"></script-->
+<script src="local/sockjs-0.3.4.min.js"></script>
+<script src="local/shiny-server-client.min.js"></script>
+<script>preShinyInit({reconnect:true,disableProtocols:[]});</script>
+<link rel="stylesheet" type="text/css" href="local/shiny-server.css"/>
+
 </head>
     
 <body>
@@ -43,13 +46,16 @@
   <nav class="navbar navbar-expand-lg navbar-light bg-light sticky-top">
     <div class="container">
       <a class="navbar-brand" href="#"><img src = "https://www.diak.fi/wp-content/themes/diak/dist/images/diak-logo-1.svg" style = "height: 25px; padding-right: 5px;" alt = "Diakonia-ammattikorkeakoulun logo"><small>Huono-osaisuus Suomessa</small></a>
-      <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarResponsive" aria-controls="navbarResponsive" aria-expanded="false" aria-label="Toggle navigation">
+      <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarResponsive" aria-controls="navbarResponsive" aria-expanded="false" aria-label="Avaa valikko">
         <span class="navbar-toggler-icon"></span>
       </button>
       <div class="collapse navbar-collapse" id="navbarResponsive">
         <ul class="navbar-nav ml-auto">
           <li class="nav-item">
-            <a class="nav-link" href="#kartta">Kartta ja taulukko</a>
+            <a class="nav-link" href="#kartta">Kartta</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="#taulukko">Taulukko</a>
           </li>
           <li class="nav-item">
             <a class="nav-link" href="#alueprofiili">Alueprofiili</a>
@@ -64,13 +70,14 @@
       </div>
     </div>
   </nav>
-  
+
+  <main>
   <div class="container">
     <div class="row">
       <div class="col-lg-8">
 
-  <h1>Huono-osaisuus Suomessa</h1>
-    
+  <h1 id = "ylaotsikko">Huono-osaisuus Suomessa</h1>
+  
   <p class="lead">Näin käytät sovellusta!</p>
 <p>
   <strong>Valitse muuttujaluokka</strong>-valikosta voit säädellä haluatko katsoa huono-osaisuuden summatietoja 
@@ -93,13 +100,13 @@
     <div class="container">
   <div class="row">
     <div class="col-sm">
-    <div id="output_indicator_class" class="shiny-html-output"></div>
+    <div id="output_indicator_class" class="shiny-html-output" aria-labelledby="Valitse muuttujan luokka"></div>
     </div>
     <div class="col-sm">
-    <div id="output_indicator" class="shiny-html-output"></div>
+    <div id="output_indicator" class="shiny-html-output"  aria-labelledby="Valitse yksi tai useampi muuttuja"></div>
     </div>
     <div class="col-sm">
-    <div id="output_regio_level" class="shiny-html-output"></div>
+    <div id="output_regio_level" class="shiny-html-output"  aria-labelledby="Valitse aluetaso"></div>
     </div>
   </div>
 </div>
@@ -110,20 +117,16 @@
 </div>  
 
   <div class="container">
+
       <div class="row">
-        <div class="col-lg-12">    
-            <h2 id = "kartta">Kartta ja taulukko</h2>
-</div>  
-</div>  
-    
-    
-      <div class="row">
-        <div class="col-lg-7">
-          <div id="output_save_map" class="shiny-html-output"></div>
+        <div class="col-lg-5">
+      <h2 id = "kartta">Kartta</h2>
+          <div id="output_save_map" class="shiny-html-output" aria-labelledby="Tallenna kartta png-muodossa"></div>
           <div id="map1" style="width:90%; height:720px ; " class="leaflet html-widget html-widget-output"></div>
         </div>
         
-        <div class="col-lg-5">
+        <div class="col-lg-7">
+        <h2 id = "taulukko">Taulukko</h2>
           <div id="rank_tbl" style="width:90%; height:auto ; " class="datatables html-widget html-widget-output"></div>
         </div>
     
@@ -140,16 +143,16 @@
     
 </div>  
 </div>      
-    </div>      
-
-  <div class="container">
+    </div>
+    
+      <div class="container">
     <div class="row">
       <div class="col-lg-12">
     
     
-    <h2 id = "info">Lisätietoja</h2>
+    <h1 id = "info">Lisätietoja</h1>
     <h3>Aineisto</h3>
-    <div id="variable_desctiption" style="width:100%; height:auto; " class="datatables html-widget html-widget-output"></div>
+    <div id="variable_desctiption" style="width:90%; height:auto; " class="datatables html-widget html-widget-output"></div>
     
     <h3>Sovellus</h3>
     
@@ -185,10 +188,11 @@
 </div>      
     </div>      
 
-      <div class="container">
+
+  <div class="container">
     <div class="row">
-      <div class="col-lg-9">
-    
+      <div class="col-lg-8">
+
     <h2 id = "saavutettavuus">Saavutettavuusseloste</h2>
     
     <p>
@@ -199,7 +203,7 @@
     toteutettu <a href="https://diak.shinyapps.io/karttasovellus/">karttasivusto</a> on julkaistu 23.4.2020,
     joka tarkoittaa sitä, että sivuston tulee noudattaa WCAG 2.1 –kriteeristön AA-tasoa 23.9.2020 mennessä.
     </p>
-    <h3>Digipalvelun saavutettavuuden tila</h3>
+    <h2>Digipalvelun saavutettavuuden tila</h2>
     <p>
     Diakin itsearviona toteutetun saavutettavuusarvioinnin mukaan mahdollisia saavutettavuuspuutteita sivustolla
     <a href="https://diak.shinyapps.io/karttasovellus/">diak.shinyapps.io/karttasovellus/</a>
@@ -248,17 +252,18 @@
         </div>
     </div>
   </div>
-  
+
+  </main>
     <footer class="footer">
       <div class="container">
         <!--span class="text-muted">Place sticky footer content here.</span-->
                           
                         <p style="text-align: right;">
                           <strong>DIAK 2020</strong>
-                          <img src="app_diak.png" style="height: 62px; padding-left:20px;"/>
-                          <img src="app_vipu.png" style="height: 62px; padding-left:20px;"/>
-                          <img src="app_eu.png" style="height: 62px; padding-left:20px;"/>
-                          <img src="app_sokra.png" style="height: 62px;  padding-left:20px; padding-right:20px;"/>
+                          <img src="app_diak.png" style="height: 62px; padding-left:20px;" alt = "Diakonia-ammattikorkeakoulun logo"/>
+                          <img src="app_vipu.png" style="height: 62px; padding-left:20px;" alt = "Rakennerahastot.fi -verkkopalvelun logo"/>
+                          <img src="app_eu.png" style="height: 62px; padding-left:20px;" alt = "Euroopan unionin lippu, jonka alla teksti: Euroopan unioni, Euroopan aluekehitysrahasto"/>
+                          <img src="app_sokra.png" style="height: 62px;  padding-left:20px; padding-right:20px;" alt = "Sosiaalisen osallisuuden edistämisen koordinaatiohankeen Sokran logo"/>
                         </p>
       </div>
     </footer>
