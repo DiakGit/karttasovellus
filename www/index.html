@@ -1,9 +1,10 @@
 
 <!DOCTYPE html>
-<html>
+<html lang="fi">
 <head>
   <title>Huono-osaisuus Suomessa</title>
   <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+
     <link href="vendor/bootstrap/css/bootstrap.css" rel="stylesheet">
     <link href="vendor/bootstrap/css/bootstrap-reboot.css" rel="stylesheet">
     <link href="vendor/bootstrap/css/bootstrap-grid.css" rel="stylesheet">
@@ -32,11 +33,11 @@
 <!--link href="shared/bootstrap/css/bootstrap.min.css" rel="stylesheet" />
 <script src="shared/bootstrap/js/bootstrap.min.js"></script>
 <script src="shared/bootstrap/shim/html5shiv.min.js"></script>
-<script src="shared/bootstrap/shim/respond.min.js"></script-->
+<script src="shared/bootstrap/shim/respond.min.js"></script>
 <script src="local/sockjs-0.3.4.min.js"></script>
 <script src="local/shiny-server-client.min.js"></script>
 <script>preShinyInit({reconnect:true,disableProtocols:[]});</script>
-<link rel="stylesheet" type="text/css" href="local/shiny-server.css"/>
+<link rel="stylesheet" type="text/css" href="local/shiny-server.css"/-->
 
 </head>
     
@@ -100,13 +101,13 @@
     <div class="container">
   <div class="row">
     <div class="col-sm">
-    <div id="output_indicator_class" class="shiny-html-output" aria-labelledby="Valitse muuttujan luokka"></div>
+    <div id="output_indicator_class" class="shiny-html-output"></div>
     </div>
     <div class="col-sm">
-    <div id="output_indicator" class="shiny-html-output"  aria-labelledby="Valitse yksi tai useampi muuttuja"></div>
+    <div id="output_indicator" class="shiny-html-output"></div>
     </div>
     <div class="col-sm">
-    <div id="output_regio_level" class="shiny-html-output"  aria-labelledby="Valitse aluetaso"></div>
+    <div id="output_regio_level" class="shiny-html-output"></div>
     </div>
   </div>
 </div>
@@ -121,11 +122,11 @@
       <div class="row">
         <div class="col-lg-5">
       <h2 id = "kartta">Kartta</h2>
-          <div id="output_save_map" class="shiny-html-output" aria-labelledby="Tallenna kartta png-muodossa"></div>
+          <div id="output_save_map" class="shiny-html-output"></div>
           <div id="map1" style="width:90%; height:720px ; " class="leaflet html-widget html-widget-output"></div>
         </div>
         
-        <div class="col-lg-7">
+        <div class="col-lg-5">
         <h2 id = "taulukko">Taulukko</h2>
           <div id="rank_tbl" style="width:90%; height:auto ; " class="datatables html-widget html-widget-output"></div>
         </div>
@@ -209,6 +210,7 @@
     <a href="https://diak.shinyapps.io/karttasovellus/">diak.shinyapps.io/karttasovellus/</a>
     saattaa olla:
     </p>
+    <ul>
     <li> 
     On todennäköistä, että ruudunlukuohjelma pystyy lukemaan sivustoa heikosti
     </li>
@@ -222,6 +224,7 @@
       <li>
       PDF:ien värikontrasteissa osa maakuntien väreistä on liian vaaleita,jotta päällä oleva teksti näkyisi riittävän hyvin saavutettavuusstandardin mukaan
       </li>
+      </ul>
     <p>
     Karttasivustoa koskeva seloste on laadittu 19.9.2020. Seloste perustuu itsearvioon ja käyttäjiltä saatuun palautteeseen. Syyskuun aikana valmistuu raportti ulkopuolisen tekemästä auditoinnista, jossa arvioidaan palvelun tekninen toimivuus ja ladattavien karttojen auditointi.
     </p>
