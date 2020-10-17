@@ -42,6 +42,7 @@
 </head>
     
 <body>
+  <a class="sr-only sr-only-focusable" href="#content">Siirry sisältöön</a>
   
     <!-- Navigation -->
   <nav class="navbar navbar-expand-lg navbar-light bg-light sticky-top">
@@ -77,7 +78,7 @@
     <div class="row">
       <div class="col-lg-8">
 
-  <h1 id = "ylaotsikko">Huono-osaisuus Suomessa</h1>
+  <h1 id = "content">Huono-osaisuus Suomessa</h1>
   
   <p class="lead">Näin käytät sovellusta!</p>
 <p>
@@ -85,11 +86,12 @@
   vai tarkemmin kunkin  huono-osaisuuden ulottuvuuden osoittimia. 
   <strong>Valitse muuttuja</strong>-valikosta voit valita tarkemman osoittimen. 
   <strong>Valitse aluetaso</strong>-valikosta voit valita aluetason: <i>maakunnat, seutukunnat ja kunnat.</i>
-  <br/>
-  Kartan aluetta koskemalla tiedot siirtyvät oikean reunan taulukkoon sekä alueprofiiliin.
+  <strong>Kartta ja taulukot muuttuvat samanaikaisesti valinnan muuttuessa.</strong>
+  <br/><br/>
+  Kartan aluetta koskemalla tiedot siirtyvät oikean reunan taulukkoon sekä alueprofiiliin. Voit valita alueen myös koskemalla taulukon riviä. <br/>
   Taulukosta näet osoittimen arvot suuruusjärjestyksessä valitsemallasi aluetasolla.
   Alueprofiilista näet kartalta valitsemasi alueen tiedot kaikista osoittimista.
-    <a href="https://dialogi.diak.fi/2020/05/13/uusi-karttasivusto-paljastaa-miten-huono-osaisuus-vaihtelee-alueiden-valilla/" style= "color: white; font-weight: 800;">Lue lisää Diakin blogista!</a>
+    <a href="https://dialogi.diak.fi/2020/05/13/uusi-karttasivusto-paljastaa-miten-huono-osaisuus-vaihtelee-alueiden-valilla/">Lue lisää Diakin blogista!</a>
     </p>
 </div>
 </div>  
@@ -97,9 +99,11 @@
   <div class="container">
     <div class="row">
       <div class="col-lg-12">
+    <hr>
 
     <div class="container">
   <div class="row">
+    
     <div class="col-sm">
     <div id="output_indicator_class" class="shiny-html-output"></div>
     </div>
@@ -136,7 +140,7 @@
 
   <div class="container">
     <div class="row">
-      <div class="col-lg-12">
+      <div class="col-lg-12 bg-alueprofiili">
     
     
     <h2 id = "alueprofiili">Alueprofiili</h2>
@@ -258,16 +262,25 @@
 
   </main>
     <footer class="footer">
-      <div class="container">
-        <!--span class="text-muted">Place sticky footer content here.</span-->
-                          
-                        <p style="text-align: right;">
-                          <strong>DIAK 2020</strong>
-                          <img src="app_diak.png" style="height: 62px; padding-left:20px;" alt = "Diakonia-ammattikorkeakoulun logo"/>
-                          <img src="app_vipu.png" style="height: 62px; padding-left:20px;" alt = "Rakennerahastot.fi -verkkopalvelun logo"/>
-                          <img src="app_eu.png" style="height: 62px; padding-left:20px;" alt = "Euroopan unionin lippu, jonka alla teksti: Euroopan unioni, Euroopan aluekehitysrahasto"/>
-                          <img src="app_sokra.png" style="height: 62px;  padding-left:20px; padding-right:20px;" alt = "Sosiaalisen osallisuuden edistämisen koordinaatiohankeen Sokran logo"/>
-                        </p>
+                          <div class="container">
+                        <div class="row">
+    <div class="col-sm">
+        <strong>DIAK 2020</strong>    
+    </div>
+    <div class="col-sm">
+      <img src="app_diak.png" style="height: 62px;" alt = "Diakonia-ammattikorkeakoulun logo"/>
+    </div>
+    <div class="col-sm">
+      <img src="app_vipu.png" style="height: 62px;" alt = "Rakennerahastot.fi -verkkopalvelun logo"/>
+    </div>
+        <div class="col-sm">
+<img src="app_eu.png" style="height: 62px;" alt = "Euroopan unionin lippu, jonka alla teksti: Euroopan unioni, Euroopan aluekehitysrahasto"/>
+    </div>
+        <div class="col-sm">
+<img src="app_sokra.png" style="height: 62px;" alt = "Sosiaalisen osallisuuden edistämisen koordinaatiohankeen Sokran logo"/>
+    </div>
+  </div>
+  
       </div>
     </footer>
   
