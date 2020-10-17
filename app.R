@@ -8,6 +8,7 @@ ui <- fluidPage(
     uiOutput("output_regio_level"),
     leaflet::leafletOutput("map1", width = "100%", height = "685px"),
     DT::dataTableOutput("rank_tbl"),
+    # verbatimTextOutput("value"),
     uiOutput("region_profile_html"),
     DT::dataTableOutput("variable_desctiption"),
     uiOutput("output_save_map")
@@ -69,18 +70,18 @@ server <- function(input, output) {
             tagList(
                 pickerInput(inputId = "value_variable", 
                             label = "Valitse muuttuja", 
-                            choices = opt_indicator2)
-                            # ,selected = opt_indicator2[1],
-                            # option= pickerOptions(
-                            #     actionsBox = TRUE,
-                            #     liveSearch = TRUE,
-                            #     deselectAllText = "Ei mitään",
-                            #     selectAllText = "Kaikki",
-                            #     noneSelectedText = "Ei yhtään valittuna",
-                            #     noneResultsText = "Ei yhtään osumaa",
-                            #     maxOptions = 4, 
-                            #     maxOptionsText = "Maksimimäärä muuttujia valittu"
-                            # ),multiple = TRUE)
+                            choices = opt_indicator2
+                            ,selected = opt_indicator2[1],
+                            option= pickerOptions(
+                                actionsBox = TRUE,
+                                liveSearch = TRUE,
+                                deselectAllText = "Ei mitään",
+                                selectAllText = "Kaikki",
+                                noneSelectedText = "Ei yhtään valittuna",
+                                noneResultsText = "Ei yhtään osumaa"#,
+                                # maxOptions = 4,
+                                # maxOptionsText = "Maksimimäärä muuttujia valittu"
+                            ),multiple = FALSE)
             )
         # }
         
@@ -90,10 +91,10 @@ server <- function(input, output) {
         
         req(input$value_variable_class)
         req(input$value_variable)
-        
+        varname <- input$value_variable[1]
         indicator_df <- varlist_diak()
-        opt_indicator <- unique(indicator_df[indicator_df$var_class %in% input$value_variable_class & indicator_df$variable %in% input$value_variable,]$regio_level)
-        opt_indicator <- indicator_df[indicator_df$variable %in% input$value_variable,]$regio_level
+        opt_indicator <- unique(indicator_df[indicator_df$var_class %in% input$value_variable_class & indicator_df$variable %in% varname,]$regio_level)
+        opt_indicator <- indicator_df[indicator_df$variable %in% varname,]$regio_level
         opt_indicator <- factor(opt_indicator, levels = c("Maakunnat","Seutukunnat","Kunnat"))
         opt_indicator <- sort(opt_indicator)
         
@@ -107,11 +108,6 @@ server <- function(input, output) {
             )
         # }
         
-    })
-    
-    output$kartta <- renderLeaflet({
-        leaflet() %>% 
-            addTiles()
     })
     
 
@@ -273,11 +269,27 @@ server <- function(input, output) {
         return(dt)
     })
     
+
+    
+    
     
     
     output$region_profile_html <- renderUI({
         # klik <- rv$map_click_id
         klik <- get_klik()
+        
+        aluenimi_kartta <- klik$id
+        
+        dat <- process_data() %>% 
+            st_set_geometry(NULL) %>% 
+            select(rank,aluenimi,value)
+        aluenimi_taulukko <- unique(dat[input$rank_tbl_rows_selected,]$aluenimi)
+                                    
+        if (aluenimi_kartta != aluenimi_taulukko){
+            aluename <- aluenimi_taulukko
+        } else {
+            aluename <- aluenimi_kartta
+        }        
         
         
         if (is.null(klik$id)){
@@ -288,7 +300,7 @@ server <- function(input, output) {
             
             dat <- get_dat()
             
-            dat[dat$regio_level %in% input$value_regio_level2 & dat$aluenimi %in% klik$id,] %>% 
+            dat[dat$regio_level %in% input$value_regio_level2 & dat$aluenimi %in% aluename,] %>% 
                 select(var_class,variable,value) -> tmpdat
             # 
             dat[dat$regio_level %in% input$value_regio_level2,] %>% 
@@ -313,7 +325,7 @@ server <- function(input, output) {
                 mutate(sija = 1:n(),
                        n = n()) %>% 
                 ungroup() %>% 
-                filter(aluenimi %in% klik$id) %>% 
+                filter(aluenimi %in% aluename) %>% 
                 select(variable,sija) -> rank_dat
             
             left_join(tmpdat,max_dat) %>% 
@@ -327,7 +339,7 @@ server <- function(input, output) {
             
             tagList(
                 fluidRow(column(width = 12, 
-                                tags$h4(glue("{klik$id} ({input$value_regio_level2})")),
+                                tags$h4(glue("{aluename} ({input$value_regio_level2})")),
                 # ),
                 # column(6, downloadButton("report", 
                 #                          glue("Tallenna {tolower(input$value_regio_level2)}_{klik$id}.pdf")),
@@ -338,7 +350,8 @@ server <- function(input, output) {
                                 tabdat %>% 
                                     filter(var_class == "Summamuuttujat") %>% 
                                     select(-var_class) %>% 
-                                    knitr::kable(format = "html") %>% 
+                                    setNames(c("muuttuja",aluename,"sijoitus","korkein arvo", "matalin arvo")) %>% 
+                                    knitr::kable(format = "html", table.attr = "class=\'table-hover\'") %>% 
                                     kableExtra::kable_styling() %>% 
                                     HTML(),
                                 
@@ -347,7 +360,8 @@ server <- function(input, output) {
                                 tabdat %>% 
                                     filter(var_class == "Inhimillinen huono-osaisuus") %>% 
                                     select(-var_class) %>% 
-                                    knitr::kable(format = "html") %>% 
+                                    setNames(c("muuttuja",aluename,"sijoitus","korkein arvo", "matalin arvo")) %>% 
+                                    knitr::kable(format = "html", table.attr = "class=\'table-hover\'") %>% 
                                     kableExtra::kable_styling() %>% 
                                     HTML(),
                                 
@@ -356,7 +370,8 @@ server <- function(input, output) {
                                 tabdat %>% 
                                     filter(var_class == "Huono-osaisuuden sosiaaliset seuraukset") %>% 
                                     select(-var_class) %>% 
-                                    knitr::kable(format = "html") %>% 
+                                    setNames(c("muuttuja",aluename,"sijoitus","korkein arvo", "matalin arvo")) %>% 
+                                    knitr::kable(format = "html", table.attr = "class=\'table-hover\'") %>% 
                                     kableExtra::kable_styling() %>% 
                                     HTML(),
                                 
@@ -365,7 +380,8 @@ server <- function(input, output) {
                                 tabdat %>% 
                                     filter(var_class == "Huono-osaisuuden taloudelliset yhteydet") %>% 
                                     select(-var_class) %>% 
-                                    knitr::kable(format = "html") %>% 
+                                    setNames(c("muuttuja",aluename,"sijoitus","korkein arvo", "matalin arvo")) %>% 
+                                    knitr::kable(format = "html", table.attr = "class=\'table-hover\'") %>% 
                                     kableExtra::kable_styling() %>% 
                                     HTML()
                 ))
