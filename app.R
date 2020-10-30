@@ -3,6 +3,7 @@ source("./global.R")
 
 ui <- fluidPage(
     uiOutput("output_save_word"),
+    textOutput("aputeksti"),
     
     uiOutput("output_indicator_class"),
     uiOutput("output_indicator"),
@@ -22,6 +23,14 @@ server <- function(input, output) {
     get_dat <- reactive({
         dat <- readRDS("./data/df_v20200423.RDS")
         return(dat)
+    })
+    
+    get_region_data <- reactive({
+        
+        region_data <- readRDS("./data/region_data.RDS")
+        # dat <- dplyr::filter(region_data, level %in% input$value_region_level2)
+        return(region_data)
+        
     })
     
     
@@ -268,29 +277,73 @@ server <- function(input, output) {
         return(dt)
     })
     
+    
+    output$aputeksti <- renderText({
+        
+        req(input$value_variable_class)
+        req(input$value_variable)
+        req(input$value_regio_level2)
+        
+        klik <- get_klik()
 
-    create_alueprofiili_content <- function(aluename2 = aluename, type = "html"){
+        aluenimi_kartta <- klik$id
+
+        dat <- process_data() %>%
+            st_set_geometry(NULL) %>%
+            select(rank,aluenimi,value)
+        aluenimi_taulukko <- unique(dat[input$rank_tbl_rows_selected,]$aluenimi)
+
+        if (aluenimi_kartta != aluenimi_taulukko){
+            aluename <- aluenimi_taulukko
+        } else {
+            aluename <- aluenimi_kartta
+        }
+        
+        region_data <- get_region_data()
+        region_data <- dplyr::filter(region_data, level %in% input$value_regio_level2)
+        naapurikoodit <- region_data[region_data$region_name %in% aluename,]$neigbours[[1]]
+        # naapurikoodit <- 1:10
+        return(naapurikoodit)
+    })
+
+    create_alueprofiili_content <- function(aluename2 = aluename, naapurikoodit = naapurikoodit, type = "html"){
         
         dat <- get_dat()
         
-        dat[dat$regio_level %in% input$value_regio_level2 & dat$aluenimi %in% aluename2,] %>% 
-            select(var_class,variable,value) -> tmpdat
+
+        # naapurikoodit <- region_data[region_data$region_name %in% "Veteli",]$neigbours[[1]]
+        
+        # dat_focus <- dattmp %>% filter(region_code %in% naapurikoodit) %>% 
+        #     filter(!region_name %in% stringr::str_trim(gsub('[[:digit:]]+', '', klik$id)))
+        
+        dat[dat$regio_level %in% input$value_regio_level2 & dat$aluenimi %in% aluename2 ,] %>% 
+            select(aluenimi,var_class,variable,value) %>% 
+            mutate(rooli = "a) klikattu") -> tmpdat1
+        dat[dat$regio_level %in% input$value_regio_level2 & dat$aluekoodi %in% naapurikoodit ,] %>% 
+            select(aluenimi,var_class,variable,value) %>% 
+            mutate(rooli = "d) naapuri") -> tmpdat2
+        tmpdat <- bind_rows(tmpdat1,tmpdat2) 
+            
+        
+        
         # 
         dat[dat$regio_level %in% input$value_regio_level2,] %>% 
             group_by(var_class,variable) %>% 
             arrange(desc(value)) %>% 
             slice(1) %>% 
             ungroup() %>% 
-            mutate(maksimi = glue("{round(value, 1)} ({ifelse(nchar(aluenimi) > 10, paste0(substr(aluenimi, 1, 10),'...'), aluenimi)})")) %>% 
-            select(variable,maksimi) -> max_dat
+            # mutate(maksimi = glue("{round(value, 1)} ({ifelse(nchar(aluenimi) > 10, paste0(substr(aluenimi, 1, 10),'...'), aluenimi)})")) %>% 
+            mutate(rooli = "b) korkein arvo") %>% 
+            select(aluenimi,var_class,variable,value,rooli) -> max_dat
         
         dat[dat$regio_level %in% input$value_regio_level2,] %>% 
             group_by(variable) %>% 
             arrange(value) %>% 
             slice(1) %>% 
             ungroup() %>% 
-            mutate(minimi = glue("{round(value, 1)} ({ifelse(nchar(aluenimi) > 10, paste0(substr(aluenimi, 1, 10),'...'), aluenimi)})")) %>% 
-            select(variable,minimi) -> min_dat
+            # mutate(minimi = glue("{round(value, 1)} ({ifelse(nchar(aluenimi) > 10, paste0(substr(aluenimi, 1, 10),'...'), aluenimi)})")) %>% 
+            mutate(rooli = "c) matalin arvo") %>% 
+            select(aluenimi,var_class,variable,value,rooli) -> min_dat
         
         dat[dat$regio_level %in% input$value_regio_level2,] %>% 
             group_by(variable) %>% 
@@ -298,17 +351,18 @@ server <- function(input, output) {
             mutate(sija = 1:n(),
                    n = n()) %>% 
             ungroup() %>% 
-            filter(aluenimi %in% aluename2) %>% 
-            select(variable,sija) -> rank_dat
+            # filter(aluenimi %in% aluename2) %>% 
+            select(aluenimi,variable,sija) -> rank_dat
         
-        left_join(tmpdat,max_dat) %>% 
-            left_join(min_dat) %>% 
+        bind_rows(tmpdat,max_dat,min_dat) %>% 
             left_join(rank_dat) %>% 
             mutate(value = round(value, 1)) %>% 
             rename(muuttuja = variable,
                    arvo = value) %>% 
             filter(!is.na(arvo)) %>% 
-            select(muuttuja,arvo,sija,everything()) -> tabdat
+            select(muuttuja,arvo,sija,everything()) %>% 
+            distinct() -> tabdat
+        # tmpdat -> tabdat
         return(tabdat)
     }
     
@@ -329,9 +383,13 @@ server <- function(input, output) {
             aluename <- aluenimi_taulukko
         } else {
             aluename <- aluenimi_kartta
-        }        
-        
-    tabdat <- create_alueprofiili_content(aluename2 = aluename)    
+        }
+
+        region_data <- get_region_data()
+        region_data <- dplyr::filter(region_data, level %in% input$value_regio_level2)
+        naapurikoodit <- region_data[region_data$region_name %in% aluename,]$neigbours[[1]]
+
+    tabdat <- create_alueprofiili_content(aluename2 = aluename, naapurikoodit = naapurikoodit)    
     
     tagList(
         fluidRow(column(width = 12, 
@@ -346,7 +404,8 @@ server <- function(input, output) {
                         tabdat %>% 
                             filter(var_class == "Summamuuttujat") %>% 
                             select(-var_class) %>% 
-                            setNames(c("muuttuja",aluename,"sijoitus","korkein arvo", "matalin arvo")) %>% 
+                            setNames(c("muuttuja","arvo","sijoitus",input$value_regio_level2, "rooli")) %>%
+                            arrange(muuttuja,rooli) %>% 
                             knitr::kable(format = "html", table.attr = "class=\'table-hover\'") %>% 
                             kableExtra::kable_styling() %>% 
                             HTML(),
@@ -356,7 +415,8 @@ server <- function(input, output) {
                         tabdat %>% 
                             filter(var_class == "Inhimillinen huono-osaisuus") %>% 
                             select(-var_class) %>% 
-                            setNames(c("muuttuja",aluename,"sijoitus","korkein arvo", "matalin arvo")) %>% 
+                            setNames(c("muuttuja","arvo","sijoitus",input$value_regio_level2, "rooli")) %>%
+                            arrange(muuttuja,rooli) %>% 
                             knitr::kable(format = "html", table.attr = "class=\'table-hover\'") %>% 
                             kableExtra::kable_styling() %>% 
                             HTML(),
@@ -366,7 +426,8 @@ server <- function(input, output) {
                         tabdat %>% 
                             filter(var_class == "Huono-osaisuuden sosiaaliset seuraukset") %>% 
                             select(-var_class) %>% 
-                            setNames(c("muuttuja",aluename,"sijoitus","korkein arvo", "matalin arvo")) %>% 
+                            setNames(c("muuttuja","arvo","sijoitus",input$value_regio_level2, "rooli")) %>%
+                            arrange(muuttuja,rooli) %>% 
                             knitr::kable(format = "html", table.attr = "class=\'table-hover\'") %>% 
                             kableExtra::kable_styling() %>% 
                             HTML(),
@@ -376,7 +437,8 @@ server <- function(input, output) {
                         tabdat %>% 
                             filter(var_class == "Huono-osaisuuden taloudelliset yhteydet") %>% 
                             select(-var_class) %>% 
-                            setNames(c("muuttuja",aluename,"sijoitus","korkein arvo", "matalin arvo")) %>% 
+                            setNames(c("muuttuja","arvo","sijoitus",input$value_regio_level2, "rooli")) %>%
+                            arrange(muuttuja,rooli) %>% 
                             knitr::kable(format = "html", table.attr = "class=\'table-hover\'") %>% 
                             kableExtra::kable_styling() %>% 
                             HTML()
@@ -403,8 +465,21 @@ server <- function(input, output) {
                     # file.copy("./docs/diak-logo-1.pdf", logo, overwrite = TRUE)
                     # Set up parameters to pass to Rmd document
                     klik <- get_klik()
+                    # aluename <- klik$id
+                    aluenimi_kartta <- klik$id
+
+                    dat <- process_data() %>%
+                        st_set_geometry(NULL) %>%
+                        select(rank,aluenimi,value)
+                    aluenimi_taulukko <- unique(dat[input$rank_tbl_rows_selected,]$aluenimi)
+
+                    if (aluenimi_kartta != aluenimi_taulukko){
+                        aluename <- aluenimi_taulukko
+                    } else {
+                        aluename <- aluenimi_kartta
+                    }
                     # klik <- list("id" = "Veteli")
-                    params <- list(region = klik$id,
+                    params <- list(region = aluename,
                                    region_level = input$value_regio_level2,
                                    # region_level = "Kunta",
                                    datetime = Sys.time(),

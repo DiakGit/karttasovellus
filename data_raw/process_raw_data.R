@@ -85,25 +85,59 @@ saveRDS(regio_Kunnat,
         here("data/regio_Kunnat.RDS"))
 
 
+
+
+
+
+
 # tehdään aluekoodi/aluenimi -data vielä
+muni <- get_municipalities(year = 2019) %>%
+  filter(maakunta_name_fi != "Ahvenanmaa")
 bind_rows(
-geofi::municipality_key_2017 %>% 
-  count(municipality_code,municipality_name_fi) %>% 
-  select(-n) %>% 
-  setNames(c("aluekoodi","aluenimi")) %>% 
-  mutate(aluetaso = "Kunnat"),
-geofi::municipality_key_2017 %>% 
-  count(seutukunta_code,seutukunta_name_fi) %>% 
-  select(-n) %>% 
-  setNames(c("aluekoodi","aluenimi")) %>% 
-  mutate(aluetaso = "Seutukunnat"),
-geofi::municipality_key_2017 %>% 
-  count(maakunta_code,maakunta_name_fi) %>% 
-  select(-n) %>% 
-  setNames(c("aluekoodi","aluenimi")) %>% 
-  mutate(aluetaso = "Maakunnat")
-) %>% 
-  saveRDS(here("data/regiokey.RDS"))
+  muni %>% 
+    group_by(seutukunta_code,seutukunta_name_fi) %>% 
+    summarise() %>% rename(region_code = seutukunta_code,
+                           region_name = seutukunta_name_fi) %>% 
+    mutate(level = "Seutukunnat"),
+  muni %>% 
+    group_by(maakunta_code,maakunta_name_fi) %>% 
+    summarise() %>% rename(region_code = maakunta_code,
+                           region_name = maakunta_name_fi) %>% 
+    mutate(level = "Maakunnat"),
+  muni %>% 
+    group_by(municipality_code,municipality_name_fi) %>% 
+    summarise() %>% rename(region_code = municipality_code,
+                           region_name = municipality_name_fi) %>% 
+    mutate(level = "Kunnat")
+) -> region_data
+
+
+# lisätään naapurialueet
+lvs <- unique(region_data$level)
+datalist <- list()
+for (ii in seq_along(lvs)){
+  region_data2 <- region_data[region_data$level == lvs[ii],]
+  datalist2 <- list()
+  for (iii in 1:nrow(region_data2)){
+    this_region <- region_data2$region_code[[iii]]
+    sf::st_intersection(x = region_data2, 
+                        y = region_data2[region_data2$region_code == this_region,]) %>%
+      pull(region_code) -> neigbours
+    datalist2[[iii]] <- tibble(region_code = this_region, 
+                               level = lvs[ii],
+                               neigbours = list(neigbours))
+  }
+  datalist[[ii]] <- do.call(bind_rows, datalist2)
+}
+neigbour_data <- do.call(bind_rows, datalist)
+
+region_data2 <- left_join(region_data,neigbour_data)
+
+saveRDS(region_data2, "./data/region_data.RDS")
+
+
+
+
 
 
 
