@@ -1,6 +1,5 @@
 # devtools::install_github("RinteRface/bs4Dash")
 
-library(bs4Dash)
 library(shiny)
 library(shinyWidgets)
 library(shinycssloaders)

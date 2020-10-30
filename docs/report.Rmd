@@ -1,45 +1,44 @@
 ---
-title: ""
-date: "`r Sys.time()`"
-documentclass: scrartcl
-classoption: table
+title: "Alueprofiili `r params$region` (`r params$region_level`)"
+author: "Diakin karttasovellus `r params$datetime`" 
+#title: "otsikko"
+#author: "minä"
 output: 
-  pdf_document:
-      latex_engine: pdflatex
-      template: null
-      toc: no
-      includes:
-          in_header: header.tex
+  word_document:
+    toc: false
+    reference_docx: diak_karttasovellus.dotx
 params:
   region: NA
   region_level: NA
   data: NA
-editor_options: 
-  chunk_output_type: console
+  datetime: NA
+  spatdat: NA
+  value_variable: NA
 ---
 
-\vspace{-35mm}
-\includegraphics[width=1.8cm]{diak-logo-1.pdf} \LARGE \quad Huono-osaisuus Suomessa
-\vspace{-3mm}
-\newline
-\noindent\makebox[\linewidth]{\rule{\textwidth}{1pt}} 
-\vspace{-10mm}
-\normalsize
+Tämä asiakirja on tuotettu automaattisesti [Diakin karttasovelluksen avulla](http://diak.shinyapps.io/karttasovellus) `r params$datetime`. Asiakirjan tiedot perustuvat THL:n Sotkanet-indikaattoripalvelun tietoihin, joihin on yhdistetty Tilastokeskuksen tilasto- ja paikkatietoaineistoja.
 
-# Alueprofiili `r params$region` (`r params$region_level`)
+Sitten ehkä virkkeen parin ns. sisällöllinen sisäänheittokappale.
 
 
 
-
-
-```{r knitr_setup, include = FALSE}
+```{r knitr_setup, include = FALSE, eval = TRUE}
 knitr::opts_chunk$set(list(echo=FALSE,
                          eval=TRUE,
                          cache=FALSE,
                          warning=FALSE,
                          message=FALSE,
-                         dev = "cairo_pdf"))
+                         results = "asis",
+                         dev = "png"))
+library(dplyr)
+library(knitr)
 
+```
+
+
+
+
+```{r general_setup, include = FALSE, eval = TRUE}
 libs <- c("tidyverse","hrbrthemes","knitr","patchwork","stringr","xtable","extrafont","forcats","viridis","purrr")
 lapply(libs, require, character.only = TRUE)
 loadfonts(quiet=TRUE)
@@ -58,20 +57,21 @@ df %>%
   filter(var_class == varclass) %>% 
   select(-var_class) -> tmptbl
 ## setNames(NULL) %>% 
-print(xtable(x = tmptbl, digits = 1 
-             # caption = varclass 
-             # table.placement = "!htbp"
-             # ,align = "lp{8.3cm}R{0.9cm}R{0.9cm}l}"
-            # ,align = "lp{8.3cm}rrlll}"
-            ,align= c("p{0.02\\textwidth}", 
-"p{0.43\\textwidth}", "R{0.06\\textwidth}", "R{0.03\\textwidth}", "p{0.18\\textwidth}", "p{0.18\\textwidth}")
-             ), 
-      type = "latex", 
-      booktabs = TRUE, 
-      include.rownames = FALSE, 
-      comment = FALSE, 
-      format.args = list(decimal.mark = ","), 
-      size = "\\fontsize{10pt}{10pt}\\selectfont")
+  # knitr::kable()
+  kable(tmptbl, format = "pipe", row.names = FALSE)
+  # gt::gt(tmptbl)
+# print(xtable(x = tmptbl, digits = 1 
+#              # caption = varclass 
+#              # table.placement = "!htbp"
+#              # ,align = "lp{8.3cm}R{0.9cm}R{0.9cm}l}"
+#             # ,align = "lp{8.3cm}rrlll}"
+# #             ,align= c("p{0.02\\textwidth}", 
+# # "p{0.43\\textwidth}", "R{0.06\\textwidth}", "R{0.03\\textwidth}", "p{0.18\\textwidth}", "p{0.18\\textwidth}")
+#              ),
+#       type = "html", 
+#       include.rownames = FALSE, 
+#       comment = FALSE, 
+#       format.args = list(decimal.mark = ","))
   
 }
 
@@ -168,11 +168,15 @@ wrap_plots(gg_x2, ncol = 3) +
       # theme(plot.title = element_text(face = "bold", size = 12))
   )
 }
-
 ```
 
 
-```{r data}
+
+
+
+
+
+```{r data, eval = TRUE}
 dat <- params$data
 dat[dat$regio_level %in% params$region_level & dat$aluenimi %in% params$region,] %>% 
   select(var_class,variable,value) -> tmpdat
@@ -212,74 +216,69 @@ left_join(tmpdat,max_dat) %>%
          arvo = value) %>% 
   filter(!is.na(arvo)) %>% 
   select(muuttuja,arvo,sija,everything()) -> tabdat
+
+```
+
+```{r kartta, fig.height=7}
+dat <- params$spatdat
+dat <- sf::st_transform(dat, crs = 3067)
+dat_region <- dat[dat$aluenimi == params$region,]
+
+ggplot(data = dat) +                    
+# ggplot(data = dat, aes(fill = value)) +
+    geom_sf(color = alpha("black", 1/8), fill = NA)  +
+    theme_minimal(base_family = "PT Sans", base_size = 12) +
+    labs(fill = NULL,
+         title = NULL,
+         subtitle = NULL,
+         caption = NULL) +
+  geom_sf(data = dat_region, fill = alpha("#3b0083", 1/3), color = NA) +
+theme(axis.text = element_blank(),
+          axis.title = element_blank(),
+          panel.grid = element_blank(), 
+          legend.position = "none")
 ```
 
 
 
-## Summamuuttujat
+# Summamuuttujat
 
-
-```{r, results = "asis", eval= TRUE}
+```{r}
 create_table(tabdat, "Summamuuttujat")
 ```
 
-\vspace{10mm}
 
-```{r, fig.width=8,3, fig.height=11/1.7, eval = TRUE, results = "asis"}
+```{r, fig.width=8,3, fig.height=11/1.7, eval = FALSE}
 create_plot(varclass = "Summamuuttujat")
 ```
 
-\newpage
+# Inhimillinen huono-osaisuus
 
-
-
-## Inhimillinen huono-osaisuus
-
-\vspace{5mm}
-
-```{r, results = "asis", eval= TRUE}
+```{r, results = "asis"}
 create_table(tabdat, "Inhimillinen huono-osaisuus")
 ```
 
-\vspace{10mm}
-
-```{r, fig.width=8.3, fig.height=13/1.7, eval = TRUE, results = "asis"}
+```{r, fig.width=8.3, fig.height=13/1.7, results = "asis", eval = FALSE}
 create_plot(varclass = "Inhimillinen huono-osaisuus")
 ```
 
-\newpage
+# Huono-osaisuuden sosiaaliset seuraukset
 
-
-
-## Huono-osaisuuden sosiaaliset seuraukset
-
-\vspace{5mm}
-
-```{r, results = "asis", eval = TRUE}
+```{r, results = "asis"}
 create_table(tabdat, "Huono-osaisuuden sosiaaliset seuraukset")
 ```
 
-\vspace{10mm}
-
-```{r, fig.width=8.3, fig.height=13/1.7, eval = TRUE, results = "asis"}
+```{r, fig.width=8.3, fig.height=13/1.7, results = "asis", eval = FALSE}
 create_plot(varclass = "Huono-osaisuuden sosiaaliset seuraukset")
 ```
 
+# Huono-osaisuuden taloudelliset yhteydet
 
-\newpage
-
-
-## Huono-osaisuuden taloudelliset yhteydet
-
-\vspace{5mm}
-
-```{r, results = "asis", eval = TRUE}
+```{r, results = "asis"}
 create_table(tabdat, "Huono-osaisuuden taloudelliset yhteydet")
 ```
 
-\vspace{10mm}
-
-```{r, fig.width=8.3, fig.height=13/1.7, eval = TRUE, results = "asis"}
+```{r, fig.width=8.3, fig.height=13/1.7, results = "asis", eval = FALSE}
 create_plot(varclass = "Huono-osaisuuden taloudelliset yhteydet")
 ```
 

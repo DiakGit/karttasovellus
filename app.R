@@ -2,18 +2,17 @@ source("./global.R")
 
 
 ui <- fluidPage(
+    uiOutput("output_save_word"),
     
     uiOutput("output_indicator_class"),
     uiOutput("output_indicator"),
     uiOutput("output_regio_level"),
+    uiOutput("output_save_map"),
     leaflet::leafletOutput("map1", width = "100%", height = "685px"),
     DT::dataTableOutput("rank_tbl"),
     # verbatimTextOutput("value"),
     uiOutput("region_profile_html"),
-    DT::dataTableOutput("variable_desctiption"),
-    uiOutput("output_save_map")
-    
-
+    DT::dataTableOutput("variable_desctiption")
 )
 
 
@@ -270,7 +269,48 @@ server <- function(input, output) {
     })
     
 
-    
+    create_alueprofiili_content <- function(aluename2 = aluename, type = "html"){
+        
+        dat <- get_dat()
+        
+        dat[dat$regio_level %in% input$value_regio_level2 & dat$aluenimi %in% aluename2,] %>% 
+            select(var_class,variable,value) -> tmpdat
+        # 
+        dat[dat$regio_level %in% input$value_regio_level2,] %>% 
+            group_by(var_class,variable) %>% 
+            arrange(desc(value)) %>% 
+            slice(1) %>% 
+            ungroup() %>% 
+            mutate(maksimi = glue("{round(value, 1)} ({ifelse(nchar(aluenimi) > 10, paste0(substr(aluenimi, 1, 10),'...'), aluenimi)})")) %>% 
+            select(variable,maksimi) -> max_dat
+        
+        dat[dat$regio_level %in% input$value_regio_level2,] %>% 
+            group_by(variable) %>% 
+            arrange(value) %>% 
+            slice(1) %>% 
+            ungroup() %>% 
+            mutate(minimi = glue("{round(value, 1)} ({ifelse(nchar(aluenimi) > 10, paste0(substr(aluenimi, 1, 10),'...'), aluenimi)})")) %>% 
+            select(variable,minimi) -> min_dat
+        
+        dat[dat$regio_level %in% input$value_regio_level2,] %>% 
+            group_by(variable) %>% 
+            arrange(desc(value)) %>%
+            mutate(sija = 1:n(),
+                   n = n()) %>% 
+            ungroup() %>% 
+            filter(aluenimi %in% aluename2) %>% 
+            select(variable,sija) -> rank_dat
+        
+        left_join(tmpdat,max_dat) %>% 
+            left_join(min_dat) %>% 
+            left_join(rank_dat) %>% 
+            mutate(value = round(value, 1)) %>% 
+            rename(muuttuja = variable,
+                   arvo = value) %>% 
+            filter(!is.na(arvo)) %>% 
+            select(muuttuja,arvo,sija,everything()) -> tabdat
+        return(tabdat)
+    }
     
     
     
@@ -291,141 +331,107 @@ server <- function(input, output) {
             aluename <- aluenimi_kartta
         }        
         
-        
-        if (is.null(klik$id)){
-            tagList(
-                tags$p("Valitse ensin alue klikkaamalla karttaa!", class = "lead")
-            ) 
-        } else {
-            
-            dat <- get_dat()
-            
-            dat[dat$regio_level %in% input$value_regio_level2 & dat$aluenimi %in% aluename,] %>% 
-                select(var_class,variable,value) -> tmpdat
-            # 
-            dat[dat$regio_level %in% input$value_regio_level2,] %>% 
-                group_by(var_class,variable) %>% 
-                arrange(desc(value)) %>% 
-                slice(1) %>% 
-                ungroup() %>% 
-                mutate(maksimi = glue("{round(value, 1)} ({ifelse(nchar(aluenimi) > 10, paste0(substr(aluenimi, 1, 10),'...'), aluenimi)})")) %>% 
-                select(variable,maksimi) -> max_dat
-            
-            dat[dat$regio_level %in% input$value_regio_level2,] %>% 
-                group_by(variable) %>% 
-                arrange(value) %>% 
-                slice(1) %>% 
-                ungroup() %>% 
-                mutate(minimi = glue("{round(value, 1)} ({ifelse(nchar(aluenimi) > 10, paste0(substr(aluenimi, 1, 10),'...'), aluenimi)})")) %>% 
-                select(variable,minimi) -> min_dat
-            
-            dat[dat$regio_level %in% input$value_regio_level2,] %>% 
-                group_by(variable) %>% 
-                arrange(desc(value)) %>%
-                mutate(sija = 1:n(),
-                       n = n()) %>% 
-                ungroup() %>% 
-                filter(aluenimi %in% aluename) %>% 
-                select(variable,sija) -> rank_dat
-            
-            left_join(tmpdat,max_dat) %>% 
-                left_join(min_dat) %>% 
-                left_join(rank_dat) %>% 
-                mutate(value = round(value, 1)) %>% 
-                rename(muuttuja = variable,
-                       arvo = value) %>% 
-                filter(!is.na(arvo)) %>% 
-                select(muuttuja,arvo,sija,everything()) -> tabdat
-            
-            tagList(
-                fluidRow(column(width = 12, 
-                                tags$h4(glue("{aluename} ({input$value_regio_level2})")),
-                # ),
-                # column(6, downloadButton("report", 
-                #                          glue("Tallenna {tolower(input$value_regio_level2)}_{klik$id}.pdf")),
-                )),
-                fluidRow(column(12,
-                                
-                                tags$h5("Summamuuttujat"),
-                                tabdat %>% 
-                                    filter(var_class == "Summamuuttujat") %>% 
-                                    select(-var_class) %>% 
-                                    setNames(c("muuttuja",aluename,"sijoitus","korkein arvo", "matalin arvo")) %>% 
-                                    knitr::kable(format = "html", table.attr = "class=\'table-hover\'") %>% 
-                                    kableExtra::kable_styling() %>% 
-                                    HTML(),
-                                
-                                tags$h5("Inhimillinen huono-osaisuus"),
-                                
-                                tabdat %>% 
-                                    filter(var_class == "Inhimillinen huono-osaisuus") %>% 
-                                    select(-var_class) %>% 
-                                    setNames(c("muuttuja",aluename,"sijoitus","korkein arvo", "matalin arvo")) %>% 
-                                    knitr::kable(format = "html", table.attr = "class=\'table-hover\'") %>% 
-                                    kableExtra::kable_styling() %>% 
-                                    HTML(),
-                                
-                                tags$h5("Huono-osaisuuden sosiaaliset seuraukset"),
-                                
-                                tabdat %>% 
-                                    filter(var_class == "Huono-osaisuuden sosiaaliset seuraukset") %>% 
-                                    select(-var_class) %>% 
-                                    setNames(c("muuttuja",aluename,"sijoitus","korkein arvo", "matalin arvo")) %>% 
-                                    knitr::kable(format = "html", table.attr = "class=\'table-hover\'") %>% 
-                                    kableExtra::kable_styling() %>% 
-                                    HTML(),
-                                
-                                tags$h5("Huono-osaisuuden taloudelliset yhteydet"),
-                                
-                                tabdat %>% 
-                                    filter(var_class == "Huono-osaisuuden taloudelliset yhteydet") %>% 
-                                    select(-var_class) %>% 
-                                    setNames(c("muuttuja",aluename,"sijoitus","korkein arvo", "matalin arvo")) %>% 
-                                    knitr::kable(format = "html", table.attr = "class=\'table-hover\'") %>% 
-                                    kableExtra::kable_styling() %>% 
-                                    HTML()
-                ))
-            )
-        }
+    tabdat <- create_alueprofiili_content(aluename2 = aluename)    
+    
+    tagList(
+        fluidRow(column(width = 12, 
+                        tags$h4(glue("{aluename} ({input$value_regio_level2})")),
+                        # ),
+                        # column(6, downloadButton("report", 
+                        #                          glue("Tallenna {tolower(input$value_regio_level2)}_{klik$id}.pdf")),
+        )),
+        fluidRow(column(12,
+                        
+                        tags$h5("Summamuuttujat"),
+                        tabdat %>% 
+                            filter(var_class == "Summamuuttujat") %>% 
+                            select(-var_class) %>% 
+                            setNames(c("muuttuja",aluename,"sijoitus","korkein arvo", "matalin arvo")) %>% 
+                            knitr::kable(format = "html", table.attr = "class=\'table-hover\'") %>% 
+                            kableExtra::kable_styling() %>% 
+                            HTML(),
+                        
+                        tags$h5("Inhimillinen huono-osaisuus"),
+                        
+                        tabdat %>% 
+                            filter(var_class == "Inhimillinen huono-osaisuus") %>% 
+                            select(-var_class) %>% 
+                            setNames(c("muuttuja",aluename,"sijoitus","korkein arvo", "matalin arvo")) %>% 
+                            knitr::kable(format = "html", table.attr = "class=\'table-hover\'") %>% 
+                            kableExtra::kable_styling() %>% 
+                            HTML(),
+                        
+                        tags$h5("Huono-osaisuuden sosiaaliset seuraukset"),
+                        
+                        tabdat %>% 
+                            filter(var_class == "Huono-osaisuuden sosiaaliset seuraukset") %>% 
+                            select(-var_class) %>% 
+                            setNames(c("muuttuja",aluename,"sijoitus","korkein arvo", "matalin arvo")) %>% 
+                            knitr::kable(format = "html", table.attr = "class=\'table-hover\'") %>% 
+                            kableExtra::kable_styling() %>% 
+                            HTML(),
+                        
+                        tags$h5("Huono-osaisuuden taloudelliset yhteydet"),
+                        
+                        tabdat %>% 
+                            filter(var_class == "Huono-osaisuuden taloudelliset yhteydet") %>% 
+                            select(-var_class) %>% 
+                            setNames(c("muuttuja",aluename,"sijoitus","korkein arvo", "matalin arvo")) %>% 
+                            knitr::kable(format = "html", table.attr = "class=\'table-hover\'") %>% 
+                            kableExtra::kable_styling() %>% 
+                            HTML()
+        ))
+    )
+    
     })
     
     output$report <- downloadHandler(
         
-        filename = glue("{tolower(input$value_regio_level2)}_{rv$map_click_id$id}.pdf"),
+        file = glue("alueprofiili.docx"),
         content = function(file) {
             
-            shiny::withProgress(
-                message = paste0("Luodaan raporttia"),
-                value = 0,
-                {
-                    shiny::incProgress(1/10)
-                    Sys.sleep(1)
-                    
+
                     tempReport <- file.path(tempdir(), "report.Rmd")
+                    # tempReport <- file.path("~/Downloads", "report.Rmd")
                     file.copy("./docs/report.Rmd", tempReport, overwrite = TRUE)
-                    shiny::incProgress(2/10)
-                    temp_header <- file.path(tempdir(), "header.tex")
-                    file.copy("./docs/header.tex", temp_header, overwrite = TRUE)
-                    shiny::incProgress(3/10)
-                    logo <- file.path(tempdir(), "diak-logo-1.pdf")
-                    file.copy("./docs/diak-logo-1.pdf", logo, overwrite = TRUE)
-                    shiny::incProgress(4/10)
+                    # temp_header <- file.path(tempdir(), "header.tex")
+                    file.copy("./docs/diak_karttasovellus.dotx",
+                              tempdir(),
+                              # "~/Downloads",
+                              overwrite = TRUE)
+                    # logo <- file.path(tempdir(), "diak-logo-1.pdf")
+                    # file.copy("./docs/diak-logo-1.pdf", logo, overwrite = TRUE)
                     # Set up parameters to pass to Rmd document
-                    klik <- rv$map_click_id
+                    klik <- get_klik()
+                    # klik <- list("id" = "Veteli")
                     params <- list(region = klik$id,
                                    region_level = input$value_regio_level2,
-                                   data = get_dat())
-                    shiny::incProgress(5/10)
-                    
-                    rmarkdown::render(tempReport, output_file = file,
+                                   # region_level = "Kunta",
+                                   datetime = Sys.time(),
+                                   # data = mtcars
+                                   data = get_dat(),
+                                   spatdat = process_data(),
+                                   value_variable = input$value_variable
+                                   )
+
+                    rmarkdown::render(tempReport, output_file = file, 
                                       params = params,
-                                      envir = new.env(parent = globalenv())
-                    )
-                    shiny::incProgress(8/10)
-                }
+                                      envir = new.env(parent = globalenv()
+                                                      )
             )
         }
     )
+    
+    
+    
+    output$output_save_word <- renderUI({
+        
+        req(input$value_variable)
+        tagList(
+            downloadButton("report", "Tallenna alueprofiili Word-tiedostona")
+        )
+    })
+    
     
     
     output$output_save_map <- renderUI({
@@ -525,6 +531,6 @@ server <- function(input, output) {
 
 }
 
-# shinyApp(ui = ui, server = server)
-shinyApp(ui = htmlTemplate("www/index.html"), server = server)
+shinyApp(ui = ui, server = server)
+# shinyApp(ui = htmlTemplate("www/index.html"), server = server)
 
