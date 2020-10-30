@@ -23,13 +23,30 @@ Sitten ehkä virkkeen parin ns. sisällöllinen sisäänheittokappale.
 
 
 ```{r knitr_setup, include = FALSE, eval = TRUE}
-knitr::opts_chunk$set(list(echo=FALSE,
-                         eval=TRUE,
-                         cache=FALSE,
-                         warning=FALSE,
-                         message=FALSE,
-                         results = "asis",
-                         dev = "png"))
+
+library(knitr)
+# library(ragg)
+# ragg_png = function(..., res = 300) {
+#   ragg::agg_png(..., res = res, units = "in")
+# }
+knitr::opts_chunk$set(list(echo=FALSE, # printtaa koodi outputtiin
+                           eval=TRUE, # evaluoi kaikki kimpaleet jos ei erikseen kielletty
+                           cache=FALSE, # älä luo välimuistia (isoissa datoissa hyvin kätevä)
+                           warning=FALSE, # älä printtaa varoituksia
+                           message=FALSE, # älä printtaa pakettien viestejä
+                           fig.width = 12, # kuvien oletusleveys
+                           fig.height = 10,
+                           dpi=300#,
+                           # dev = "ragg_png"
+                           )) # kuvien oletuskorkeus
+
+# knitr::opts_chunk$set(list(echo=FALSE,
+#                          eval=TRUE,
+#                          cache=FALSE,
+#                          warning=FALSE,
+#                          message=FALSE,
+#                          results = "asis",
+#                          dev = "png"))
 library(dplyr)
 library(knitr)
 
@@ -219,7 +236,7 @@ left_join(tmpdat,max_dat) %>%
 
 ```
 
-```{r kartta, fig.height=7}
+```{r kartta, fig.height=10}
 dat <- params$spatdat
 dat <- sf::st_transform(dat, crs = 3067)
 dat_region <- dat[dat$aluenimi == params$region,]
@@ -243,42 +260,40 @@ theme(axis.text = element_blank(),
 
 # Summamuuttujat
 
-```{r}
+```{r summa_tbl, results = "asis"}
 create_table(tabdat, "Summamuuttujat")
 ```
-
-
-```{r, fig.width=8,3, fig.height=11/1.7, eval = FALSE}
+```{r summa_kuva, fig.height = 10}
 create_plot(varclass = "Summamuuttujat")
 ```
 
 # Inhimillinen huono-osaisuus
 
-```{r, results = "asis"}
+```{r inhim_tbl, results = "asis"}
 create_table(tabdat, "Inhimillinen huono-osaisuus")
 ```
 
-```{r, fig.width=8.3, fig.height=13/1.7, results = "asis", eval = FALSE}
+```{r inhim_kuva, fig.height = 7.5}
 create_plot(varclass = "Inhimillinen huono-osaisuus")
 ```
 
 # Huono-osaisuuden sosiaaliset seuraukset
 
-```{r, results = "asis"}
+```{r sosial_taulukko, results = "asis"}
 create_table(tabdat, "Huono-osaisuuden sosiaaliset seuraukset")
 ```
 
-```{r, fig.width=8.3, fig.height=13/1.7, results = "asis", eval = FALSE}
+```{r  sosial_kuva, fig.height = 8}
 create_plot(varclass = "Huono-osaisuuden sosiaaliset seuraukset")
 ```
 
 # Huono-osaisuuden taloudelliset yhteydet
 
-```{r, results = "asis"}
+```{r talous_tbl, results = "asis"}
 create_table(tabdat, "Huono-osaisuuden taloudelliset yhteydet")
 ```
 
-```{r, fig.width=8.3, fig.height=13/1.7, results = "asis", eval = FALSE}
+```{r talous_kuva, fig.height = 8}
 create_plot(varclass = "Huono-osaisuuden taloudelliset yhteydet")
 ```
 
