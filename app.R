@@ -302,29 +302,21 @@ server <- function(input, output) {
         region_data <- get_region_data()
         region_data <- dplyr::filter(region_data, level %in% input$value_regio_level2)
         naapurikoodit <- region_data[region_data$region_name %in% aluename,]$neigbours[[1]]
-        # naapurikoodit <- 1:10
         return(naapurikoodit)
     })
 
     create_alueprofiili_content <- function(aluename2 = aluename, naapurikoodit = naapurikoodit, type = "html"){
         
         dat <- get_dat()
-        
 
-        # naapurikoodit <- region_data[region_data$region_name %in% "Veteli",]$neigbours[[1]]
-        
-        # dat_focus <- dattmp %>% filter(region_code %in% naapurikoodit) %>% 
-        #     filter(!region_name %in% stringr::str_trim(gsub('[[:digit:]]+', '', klik$id)))
-        
         dat[dat$regio_level %in% input$value_regio_level2 & dat$aluenimi %in% aluename2 ,] %>% 
             select(aluenimi,var_class,variable,value) %>% 
-            mutate(rooli = "a) klikattu") -> tmpdat1
+            mutate(rooli = "valinta") -> tmpdat1
         dat[dat$regio_level %in% input$value_regio_level2 & dat$aluekoodi %in% naapurikoodit ,] %>% 
+            filter(!aluenimi %in% aluename2) %>% 
             select(aluenimi,var_class,variable,value) %>% 
-            mutate(rooli = "d) naapuri") -> tmpdat2
+            mutate(rooli = "naapuri") -> tmpdat2
         tmpdat <- bind_rows(tmpdat1,tmpdat2) 
-            
-        
         
         # 
         dat[dat$regio_level %in% input$value_regio_level2,] %>% 
@@ -333,16 +325,16 @@ server <- function(input, output) {
             slice(1) %>% 
             ungroup() %>% 
             # mutate(maksimi = glue("{round(value, 1)} ({ifelse(nchar(aluenimi) > 10, paste0(substr(aluenimi, 1, 10),'...'), aluenimi)})")) %>% 
-            mutate(rooli = "b) korkein arvo") %>% 
+            mutate(rooli = "korkein arvo") %>% 
             select(aluenimi,var_class,variable,value,rooli) -> max_dat
         
         dat[dat$regio_level %in% input$value_regio_level2,] %>% 
-            group_by(variable) %>% 
+            group_by(var_class,variable) %>% 
             arrange(value) %>% 
             slice(1) %>% 
             ungroup() %>% 
             # mutate(minimi = glue("{round(value, 1)} ({ifelse(nchar(aluenimi) > 10, paste0(substr(aluenimi, 1, 10),'...'), aluenimi)})")) %>% 
-            mutate(rooli = "c) matalin arvo") %>% 
+            mutate(rooli = "matalin arvo") %>% 
             select(aluenimi,var_class,variable,value,rooli) -> min_dat
         
         dat[dat$regio_level %in% input$value_regio_level2,] %>% 
@@ -389,67 +381,106 @@ server <- function(input, output) {
         region_data <- dplyr::filter(region_data, level %in% input$value_regio_level2)
         naapurikoodit <- region_data[region_data$region_name %in% aluename,]$neigbours[[1]]
 
-    tabdat <- create_alueprofiili_content(aluename2 = aluename, naapurikoodit = naapurikoodit)    
+    tabdat <- create_alueprofiili_content(aluename2 = aluename, naapurikoodit = naapurikoodit)
     
+    # Summamuuttujat
+    tabdat_tmp <- tabdat %>% filter(var_class == "Summamuuttujat")
+    vars <- unique(tabdat_tmp$muuttuja)
+    lista1_data <- list()
+    for (vi in seq_along(vars)){
+        lista1_data[[vi]] <- tabdat_tmp[tabdat_tmp$muuttuja %in% vars[vi],] %>%
+            select(aluenimi,arvo,sija,rooli) %>%
+            arrange(sija) %>% 
+            gt(data = .) %>% gt::tab_header(title = vars[vi]) %>%
+            tab_options(table.width	= "90%", table.align = "left")
+    }
+    # "Inhimillinen huono-osaisuus"
+    tabdat_tmp <- tabdat %>% filter(var_class == "Inhimillinen huono-osaisuus")
+    vars <- unique(tabdat_tmp$muuttuja)
+    lista2_data <- list()
+    for (vi in seq_along(vars)){
+        lista2_data[[vi]] <- tabdat_tmp[tabdat_tmp$muuttuja %in% vars[vi],] %>%
+            select(aluenimi,arvo,sija,rooli) %>%
+            arrange(rooli) %>% 
+            gt(data = .) %>% gt::tab_header(title = vars[vi]) %>%
+            tab_options(table.width	= "90%", table.align = "left")
+    }
+    # "Huono-osaisuuden sosiaaliset seuraukset"
+    tabdat_tmp <- tabdat %>% filter(var_class == "Huono-osaisuuden sosiaaliset seuraukset")
+    vars <- unique(tabdat_tmp$muuttuja)
+    lista3_data <- list()
+    for (vi in seq_along(vars)){
+        lista3_data[[vi]] <- tabdat_tmp[tabdat_tmp$muuttuja %in% vars[vi],] %>%
+            select(aluenimi,arvo,sija,rooli) %>%
+            arrange(rooli) %>% 
+            gt(data = .) %>% gt::tab_header(title = vars[vi]) %>%
+            tab_options(table.width	= "90%", table.align = "left")
+    }
+    # "Huono-osaisuuden taloudelliset yhteydet"
+    tabdat_tmp <- tabdat %>% filter(var_class == "Huono-osaisuuden taloudelliset yhteydet")
+    vars <- unique(tabdat_tmp$muuttuja)
+    lista4_data <- list()
+    for (vi in seq_along(vars)){
+        lista4_data[[vi]] <- tabdat_tmp[tabdat_tmp$muuttuja %in% vars[vi],] %>%
+            select(aluenimi,arvo,sija,rooli) %>%
+            arrange(rooli) %>% 
+            gt(data = .) %>% gt::tab_header(title = vars[vi]) %>%
+            tab_options(table.width	= "90%", table.align = "left")
+    }
+    
+
     tagList(
         fluidRow(column(width = 12, 
-                        tags$h4(glue("{aluename} ({input$value_regio_level2})")),
+                        tags$h3(glue("{aluename} ({input$value_regio_level2})")),
                         # ),
                         # column(6, downloadButton("report", 
                         #                          glue("Tallenna {tolower(input$value_regio_level2)}_{klik$id}.pdf")),
         )),
         fluidRow(column(12,
                         
-                        tags$h5("Summamuuttujat"),
-                        tabdat %>% 
-                            filter(var_class == "Summamuuttujat") %>% 
-                            select(-var_class) %>% 
-                            setNames(c("muuttuja","arvo","sijoitus",input$value_regio_level2, "rooli")) %>%
-                            arrange(muuttuja,rooli) %>% 
-                            knitr::kable(format = "html", table.attr = "class=\'table-hover\'") %>% 
-                            kableExtra::kable_styling() %>% 
-                            HTML(),
+                        tags$div(style = "padding-top: 10px;"),
+                        tags$h4("Summamuuttujat"),
+                        # unlist(lista3_data),
+                        # for (vi in 1) print(lista3_data[[vi]]),
+                        lista1_data[[1]],
+                        lista1_data[[2]],
+                        lista1_data[[3]],
+                        lista1_data[[4]],
+
+                        tags$div(style = "padding-top: 50px;"),
+                        tags$h4("Inhimillinen huono-osaisuus"),
+                        lista2_data[[1]],
+                        lista2_data[[2]],
+                        lista2_data[[3]],
+                        lista2_data[[4]],
                         
-                        tags$h5("Inhimillinen huono-osaisuus"),
+                        tags$div(style = "padding-top: 50px;"),
+                        tags$h4("Huono-osaisuuden sosiaaliset seuraukset"),
+                        lista3_data[[1]],
+                        lista3_data[[2]],
+                        lista3_data[[3]],
+                        lista3_data[[4]],
                         
-                        tabdat %>% 
-                            filter(var_class == "Inhimillinen huono-osaisuus") %>% 
-                            select(-var_class) %>% 
-                            setNames(c("muuttuja","arvo","sijoitus",input$value_regio_level2, "rooli")) %>%
-                            arrange(muuttuja,rooli) %>% 
-                            knitr::kable(format = "html", table.attr = "class=\'table-hover\'") %>% 
-                            kableExtra::kable_styling() %>% 
-                            HTML(),
+                        tags$div(style = "padding-top: 50px;"),
+                        tags$h4("Huono-osaisuuden taloudelliset yhteydet"),
                         
-                        tags$h5("Huono-osaisuuden sosiaaliset seuraukset"),
-                        
-                        tabdat %>% 
-                            filter(var_class == "Huono-osaisuuden sosiaaliset seuraukset") %>% 
-                            select(-var_class) %>% 
-                            setNames(c("muuttuja","arvo","sijoitus",input$value_regio_level2, "rooli")) %>%
-                            arrange(muuttuja,rooli) %>% 
-                            knitr::kable(format = "html", table.attr = "class=\'table-hover\'") %>% 
-                            kableExtra::kable_styling() %>% 
-                            HTML(),
-                        
-                        tags$h5("Huono-osaisuuden taloudelliset yhteydet"),
-                        
-                        tabdat %>% 
-                            filter(var_class == "Huono-osaisuuden taloudelliset yhteydet") %>% 
-                            select(-var_class) %>% 
-                            setNames(c("muuttuja","arvo","sijoitus",input$value_regio_level2, "rooli")) %>%
-                            arrange(muuttuja,rooli) %>% 
-                            knitr::kable(format = "html", table.attr = "class=\'table-hover\'") %>% 
-                            kableExtra::kable_styling() %>% 
-                            HTML()
+                        lista4_data[[1]],
+                        lista4_data[[2]],
+                        lista4_data[[3]],
+                        lista4_data[[4]]
         ))
     )
     
     })
     
+    # create_report_name <- reactive({
+    #     report_name <- glue("alueprofiili_{input$value_regio_level2}_{get_klik()$id}.docx")
+    #     return(report_name)
+    # })
+    
     output$report <- downloadHandler(
-        
-        file = glue("alueprofiili.docx"),
+
+        file = glue("alueprofiili_{Sys.time()}.docx"),
         content = function(file) {
             
 
@@ -478,6 +509,11 @@ server <- function(input, output) {
                     } else {
                         aluename <- aluenimi_kartta
                     }
+                    
+                    region_data <- get_region_data()
+                    region_data <- dplyr::filter(region_data, level %in% input$value_regio_level2)
+                    naapurikoodit <- region_data[region_data$region_name %in% aluename,]$neigbours[[1]]
+                    
                     # klik <- list("id" = "Veteli")
                     params <- list(region = aluename,
                                    region_level = input$value_regio_level2,
@@ -486,7 +522,9 @@ server <- function(input, output) {
                                    # data = mtcars
                                    data = get_dat(),
                                    spatdat = process_data(),
-                                   value_variable = input$value_variable
+                                   region_data = region_data,
+                                   value_variable = input$value_variable,
+                                   naapurikoodit = naapurikoodit
                                    )
 
                     rmarkdown::render(tempReport, output_file = file, 
@@ -606,6 +644,6 @@ server <- function(input, output) {
 
 }
 
-shinyApp(ui = ui, server = server)
-# shinyApp(ui = htmlTemplate("www/index.html"), server = server)
+# shinyApp(ui = ui, server = server)
+shinyApp(ui = htmlTemplate("www/index.html"), server = server)
 
