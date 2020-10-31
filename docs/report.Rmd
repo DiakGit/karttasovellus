@@ -13,14 +13,16 @@ params:
   data: NA
   datetime: NA
   spatdat: NA
+  region_data: NA
   value_variable: NA
+  naapurikoodit: NA
 ---
 
-Tämä asiakirja on tuotettu automaattisesti [Diakin karttasovelluksen avulla](http://diak.shinyapps.io/karttasovellus) `r params$datetime`. Asiakirjan tiedot perustuvat THL:n Sotkanet-indikaattoripalvelun tietoihin, joihin on yhdistetty Tilastokeskuksen tilasto- ja paikkatietoaineistoja.
+Tämä asiakirja on tuotettu automaattisesti [Diakin karttasovelluksen avulla](http://diak.shinyapps.io/karttasovellus) `r params$datetime`. Asiakirjan tiedot perustuvat THL:n Sotkanet-indikaattoripalvelun tietoihin, joihin on yhdistetty Tilastokeskuksen tilasto- ja paikkatietoaineistoja. Tarkempaa tieto indikaattoreista ja metodologiasta löydät sovelluksen [Lisätietoja](http://82.181.82.12/diak_app/#info)-osiosta.
 
 Sitten ehkä virkkeen parin ns. sisällöllinen sisäänheittokappale.
 
-
+Tässä raportissa tarkastellaan tasolla `r params$region_level` aluetta `r params$region`. Lisäksi tarkastelussa ovat rajanaapurit: `r params$region_data %>% filter(level == params$region_level) %>% filter(region_code %in% params$naapurikoodit) %>% pull(region_name) %>% glue_collapse(sep = ", ", last = " ja ")`.
 
 ```{r knitr_setup, include = FALSE, eval = TRUE}
 
@@ -73,23 +75,21 @@ create_table <- function(df, varclass){
 df %>% 
   filter(var_class == varclass) %>% 
   select(-var_class) -> tmptbl
-## setNames(NULL) %>% 
-  # knitr::kable()
-  kable(tmptbl, format = "pipe", row.names = FALSE)
-  # gt::gt(tmptbl)
-# print(xtable(x = tmptbl, digits = 1 
-#              # caption = varclass 
-#              # table.placement = "!htbp"
-#              # ,align = "lp{8.3cm}R{0.9cm}R{0.9cm}l}"
-#             # ,align = "lp{8.3cm}rrlll}"
-# #             ,align= c("p{0.02\\textwidth}", 
-# # "p{0.43\\textwidth}", "R{0.06\\textwidth}", "R{0.03\\textwidth}", "p{0.18\\textwidth}", "p{0.18\\textwidth}")
-#              ),
-#       type = "html", 
-#       include.rownames = FALSE, 
-#       comment = FALSE, 
-#       format.args = list(decimal.mark = ","))
   
+  vars <- unique(tmptbl$muuttuja)
+  for (vi in seq_along(vars)){
+  cat("\n\n")
+  cat(paste0("## ", vars[vi]))
+  cat("\n\n")
+  print(kable(tmptbl[tmptbl$muuttuja == vars[vi],] %>% 
+                select(aluenimi,arvo,sija,rooli) %>% 
+                arrange(sija), 
+              format = "pipe", 
+              row.names = FALSE))
+  }
+  
+  
+
 }
 
 theme_set(
@@ -103,10 +103,12 @@ theme_set(
 )
 
 
-create_plot <- function(varclass, reglevel = params$region_level, regname = params$region){
+create_plot <- function(varclass, reglevel = params$region_level, regname = params$region, 
+                        spatdat = params$spatdat, naapurikoodit = params$naapurikoodit,
+                        ncol = 2){
   params$data %>% 
     filter(var_class %in% varclass,
-           regio_level == reglevel) -> dattemp 
+           regio_level == reglevel) -> dattemp
   
   # if (reglevel != "Kunnat"){
   #   params$data %>% 
@@ -122,65 +124,46 @@ for (i in 1:length(vars)){
     
     plot_dat <- dattemp %>% filter(variable %in% vars[i])
     
-    # if (reglevel != "Kunnat") datmuni2 <- datmuni %>% filter(variable %in% vars[i])
+    # plot_dat00 <- plot_dat[plot_dat$aluenimi == regname,]
+    # if (nrow(plot_dat00) == 0) next()
+    # plot_dat01 <- plot_dat[grepl("Helsi|Uude|Uusim", plot_dat$aluenimi),]
+    # plot_dat02 <- plot_dat %>% arrange(desc(value)) %>% slice(1)
+    # plot_dat03 <- plot_dat %>% arrange(value) %>% slice(1)
+    # plot_dat1 <- bind_rows(plot_dat01,plot_dat02,plot_dat03) %>%
+    #   distinct()
     
-    plot_dat00 <- plot_dat[plot_dat$aluenimi == regname,]
-    if (nrow(plot_dat00) == 0) next()
-    plot_dat01 <- plot_dat[grepl("Helsi|Uude|Uusim", plot_dat$aluenimi),]
-    plot_dat02 <- plot_dat %>% arrange(desc(value)) %>% slice(1)
-    plot_dat03 <- plot_dat %>% arrange(value) %>% slice(1)
-    plot_dat1 <- bind_rows(plot_dat01,plot_dat02,plot_dat03) %>%
-      distinct()
+    spatdat <- sf::st_transform(spatdat, dat, crs = 3067)
+    # dat_region <- dat[dat$aluenimi == params$region,]
+    dat_naapurit <- spatdat[spatdat$aluekoodi %in% naapurikoodit,] %>% select(-value)
+    dat_naapurit2 <- left_join(dat_naapurit,
+                               plot_dat %>%
+                                 select(aluekoodi,value)
+                               )
     
-    p <- ggplot(data = plot_dat, aes(x = reorder(aluenimi, value),
-                         xend = reorder(aluenimi, value),
-                         y = value, 
-                         label = aluenimi)) +
-      
-      geom_segment(aes(y = 0, yend = value), 
-                   color = alpha("black", 1/20)) +
-      
-      geom_segment(data = plot_dat1, 
-                   aes(y = 0, yend = value), 
-                   show.legend = FALSE, 
-                   color = alpha("black", 1/6)) +
-      
-      geom_segment(data = plot_dat00, 
-                   aes(y = 0, yend = value), 
-                   show.legend = FALSE, 
-                   color = "purple") +
-      
-      geom_label(data = plot_dat00, 
-                 show.legend = FALSE, 
-                 size = 2.5, 
-                 family = "PT Sans", 
-                 alpha = .6, 
-                 nudge_x = .3, nudge_y = 20,
-                 color = "purple", 
-                 label.padding = unit(.1, "lines")) +
-      
-      ggrepel::geom_text_repel(data = plot_dat1,
-                               family = "PT Sans",
-                               alpha = .8,
-                               segment.colour = "dim grey",
-                               size = 2.5,
-                               nudge_x = .3, nudge_y = 20,
-                               min.segment.length = unit(x = .1, units = "lines")) +
-      # scale_color_viridis_d() +
-      scale_y_continuous(limits = c(0,NA)) +
-      labs(x = NULL, y = NULL, title = add_line_break2(vars[i], n = 35)) +
-      coord_flip() +
-      expand_limits(y = c(0, max(plot_dat$value)*1.2))
-    
+    p <- ggplot(data = dat_naapurit2, aes(fill = value)) +                    
+    geom_sf(color = alpha("white", 1/3))  +
+    theme_minimal(base_family = "PT Sans", base_size = 12) +
+      scale_fill_viridis_c(option = "plasma") +
+theme(axis.text = element_blank(),
+          axis.title = element_blank(),
+          panel.grid = element_blank()) +
+      labs(x = NULL, y = NULL, fill = NULL,
+           title = add_line_break2(vars[i], n = 35)) +
+    ggrepel::geom_label_repel(data = dat_naapurit2 %>%
+                        sf::st_set_geometry(NULL) %>%
+                        bind_cols(dat_naapurit2 %>% 
+                                    sf::st_centroid() %>% sf::st_coordinates() %>% as_tibble()),
+                     aes(label = paste0(aluenimi, "\n", round(value,1)), x = X, y = Y), color = "white", fill = alpha("black", 1/3), family = "PT Sans")
+
     
     gg_x[[i]] <- p
 }
   
   gg_x2 <- purrr::compact(gg_x)
 
-wrap_plots(gg_x2, ncol = 3) +
+wrap_plots(gg_x2, ncol = ncol) +
   plot_annotation(
-    subtitle = glue("Kuhunkin kuvioon on merkitty alueen '{regname}' lisäksi kunkin \nindikaattorin suurin ja pienin alue sekä väestömäärältään suurin alue"),
+    subtitle = glue("Kuhunkin kuvioon on merkitty alueen '{regname}' lisäksi alueen rajanaapurit"),
     theme = theme_minimal() + theme(plot.background = element_rect(fill = NA, color = alpha(colour = "dim grey", 1/6)))# + 
       # theme(plot.title = element_text(face = "bold", size = 12))
   )
@@ -196,50 +179,58 @@ wrap_plots(gg_x2, ncol = 3) +
 ```{r data, eval = TRUE}
 dat <- params$data
 dat[dat$regio_level %in% params$region_level & dat$aluenimi %in% params$region,] %>% 
-  select(var_class,variable,value) -> tmpdat
+  select(aluenimi,var_class,variable,value) %>% 
+  mutate(rooli = "valittu") -> tmpdat1
+dat[dat$regio_level %in% params$region_level & dat$aluekoodi %in% params$naapurikoodit,] %>% 
+  filter(!aluenimi %in% params$region) %>% 
+  select(aluenimi,var_class,variable,value) %>% 
+  mutate(rooli = "naapuri")-> tmpdat2
+tmpdat <- bind_rows(tmpdat1,tmpdat2)
+
 ## 
 dat[dat$regio_level %in% params$region_level,] %>% 
   group_by(var_class,variable) %>% 
   arrange(desc(value)) %>% 
   slice(1) %>% 
   ungroup() %>% 
-  mutate(maksimi = glue("{round(value, 1)} ({ifelse(nchar(aluenimi) > 10, paste0(substr(aluenimi, 1, 10),'...'), aluenimi)})")) %>% 
-  select(variable,maksimi) -> max_dat
+  # mutate(maksimi = glue("{round(value, 1)} ({ifelse(nchar(aluenimi) > 10, paste0(substr(aluenimi, 1, 10),'...'), aluenimi)})")) %>% 
+  mutate(rooli = "korkein arvo") %>%
+  select(aluenimi,var_class,variable,value,rooli) -> max_dat
 
 dat[dat$regio_level %in% params$region_level,] %>% 
-  group_by(variable) %>% 
+  group_by(var_class,variable) %>% 
   arrange(value) %>% 
   slice(1) %>% 
   ungroup() %>% 
-  mutate(minimi = glue("{round(value, 1)} ({ifelse(nchar(aluenimi) > 10, paste0(substr(aluenimi, 1, 10),'...'), aluenimi)})")) %>% 
-  select(variable,minimi) -> min_dat
+  # mutate(minimi = glue("{round(value, 1)} ({ifelse(nchar(aluenimi) > 10, paste0(substr(aluenimi, 1, 10),'...'), aluenimi)})")) %>% 
+  mutate(rooli = "matalin arvo") %>% 
+  select(aluenimi,var_class,variable,value,rooli) -> min_dat
 
 dat[dat$regio_level %in% params$region_level,] %>% 
-  group_by(variable) %>% 
-  arrange(desc(value)) %>%
-  mutate(sija = 1:n(),
-         n = n()) %>% 
-  # mutate(sija = glue("{sija}/{n}")) %>% 
-  ungroup() %>% 
-  filter(aluenimi %in% params$region) %>% 
-  select(variable,sija) -> rank_dat
+    group_by(variable) %>% 
+    arrange(desc(value)) %>%
+    mutate(sija = 1:n(),
+           n = n()) %>% 
+    ungroup() %>% 
+    # filter(aluenimi %in% aluename2) %>% 
+    select(aluenimi,variable,sija) -> rank_dat
 
-left_join(tmpdat,max_dat) %>% 
-  left_join(min_dat) %>% 
-  left_join(rank_dat) %>% 
-  mutate(#variable = add_line_break(gsub("_", " ", variable), 60),
-    value = round(value, 1)) %>% 
-  rename(muuttuja = variable,
-         arvo = value) %>% 
-  filter(!is.na(arvo)) %>% 
-  select(muuttuja,arvo,sija,everything()) -> tabdat
-
+bind_rows(tmpdat,max_dat,min_dat) %>% 
+    left_join(rank_dat) %>% 
+    mutate(value = round(value, 1)) %>% 
+    rename(muuttuja = variable,
+           arvo = value) %>% 
+    filter(!is.na(arvo)) %>% 
+    select(muuttuja,arvo,sija,everything()) %>% 
+    distinct() -> tabdat
 ```
 
-```{r kartta, fig.height=10}
+
+```{r kartta, fig.height=8}
 dat <- params$spatdat
 dat <- sf::st_transform(dat, crs = 3067)
 dat_region <- dat[dat$aluenimi == params$region,]
+dat_naapurit <- dat[dat$aluekoodi %in% params$naapurikoodit,]
 
 ggplot(data = dat) +                    
 # ggplot(data = dat, aes(fill = value)) +
@@ -249,8 +240,9 @@ ggplot(data = dat) +
          title = NULL,
          subtitle = NULL,
          caption = NULL) +
+  geom_sf(data = dat_naapurit, fill = alpha("#3b0083", 1/6), color = NA) +
   geom_sf(data = dat_region, fill = alpha("#3b0083", 1/3), color = NA) +
-theme(axis.text = element_blank(),
+ theme(axis.text = element_blank(),
           axis.title = element_blank(),
           panel.grid = element_blank(), 
           legend.position = "none")
@@ -260,40 +252,95 @@ theme(axis.text = element_blank(),
 
 # Summamuuttujat
 
-```{r summa_tbl, results = "asis"}
-create_table(tabdat, "Summamuuttujat")
+```{r info_summa, include = FALSE}
+muuttujaluokka = "Summamuuttujat"
+varn <- tabdat %>% filter(var_class == muuttujaluokka) %>% distinct(muuttuja) %>% nrow()
+figu_height <- NA
+ncol = 2
+figu_height[varn <= 4] <- 9
+figu_height[varn > 4 & varn <= 6] <- 11
+figu_height[varn > 6 & varn <= 9] <- 13.3
+figu_height[varn > 9] <- 13.3
+ncol[varn > 9] <- 3
 ```
-```{r summa_kuva, fig.height = 10}
-create_plot(varclass = "Summamuuttujat")
+
+```{r summa_kuva, fig.height = figu_height}
+create_plot(varclass = muuttujaluokka, ncol = ncol)
+```
+
+```{r summa_tbl, results = "asis"}
+create_table(tabdat, muuttujaluokka)
 ```
 
 # Inhimillinen huono-osaisuus
 
-```{r inhim_tbl, results = "asis"}
-create_table(tabdat, "Inhimillinen huono-osaisuus")
+
+```{r info_inhim, include = FALSE}
+muuttujaluokka = "Inhimillinen huono-osaisuus"
+varn <- tabdat %>% filter(var_class == muuttujaluokka) %>% distinct(muuttuja) %>% nrow()
+ncol = 2
+figu_height[varn <= 4] <- 9
+figu_height[varn > 4 & varn <= 6] <- 11
+figu_height[varn > 6 & varn <= 9] <- 13.3
+figu_height[varn > 9] <- 13.3
+ncol[varn > 9] <- 3
 ```
 
-```{r inhim_kuva, fig.height = 7.5}
-create_plot(varclass = "Inhimillinen huono-osaisuus")
+
+```{r inhim_kuva,  fig.height = figu_height}
+create_plot(varclass = muuttujaluokka, ncol = ncol)
 ```
+
+```{r inhim_tbl, results = "asis"}
+create_table(tabdat, muuttujaluokka)
+```
+
 
 # Huono-osaisuuden sosiaaliset seuraukset
 
-```{r sosial_taulukko, results = "asis"}
-create_table(tabdat, "Huono-osaisuuden sosiaaliset seuraukset")
+```{r info_huono, include = FALSE}
+muuttujaluokka = "Huono-osaisuuden sosiaaliset seuraukset"
+varn <- tabdat %>% filter(var_class == muuttujaluokka) %>% distinct(muuttuja) %>% nrow()
+ncol = 2
+figu_height[varn <= 4] <- 9
+figu_height[varn > 4 & varn <= 6] <- 11
+figu_height[varn > 6 & varn <= 9] <- 13.3
+figu_height[varn > 9] <- 13.3
+ncol[varn > 9] <- 3
 ```
 
-```{r  sosial_kuva, fig.height = 8}
-create_plot(varclass = "Huono-osaisuuden sosiaaliset seuraukset")
+```{r  sosial_kuva,  fig.height = figu_height}
+create_plot(varclass = muuttujaluokka, ncol = ncol)
 ```
+
+```{r sosial_taulukko, results = "asis"}
+create_table(tabdat, muuttujaluokka)
+```
+
+
 
 # Huono-osaisuuden taloudelliset yhteydet
 
-```{r talous_tbl, results = "asis"}
-create_table(tabdat, "Huono-osaisuuden taloudelliset yhteydet")
+```{r info_talous, include = FALSE}
+muuttujaluokka = "Huono-osaisuuden taloudelliset yhteydet"
+figu_height <- tabdat %>% filter(var_class == muuttujaluokka) %>% distinct(muuttuja) %>% nrow()
+varn <- tabdat %>% filter(var_class == muuttujaluokka) %>% distinct(muuttuja) %>% nrow()
+ncol = 2
+figu_height[varn <= 4] <- 9
+figu_height[varn > 4 & varn <= 6] <- 11
+figu_height[varn > 6 & varn <= 9] <- 13.3
+figu_height[varn > 9] <- 13.3
+ncol[varn > 9] <- 3
 ```
 
-```{r talous_kuva, fig.height = 8}
-create_plot(varclass = "Huono-osaisuuden taloudelliset yhteydet")
+
+```{r talous_kuva,  fig.height = figu_height}
+create_plot(varclass = muuttujaluokka, ncol = ncol)
 ```
+
+
+```{r talous_tbl, results = "asis"}
+create_table(tabdat, muuttujaluokka)
+```
+
 
