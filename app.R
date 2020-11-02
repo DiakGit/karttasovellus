@@ -21,7 +21,7 @@ ui <- fluidPage(
 server <- function(input, output) {
 
     get_dat <- reactive({
-        dat <- readRDS("./data/df_v20200423.RDS")
+        dat <- readRDS("./data/df_v20201102.RDS")
         return(dat)
     })
     
@@ -507,6 +507,13 @@ server <- function(input, output) {
         },
         content = function(file) {
             
+            shiny::withProgress(
+            message = paste0("Luodaan dokumenttia"),
+            value = 0,
+            {
+            shiny::incProgress(1/10)
+            Sys.sleep(1)
+            
 
                     # Set up parameters to pass to Rmd document
                     klik <- get_klik()
@@ -523,6 +530,7 @@ server <- function(input, output) {
                     } else {
                         aluename <- aluenimi_kartta
                     }
+                    shiny::incProgress(3/10)
                     
                     region_data <- get_region_data()
                     region_data <- dplyr::filter(region_data, level %in% input$value_regio_level2)
@@ -571,12 +579,15 @@ server <- function(input, output) {
                     }
                     
                     writeLines(lns3, tempReport)
+                    shiny::incProgress(5/10)
                     rmarkdown::render(tempReport, 
                                       output_file = file, 
                                       params = params,
                                       envir = new.env(parent = globalenv()
                                                       )
             )
+                    shiny::incProgress(7/10)
+                    })
         }
     )
     

@@ -10,6 +10,7 @@ dir_create(here("./data"))
 
 # dir_ls(here("./data_raw/"), glob = "*.xlsx") -> flies
 dd <- read_excel("./data_raw/Kopio_Huono-osaisuuden mittarit - KAIKKI.xlsx")
+dd <- read_excel("./data_raw/Huono-osaisuusindikaattorit - uusimmat.xlsx")
 
 df_tmp <- dd %>%
   rename(aluekoodi = Aluekoodi,
@@ -17,9 +18,18 @@ df_tmp <- dd %>%
          regio_level = Aluetaso) %>% 
   mutate(aluekoodi = as.integer(ifelse(regio_level == "Maakunnat", sub("^MK", "", aluekoodi),
                                        ifelse(regio_level == "Seutukunnat", sub("^SK", "", aluekoodi), aluekoodi)))) %>% 
-  select(regio_level,everything())  
+  select(regio_level,everything())
 
-
+# Uusi data, jossa sarakenimet ei korjattu
+tibble(name1 = names(df_tmp)) %>% 
+  mutate(osoitin = ifelse(grepl("^[A-z] - ", name1), TRUE, FALSE),
+         summa = ifelse(grepl("^[A-Z][a-z]", name1), TRUE, FALSE)) %>%
+  mutate(name2 = ifelse(summa, toupper(name1), sub("^[A-z] - ", "", name1)
+                        )) %>% 
+  pull(name2) -> new_names
+names(df_tmp) <- new_names
+  
+  
 ekaiso <- function(x) {
   substr(x, 1, 1) <- toupper(substr(x, 1, 1))
   x
@@ -55,7 +65,7 @@ df2 <- left_join(df,sk_names) %>%
   filter(!variable %in% c("Inhimillinen","Sosiaalinen","Taloudellinen"),
          !is.na(value)) 
 
-saveRDS(df2, here("./data/df_v20200423.RDS"), 
+saveRDS(df2, here("./data/df_v20201102.RDS"), 
         compress = FALSE)
 
 # Apudata karttojen tekoon
@@ -144,7 +154,7 @@ saveRDS(region_data2, "./data/region_data.RDS")
 if (F){
 
 # Luodaan raaka muuttujakuvaus
-readRDS("./data/df_v20200320.RDS") %>% 
+readRDS("./data/df_v20201102.RDS") %>% 
   distinct(var_class,variable,regio_level) %>% 
   group_by(var_class,variable) %>% 
   summarise(aluetasot = paste(regio_level, collapse = ", ")) %>% 
