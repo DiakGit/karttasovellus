@@ -693,7 +693,7 @@ server <- function(input, output) {
     
     output$variable_desctiption <- DT::renderDataTable({
         
-        dat <- readxl::read_excel("./data/muuttujakuvaukset.xlsx") %>% 
+        dat <- readxl::read_excel("./data/Muuttujakuvaukset_20201102.xlsx") %>% 
             setNames(c("Muuttujaluokka","Muuttuja","Aluetasot","Kuvaus"))
         
         
