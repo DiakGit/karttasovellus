@@ -384,90 +384,111 @@ server <- function(input, output) {
     tabdat <- create_alueprofiili_content(aluename2 = aluename, naapurikoodit = naapurikoodit)
     
     # Summamuuttujat
-    tabdat_tmp <- tabdat %>% filter(var_class == "Summamuuttujat")
-    vars <- unique(tabdat_tmp$muuttuja)
-    lista1_data <- list()
-    for (vi in seq_along(vars)){
-        lista1_data[[vi]] <- tabdat_tmp[tabdat_tmp$muuttuja %in% vars[vi],] %>%
-            select(aluenimi,arvo,sija,rooli) %>%
-            arrange(sija) %>% 
-            gt(data = .) %>% gt::tab_header(title = vars[vi]) %>%
-            tab_options(table.width	= "90%", table.align = "left")
-    }
-    # "Inhimillinen huono-osaisuus"
-    tabdat_tmp <- tabdat %>% filter(var_class == "Inhimillinen huono-osaisuus")
-    vars <- unique(tabdat_tmp$muuttuja)
-    lista2_data <- list()
-    for (vi in seq_along(vars)){
-        lista2_data[[vi]] <- tabdat_tmp[tabdat_tmp$muuttuja %in% vars[vi],] %>%
-            select(aluenimi,arvo,sija,rooli) %>%
-            arrange(rooli) %>% 
-            gt(data = .) %>% gt::tab_header(title = vars[vi]) %>%
-            tab_options(table.width	= "90%", table.align = "left")
-    }
-    # "Huono-osaisuuden sosiaaliset seuraukset"
-    tabdat_tmp <- tabdat %>% filter(var_class == "Huono-osaisuuden sosiaaliset seuraukset")
-    vars <- unique(tabdat_tmp$muuttuja)
-    lista3_data <- list()
-    for (vi in seq_along(vars)){
-        lista3_data[[vi]] <- tabdat_tmp[tabdat_tmp$muuttuja %in% vars[vi],] %>%
-            select(aluenimi,arvo,sija,rooli) %>%
-            arrange(rooli) %>% 
-            gt(data = .) %>% gt::tab_header(title = vars[vi]) %>%
-            tab_options(table.width	= "90%", table.align = "left")
-    }
-    # "Huono-osaisuuden taloudelliset yhteydet"
-    tabdat_tmp <- tabdat %>% filter(var_class == "Huono-osaisuuden taloudelliset yhteydet")
-    vars <- unique(tabdat_tmp$muuttuja)
-    lista4_data <- list()
-    for (vi in seq_along(vars)){
-        lista4_data[[vi]] <- tabdat_tmp[tabdat_tmp$muuttuja %in% vars[vi],] %>%
-            select(aluenimi,arvo,sija,rooli) %>%
-            arrange(rooli) %>% 
-            gt(data = .) %>% gt::tab_header(title = vars[vi]) %>%
-            tab_options(table.width	= "90%", table.align = "left")
-    }
+    muuttujaluokka <- "Summamuuttujat"
+    lista1_tbl <- tabdat %>% 
+        filter(var_class == muuttujaluokka) %>%
+        mutate(aluenimi = paste0(aluenimi, " (", rooli, ") ")) %>% 
+        select(muuttuja,aluenimi,arvo,sija) %>%
+        arrange(muuttuja,sija) %>% 
+        mutate(sija = paste0(sija,".")) %>% 
+        gt(
+            rowname_col = "aluenimi",
+            groupname_col = "muuttuja"
+        ) %>% 
+        gt::tab_header(title = toupper(muuttujaluokka)) %>%
+        tab_options(table.width	= "90%", 
+                    table.align = "left",
+                    row_group.background.color = alpha("grey", 1/6)) %>% 
+        cols_align(
+            align = "right",
+            columns = vars(sija)
+        )
     
+    # "Inhimillinen huono-osaisuus"
+    muuttujaluokka <- "Inhimillinen huono-osaisuus"
+    lista2_tbl <- tabdat %>% 
+        filter(var_class == muuttujaluokka) %>%
+        mutate(aluenimi = paste0(aluenimi, " (", rooli, ") ")) %>% 
+        select(muuttuja,aluenimi,arvo,sija) %>%
+        arrange(muuttuja,sija) %>% 
+        mutate(sija = paste0(sija,".")) %>% 
+        gt(
+            rowname_col = "aluenimi",
+            groupname_col = "muuttuja"
+        ) %>% 
+        gt::tab_header(title = toupper(muuttujaluokka)) %>%
+        tab_options(table.width	= "90%", 
+                    table.align = "left",
+                    row_group.background.color = alpha("grey", 1/6)) %>% 
+        cols_align(
+            align = "right",
+            columns = vars(sija)
+        )
+    
+    # "Huono-osaisuuden sosiaaliset seuraukset"
+    muuttujaluokka <- "Huono-osaisuuden sosiaaliset seuraukset"
+    lista3_tbl <- tabdat %>% 
+        filter(var_class == muuttujaluokka) %>%
+        mutate(aluenimi = paste0(aluenimi, " (", rooli, ") ")) %>% 
+        select(muuttuja,aluenimi,arvo,sija) %>%
+        arrange(muuttuja,sija) %>% 
+        mutate(sija = paste0(sija,".")) %>% 
+        gt(
+            rowname_col = "aluenimi",
+            groupname_col = "muuttuja"
+        ) %>% 
+        gt::tab_header(title = toupper(muuttujaluokka)) %>%
+        tab_options(table.width	= "90%", 
+                    table.align = "left",
+                    row_group.background.color = alpha("grey", 1/6)) %>% 
+        cols_align(
+            align = "right",
+            columns = vars(sija)
+        )
+    
+    # "Huono-osaisuuden taloudelliset yhteydet"
+    muuttujaluokka <- "Huono-osaisuuden taloudelliset yhteydet"
+    lista4_tbl <- tabdat %>% 
+        filter(var_class == muuttujaluokka) %>%
+        mutate(aluenimi = paste0(aluenimi, " (", rooli, ") ")) %>% 
+        select(muuttuja,aluenimi,arvo,sija) %>%
+        arrange(muuttuja,sija) %>% 
+        mutate(sija = paste0(sija,".")) %>% 
+        gt(
+            rowname_col = "aluenimi",
+            groupname_col = "muuttuja"
+        ) %>% 
+        gt::tab_header(title = toupper(muuttujaluokka)) %>%
+        tab_options(table.width	= "90%", 
+                    table.align = "left",
+                    row_group.background.color = alpha("grey", 1/6)) %>% 
+        cols_align(
+            align = "right",
+            columns = vars(sija)
+        )
 
     tagList(
         fluidRow(column(width = 12, 
-                        tags$h3(glue("{aluename} ({input$value_regio_level2})")),
-                        # ),
-                        # column(6, downloadButton("report", 
-                        #                          glue("Tallenna {tolower(input$value_regio_level2)}_{klik$id}.pdf")),
+                        tags$h3(glue("{aluename} ({input$value_regio_level2})"))
         )),
         fluidRow(column(12,
                         
                         tags$div(style = "padding-top: 10px;"),
-                        tags$h4("Summamuuttujat"),
-                        # unlist(lista3_data),
-                        # for (vi in 1) print(lista3_data[[vi]]),
-                        lista1_data[[1]],
-                        lista1_data[[2]],
-                        lista1_data[[3]],
-                        lista1_data[[4]],
+                        # tags$h4("Summamuuttujat"),
+                        tags$p("Analyysissä mukana", glue_collapse(unique(tabdat$aluenimi), sep = ", ", last = " ja ")),
+                        lista1_tbl,
 
                         tags$div(style = "padding-top: 50px;"),
-                        tags$h4("Inhimillinen huono-osaisuus"),
-                        lista2_data[[1]],
-                        lista2_data[[2]],
-                        lista2_data[[3]],
-                        lista2_data[[4]],
+                        # tags$h4("Inhimillinen huono-osaisuus"),
+                        lista2_tbl,
                         
                         tags$div(style = "padding-top: 50px;"),
-                        tags$h4("Huono-osaisuuden sosiaaliset seuraukset"),
-                        lista3_data[[1]],
-                        lista3_data[[2]],
-                        lista3_data[[3]],
-                        lista3_data[[4]],
+                        # tags$h4("Huono-osaisuuden sosiaaliset seuraukset"),
+                        lista3_tbl,
                         
                         tags$div(style = "padding-top: 50px;"),
-                        tags$h4("Huono-osaisuuden taloudelliset yhteydet"),
-                        
-                        lista4_data[[1]],
-                        lista4_data[[2]],
-                        lista4_data[[3]],
-                        lista4_data[[4]]
+                        # tags$h4("Huono-osaisuuden taloudelliset yhteydet"),
+                        lista4_tbl
         ))
     )
     
@@ -480,20 +501,13 @@ server <- function(input, output) {
     
     output$report <- downloadHandler(
 
-        file = glue("alueprofiili_{Sys.time()}.docx"),
+        filename = function() {
+            file_name <- glue("alueprofiili_{get_klik()$id}_{tolower(input$value_regio_level2)}{input$value_report_format}")
+            return(file_name)
+        },
         content = function(file) {
             
 
-                    tempReport <- file.path(tempdir(), "report.Rmd")
-                    # tempReport <- file.path("~/Downloads", "report.Rmd")
-                    file.copy("./docs/report.Rmd", tempReport, overwrite = TRUE)
-                    # temp_header <- file.path(tempdir(), "header.tex")
-                    file.copy("./docs/diak_karttasovellus.dotx",
-                              tempdir(),
-                              # "~/Downloads",
-                              overwrite = TRUE)
-                    # logo <- file.path(tempdir(), "diak-logo-1.pdf")
-                    # file.copy("./docs/diak-logo-1.pdf", logo, overwrite = TRUE)
                     # Set up parameters to pass to Rmd document
                     klik <- get_klik()
                     # aluename <- klik$id
@@ -517,17 +531,48 @@ server <- function(input, output) {
                     # klik <- list("id" = "Veteli")
                     params <- list(region = aluename,
                                    region_level = input$value_regio_level2,
-                                   # region_level = "Kunta",
                                    datetime = Sys.time(),
-                                   # data = mtcars
                                    data = get_dat(),
                                    spatdat = process_data(),
                                    region_data = region_data,
                                    value_variable = input$value_variable,
-                                   naapurikoodit = naapurikoodit
-                                   )
-
-                    rmarkdown::render(tempReport, output_file = file, 
+                                   naapurikoodit = naapurikoodit#,
+                                   # odt_kerroin = 1
+                    )
+                    
+                    tempReport <- file.path(tempdir(), "report.Rmd")
+                    # tempReport <- file.path("~/Downloads", "report.Rmd")
+                    # dea("./docs/report_template.Rmd", tempReport, overwrite = TRUE)
+                    lns <- readLines("./docs/report_template.Rmd") 
+                    
+                    if (input$value_report_format == ".docx"){
+                        # lns2 <- sub("korvaa_asiakirjamalli", "reference_docx: diak_karttasovellus.dotx", lns)
+                        # lns3 <- sub("korvaa_dokumenttimuoto", "word_document", lns2)
+                        lns3 <- lns
+                        file.copy("./docs/diak_karttasovellus.dotx",
+                                  tempdir(),
+                                  overwrite = TRUE)
+                        params[["fig_width_default"]] <- 12
+                        params[["fig_height_default"]] <- 10
+                        params[["doc_format"]] <- "docx"
+                        # params[["fig_dpi"]] <- 300
+                        # params[["out_width"]] <- "300px"
+                    } else {
+                        lns2 <- sub("reference_docx: diak_karttasovellus.dotx", "reference_odt: diak_karttasovellus.ott", lns)
+                        lns3 <- sub("word_document", "odt_document", lns2)
+                        file.copy("./docs/diak_karttasovellus.ott",
+                                  tempdir(),
+                                  overwrite = TRUE)
+                        params[["fig_width_default"]] <- 12
+                        params[["fig_height_default"]] <- 10
+                        params[["doc_format"]] <- "odt"
+                        # params[["fig_dpi"]] <- 300
+                        # params[["out_width"]] <- "300px"
+                    }
+                    
+                    writeLines(lns3, tempReport)
+                    rmarkdown::render(tempReport, 
+                                      output_file = file, 
                                       params = params,
                                       envir = new.env(parent = globalenv()
                                                       )
@@ -541,7 +586,17 @@ server <- function(input, output) {
         
         req(input$value_variable)
         tagList(
-            downloadButton("report", "Tallenna alueprofiili Word-tiedostona")
+            downloadButton("report", "Tallenna alueprofiili laitteellesi!"),
+            radioButtons("value_report_format",
+                         "Valitse tallennettavan tiedoston tiedostomuoto",
+                         choiceNames = list(#"vektorikuva (.pdf)",
+                                            "Word (.docx)",
+                                            "LibreOffice/OpenOffice/Google Docs (.odt)"),
+                         choiceValues = list(#".pdf",
+                                             ".docx",
+                                             ".odt"),
+                         inline = TRUE)
+            
         )
     })
     
