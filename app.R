@@ -3,8 +3,8 @@ source("./global.R")
 
 ui <- fluidPage(
     uiOutput("output_save_word"),
-    textOutput("aputeksti"),
-    
+    # textOutput("aputeksti"),
+    # plotOutput("profiilikartta01", width = "90%", height = "500px"),
     uiOutput("output_indicator_class"),
     uiOutput("output_indicator"),
     uiOutput("output_regio_level"),
@@ -13,7 +13,8 @@ ui <- fluidPage(
     DT::dataTableOutput("rank_tbl"),
     # verbatimTextOutput("value"),
     uiOutput("region_profile_html"),
-    DT::dataTableOutput("variable_desctiption")
+    # DT::dataTableOutput("variable_desctiption")
+    gt::gt_output("variable_desctiption_gt")
 )
 
 
@@ -53,10 +54,11 @@ server <- function(input, output) {
         #     tagList()
         # } else {
             tagList(
-                pickerInput(inputId = "value_variable_class", 
-                            label = "Valitse muuttujaluokka", 
-                            choices = opt_indicator, 
-                            selected = opt_indicator[1])
+                selectInput(
+                    inputId = "value_variable_class", 
+                    label = "Valitse muuttujaluokka", 
+                    choices = opt_indicator, 
+                    selected = opt_indicator[1])
             )
         # }
         
@@ -76,20 +78,21 @@ server <- function(input, output) {
         #     tagList()
         # } else {
             tagList(
-                pickerInput(inputId = "value_variable", 
+                selectInput(inputId = "value_variable", 
                             label = "Valitse muuttuja", 
                             choices = opt_indicator2
                             ,selected = opt_indicator2[1],
-                            option= pickerOptions(
-                                actionsBox = TRUE,
-                                liveSearch = TRUE,
-                                deselectAllText = "Ei mitään",
-                                selectAllText = "Kaikki",
-                                noneSelectedText = "Ei yhtään valittuna",
-                                noneResultsText = "Ei yhtään osumaa"#,
-                                # maxOptions = 4,
-                                # maxOptionsText = "Maksimimäärä muuttujia valittu"
-                            ),multiple = FALSE)
+                            # option= pickerOptions(
+                            #     actionsBox = TRUE,
+                            #     liveSearch = TRUE,
+                            #     deselectAllText = "Ei mitään",
+                            #     selectAllText = "Kaikki",
+                            #     noneSelectedText = "Ei yhtään valittuna",
+                            #     noneResultsText = "Ei yhtään osumaa"#,
+                            #     # maxOptions = 4,
+                            #     # maxOptionsText = "Maksimimäärä muuttujia valittu"
+                            # ),
+                            multiple = FALSE)
             )
         # }
         
@@ -257,8 +260,11 @@ server <- function(input, output) {
         klik <- get_klik()
         rownro <- match(klik$id,dat[[input$value_regio_level2]])
         
-        dt <- datatable(dat, rownames = FALSE, 
-                        selection = list(mode = 'single', selected = rownro),
+        dt <- DT::datatable(dat, 
+                        rownames = FALSE, 
+                        # style = "bootstrap4",
+                        selection = list(mode = 'single', 
+                                         selected = rownro),
                         # filter = "top", extensions = 'Buttons',
                         options = list(pageLength = 20,
                                        paging = FALSE,
@@ -359,6 +365,61 @@ server <- function(input, output) {
     }
     
     
+    output$profiilikartta01 <- renderPlot({
+        
+        req(input$value_variable_class)
+        req(input$value_variable)
+        req(input$value_regio_level2)
+        
+        klik <- get_klik()
+        aluenimi_kartta <- klik$id
+
+        dat <- process_data() %>%
+            st_set_geometry(NULL) %>%
+            select(rank,aluenimi,value)
+        aluenimi_taulukko <- unique(dat[input$rank_tbl_rows_selected,]$aluenimi)
+
+        if (aluenimi_kartta != aluenimi_taulukko){
+            aluename <- aluenimi_taulukko
+        } else {
+            aluename <- aluenimi_kartta
+        }
+        region_data <- get_region_data()
+        region_data <- dplyr::filter(region_data, level %in% input$value_regio_level2)
+        naapurikoodit <- region_data[region_data$region_name %in% aluename,]$neigbours[[1]]
+
+        tabdat <- create_alueprofiili_content(aluename2 = aluename, naapurikoodit = naapurikoodit)
+        
+        muuttujaluokka <- "Summamuuttujat"
+        lista1_tbl <- tabdat %>%
+            filter(var_class == muuttujaluokka) %>%
+            filter(rooli %in% c("naapuri","valinta")) %>% 
+            # mutate(aluenimi = paste0(aluenimi, " (", rooli, ") ")) %>%
+            select(muuttuja,aluenimi,arvo,sija) %>%
+            arrange(muuttuja,sija)
+        mapdata <- left_join(region_data, lista1_tbl, by = c("region_name" = "aluenimi")) %>% 
+            filter(!is.na(muuttuja))
+        
+        ggplot(data = mapdata, aes(fill = arvo)) +                    
+            geom_sf(color = alpha("white", 1/3))  +
+            theme_minimal(base_family = "PT Sans", base_size = 12) +
+            scale_fill_viridis_c(option = "plasma") +
+            theme(axis.text = element_blank(),
+                  axis.title = element_blank(),
+                  panel.grid = element_blank()) +
+            labs(x = NULL, y = NULL, fill = NULL,
+                 title = glue("Huono-osaisuuden summamuuttujat alueella {aluename} sekä \n{glue_collapse(unique(mapdata$region_name)[unique(mapdata$region_name) != aluename], sep = ', ', last  = ' ja ')}")
+                 # title = add_line_break2(vars[i], n = 35)
+                 ) +
+            ggrepel::geom_label_repel(data = mapdata %>%
+                                          sf::st_set_geometry(NULL) %>%
+                                          bind_cols(mapdata %>% 
+                                                        sf::st_centroid() %>% sf::st_coordinates() %>% as_tibble()),
+                                      aes(label = paste0(region_name, "\n", round(arvo,1)), x = X, y = Y), 
+                                      color = "white", fill = alpha("black", 1/3), family = "PT Sans", size = 3) + 
+            facet_wrap(~muuttuja, ncol = 2)
+    })
+    
     
     output$region_profile_html <- renderUI({
         # klik <- rv$map_click_id
@@ -395,7 +456,7 @@ server <- function(input, output) {
             rowname_col = "aluenimi",
             groupname_col = "muuttuja"
         ) %>% 
-        gt::tab_header(title = toupper(muuttujaluokka)) %>%
+        # gt::tab_header(title = toupper(muuttujaluokka)) %>%
         tab_options(table.width	= "90%", 
                     table.align = "left",
                     row_group.background.color = alpha("grey", 1/6)) %>% 
@@ -416,7 +477,7 @@ server <- function(input, output) {
             rowname_col = "aluenimi",
             groupname_col = "muuttuja"
         ) %>% 
-        gt::tab_header(title = toupper(muuttujaluokka)) %>%
+        # gt::tab_header(title = toupper(muuttujaluokka)) %>%
         tab_options(table.width	= "90%", 
                     table.align = "left",
                     row_group.background.color = alpha("grey", 1/6)) %>% 
@@ -437,7 +498,7 @@ server <- function(input, output) {
             rowname_col = "aluenimi",
             groupname_col = "muuttuja"
         ) %>% 
-        gt::tab_header(title = toupper(muuttujaluokka)) %>%
+        # gt::tab_header(title = toupper(muuttujaluokka)) %>%
         tab_options(table.width	= "90%", 
                     table.align = "left",
                     row_group.background.color = alpha("grey", 1/6)) %>% 
@@ -458,7 +519,7 @@ server <- function(input, output) {
             rowname_col = "aluenimi",
             groupname_col = "muuttuja"
         ) %>% 
-        gt::tab_header(title = toupper(muuttujaluokka)) %>%
+        # gt::tab_header(title = toupper(muuttujaluokka)) %>%
         tab_options(table.width	= "90%", 
                     table.align = "left",
                     row_group.background.color = alpha("grey", 1/6)) %>% 
@@ -474,20 +535,23 @@ server <- function(input, output) {
         fluidRow(column(12,
                         
                         tags$div(style = "padding-top: 10px;"),
-                        # tags$h4("Summamuuttujat"),
                         tags$p("Analyysissä mukana", glue_collapse(unique(tabdat$aluenimi), sep = ", ", last = " ja ")),
+                        tags$h4("Summamuuttujat"),
+                        plotOutput("profiilikartta01", width = "90%", height = "600px"),
                         lista1_tbl,
-
+                        # tags$div(id="profiilikartta01", class="shiny-plot-output", height = "450px", width = "90%"),
+                        
+                        
                         tags$div(style = "padding-top: 50px;"),
-                        # tags$h4("Inhimillinen huono-osaisuus"),
+                        tags$h4("Inhimillinen huono-osaisuus"),
                         lista2_tbl,
                         
                         tags$div(style = "padding-top: 50px;"),
-                        # tags$h4("Huono-osaisuuden sosiaaliset seuraukset"),
+                        tags$h4("Huono-osaisuuden sosiaaliset seuraukset"),
                         lista3_tbl,
                         
                         tags$div(style = "padding-top: 50px;"),
-                        # tags$h4("Huono-osaisuuden taloudelliset yhteydet"),
+                        tags$h4("Huono-osaisuuden taloudelliset yhteydet"),
                         lista4_tbl
         ))
     )
@@ -661,10 +725,12 @@ server <- function(input, output) {
                              subtitle = glue("Aluetaso: {input$value_regio_level2}"),
                              caption = glue("Data: THL & Diak\n{Sys.Date()}")) -> p
                     if (input$value_regio_level2 != "Kunnat"){
-                        p + ggrepel::geom_text_repel(data = dat %>%
+                        p + ggrepel::geom_label_repel(data = dat %>%
                                                          sf::st_set_geometry(NULL) %>%
                                                          bind_cols(dat %>% sf::st_centroid() %>% sf::st_coordinates() %>% as_tibble()),
-                                                     aes(label = value, x = X, y = Y), color = "white", family = "PT Sans", alpha = .6, size = 2.5) -> p
+                                                     aes(label = paste0(aluenimi,"\n", value), x = X, y = Y), 
+                                                     color = "white", fill = alpha("black", 2/3), 
+                                                     family = "PT Sans", size = 2) -> p
                     } else {
                         p + geom_text(data = dat %>%
                                           sf::st_set_geometry(NULL) %>%
@@ -672,7 +738,6 @@ server <- function(input, output) {
                                       aes(label = value, x = X, y = Y), 
                                       color = "white", 
                                       family = "PT Sans", 
-                                      alpha = .9, 
                                       size = 2.2) -> p
                     }
                     p + theme(axis.text = element_blank(),
@@ -691,23 +756,99 @@ server <- function(input, output) {
         }
     )
     
-    output$variable_desctiption <- DT::renderDataTable({
-        
+    # output$variable_desctiption <- DT::renderDataTable({
+    #     
+    #     dat <- readxl::read_excel("./data/Muuttujakuvaukset_20201102.xlsx") %>% 
+    #         setNames(c("Muuttujaluokka","Muuttuja","Aluetasot","Kuvaus"))
+    #     
+    #     
+    #     
+    #     
+    #     
+    #     dt <- datatable(dat, rownames = FALSE, 
+    #                     style = "bootstrap4",
+    #                     # selection = list(mode = 'single', selected = rownro),
+    #                     # filter = "top", extensions = 'Buttons',
+    #                     options = list(pageLength = 20,
+    #                                    paging = FALSE,
+    #                                    scrollY = "340px",
+    #                                    # dom = "dt",
+    #                                    language = list(url = 'datatable_translate.json')))
+    #     return(dt)
+    # })
+    
+    get_variable_description <- reactive({
         dat <- readxl::read_excel("./data/Muuttujakuvaukset_20201102.xlsx") %>% 
-            setNames(c("Muuttujaluokka","Muuttuja","Aluetasot","Kuvaus"))
-        
-        
-        dt <- datatable(dat, rownames = FALSE, 
-                        # selection = list(mode = 'single', selected = rownro),
-                        # filter = "top", extensions = 'Buttons',
-                        options = list(pageLength = 20,
-                                       paging = FALSE,
-                                       scrollY = "340px",
-                                       # dom = "dt",
-                                       language = list(url = 'datatable_translate.json')))
-        return(dt)
+            setNames(c("Muuttujaluokka","Muuttuja","Aluetasot","Kuvaus")) %>% 
+            mutate(Muuttujaluokka = factor(Muuttujaluokka, levels = c("Summamuuttujat",
+                                                                      "Inhimillinen huono-osaisuus",
+                                                                      "Huono-osaisuuden taloudelliset seuraukset", 
+                                                                      "Huono-osaisuuden sosiaaliset seuraukset"))) %>% 
+            arrange(Muuttujaluokka)
+        return(dat)
     })
 
+    output$variable_desctiption_gt1 <- gt::render_gt({
+    iv <- 1    
+    dat <- get_variable_description()
+    mulu <- unique(dat$Muuttujaluokka)
+    dat_tmp <- dat[dat$Muuttujaluokka == mulu[iv],]
+    dat_tmp %>% 
+        select(-Muuttujaluokka) %>% 
+        gt() %>% 
+        # gt::tab_header(title = toupper(mulu[iv])) %>%
+        tab_options(table.width	= "90%", 
+                    table.align = "left",
+                    row_group.background.color = alpha("grey", 1/6)) -> tbl1
+        return(tbl1)
+    })
+    
+    output$variable_desctiption_gt2 <- gt::render_gt({
+        iv <- 2    
+        dat <- get_variable_description()
+        mulu <- unique(dat$Muuttujaluokka)
+        dat_tmp <- dat[dat$Muuttujaluokka == mulu[iv],]
+        dat_tmp %>% 
+            select(-Muuttujaluokka) %>% 
+            gt() %>% 
+            # gt::tab_header(title = toupper(mulu[iv])) %>%
+            tab_options(table.width	= "90%", 
+                        table.align = "left",
+                        row_group.background.color = alpha("grey", 1/6)) -> tbl1
+        return(tbl1)
+    })
+    
+    output$variable_desctiption_gt3 <- gt::render_gt({
+        iv <- 3    
+        dat <- get_variable_description()
+        mulu <- unique(dat$Muuttujaluokka)
+        dat_tmp <- dat[dat$Muuttujaluokka == mulu[iv],]
+        dat_tmp %>% 
+            select(-Muuttujaluokka) %>% 
+            gt() %>% 
+            # gt::tab_header(title = toupper(mulu[iv])) %>%
+            tab_options(table.width	= "90%", 
+                        table.align = "left",
+                        row_group.background.color = alpha("grey", 1/6)) -> tbl1
+        return(tbl1)
+    })
+    
+    output$variable_desctiption_gt4 <- gt::render_gt({
+        iv <- 4    
+        dat <- get_variable_description()
+        mulu <- unique(dat$Muuttujaluokka)
+        dat_tmp <- dat[dat$Muuttujaluokka == mulu[iv],]
+        dat_tmp %>% 
+            select(-Muuttujaluokka) %>% 
+            gt() %>% 
+            # gt::tab_header(title = toupper(mulu[iv])) %>%
+            tab_options(table.width	= "90%", 
+                        table.align = "left",
+                        row_group.background.color = alpha("grey", 1/6)) -> tbl1
+        return(tbl1)
+    })
+    
+    
 }
 
 # shinyApp(ui = ui, server = server)

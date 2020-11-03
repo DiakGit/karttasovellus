@@ -47,11 +47,11 @@
     <!-- Navigation -->
   <nav class="navbar navbar-expand-lg navbar-light bg-light sticky-top">
     <div class="container">
-      <a class="navbar-brand" href="#"><img src = "https://www.diak.fi/wp-content/themes/diak/dist/images/diak-logo-1.svg" style = "height: 25px; padding-right: 5px;" alt = "Diakonia-ammattikorkeakoulun logo"><small>Huono-osaisuus Suomessa</small></a>
+      <a class="navbar-brand" role="banner" href="#"><img src = "https://www.diak.fi/wp-content/themes/diak/dist/images/diak-logo-1.svg" style = "height: 25px; padding-right: 5px;" alt = "Diakonia-ammattikorkeakoulun logo"><small>Huono-osaisuus Suomessa</small></a>
       <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarResponsive" aria-controls="navbarResponsive" aria-expanded="false" aria-label="Avaa valikko">
         <span class="navbar-toggler-icon"></span>
       </button>
-      <div class="collapse navbar-collapse" id="navbarResponsive">
+      <div role = "navigation" class="collapse navbar-collapse" id="navbarResponsive">
         <ul class="navbar-nav ml-auto">
           <li class="nav-item">
             <a class="nav-link" href="#kartta">Kartta</a>
@@ -73,7 +73,7 @@
     </div>
   </nav>
 
-  <main>
+  <main role = "main">
   <div class="container">
     <div class="row">
       <div class="col-lg-8">
@@ -91,6 +91,10 @@
   Kartan aluetta koskemalla tiedot siirtyvät oikean reunan taulukkoon sekä alueprofiiliin. Voit valita alueen myös koskemalla taulukon riviä. <br/>
   Taulukosta näet osoittimen arvot suuruusjärjestyksessä valitsemallasi aluetasolla.
   Alueprofiilista näet kartalta valitsemasi alueen tiedot kaikista osoittimista.
+  <br/><br/>
+  Indikaattorit ja muuttujat on muodostettu vuosien 2017-2019  tilastojen keskiarvosta vuosivaihtelun
+  minimoimiseksi, ja suhteuttamalla arvo keskimmäiseen eli mediaanimaakuntaan/-seutukuntaan/-kuntaan
+  vertailun helpottamiseksi. Lukemat siis kuvastavat 2010-luvun lopun huono-osaisuustilannetta.
     <a href="https://dialogi.diak.fi/2020/05/13/uusi-karttasivusto-paljastaa-miten-huono-osaisuus-vaihtelee-alueiden-valilla/">Lue lisää Diakin blogista!</a>
     </p>
 </div>
@@ -151,7 +155,6 @@
     kohdalla sijan mukaan.</p>
 
     <div id="output_save_word" class="shiny-html-output"></div>
-    
     <div id="region_profile_html" class="shiny-html-output"></div>
     
 </div>  
@@ -163,9 +166,17 @@
       <div class="col-lg-12">
     
     
-    <h1 id = "info">Lisätietoja</h1>
+    <h2 id = "info">Lisätietoja</h2>
     <h3>Aineisto</h3>
-    <div id="variable_desctiption" style="width:90%; height:auto; " class="datatables html-widget html-widget-output"></div>
+    <!--div id="variable_desctiption" style="width:90%; height:auto; " class="datatables html-widget html-widget-output"></div-->
+    <h4>Summamuuttujat</h4>
+    <div id="variable_desctiption_gt1" class="shiny-html-output"></div>
+    <h4>Inhimillinen huono-osaisuus</h4>
+    <div id="variable_desctiption_gt2" class="shiny-html-output"></div>
+    <h4>Huono-osaisuuden taloudelliset seuraukset</h4>
+    <div id="variable_desctiption_gt3" class="shiny-html-output"></div>
+    <h4>Huono-osaisuuden sosiaaliset seuraukset</h4>
+    <div id="variable_desctiption_gt4" class="shiny-html-output"></div>
     
     <h3>Sovellus</h3>
     
@@ -207,58 +218,44 @@
       <div class="col-lg-8">
 
     <h2 id = "saavutettavuus">Saavutettavuusseloste</h2>
-    <strong>Saavutettavuusseloste ei ole ajan tasalla!</strong>
-    
-    <p>Sovellusta testattu seuraavilla sovelluksilla</p>
-    <ul>
-    <li>Ruudunlukijat</li>
-    <ul>
-      <li>Windows-käyttöjärjestelmässä <a href = "https://www.nvaccess.org/">NVDA</a></li>
-      <li>Linux-käyttöjärjestelmässä <a href = "https://help.gnome.org/users/orca/stable/introduction.html.en">Orca</a></li>
-      <li>Chrome-internetselaimessa <a href = "https://chrome.google.com/webstore/detail/chromevox-classic-extensi/kgejglhpjiefppelpmljglcjbhoiplfn/related?hl=fi">Chromevox</a></li>
-    </ul>
-    <li>Semantiikan tarkastelijat</li>
-    <ul>
-      <li><a href = "https://thepaciellogroup.github.io/WAI-ARIA-Usage">WAI-ARIA usage</a></li>
-      <li><a href = "https://validator.w3.org/nu/">Nu Html Checker</a></li>
-    </ul>
-    </ul>
     
     <p>
-    <i>Saavutettavuudella</i> tarkoitetaan, että verkkosivut ja mobiilisovellukset sekä niiden sisällöt ovat sellaisia,     että kuka tahansa voisi niitä käyttää ja ymmärtää mitä niissä sanotaan.
+    <i>Saavutettavuudella</i> tarkoitetaan, että verkkosivut ja mobiilisovellukset sekä niiden sisällöt ovat sellaisia,
+    että kuka tahansa voisi niitä käyttää ja ymmärtää mitä niissä sanotaan.
     </p>
-    <p>Diakin verkkosivuja koskee laki digitaalisten palvelujen tarjoamisesta, joka pohjautuu  EU:n saavutettavuusdirektiiviin. Lain mukaan kaikilla tulee olla tasavertaiset mahdollisuudet käyttää digitaalisia palveluita.</p>
+    <p>Diakin verkkosivuja koskee laki digitaalisten palvelujen tarjoamisesta, joka pohjautuu  EU:n saavutettavuusdirektiiviin. 
+    Lain mukaan kaikilla tulee olla tasavertaiset mahdollisuudet käyttää digitaalisia palveluita.</p>
     <p>Tämä saavutettavuusseloste koskee <a href="https://www.thl.fi/sokra">Sokra-hankkeessa</a>
     toteutettu <a href="https://diak.shinyapps.io/karttasovellus/">karttasivusto</a> on julkaistu 23.4.2020,
     joka tarkoittaa sitä, että sivuston tulee noudattaa WCAG 2.1 –kriteeristön AA-tasoa 23.9.2020 mennessä.
     </p>
-    <h2>Digipalvelun saavutettavuuden tila</h2>
+    <h3>Digipalvelun saavutettavuuden tila</h3>
+
+    <p> <a href ="https://diak.shinyapps.io/karttasovellus/">Karttasivusto</a> 
+    täyttää pääosin WCAG 2.1 -kriteeristön A & AA -saavutettavuusvaatimukset.</p>
     <p>
-    Diakin itsearviona toteutetun saavutettavuusarvioinnin mukaan mahdollisia saavutettavuuspuutteita sivustolla
-    <a href="https://diak.shinyapps.io/karttasovellus/">diak.shinyapps.io/karttasovellus/</a>
-    saattaa olla:
-    </p>
+      
+    <h3>Saavutettavuusselosteen laatiminen</h3>
+    <p>Karttasivustoa koskeva seloste on laadittu 19.9.2020 ja sitä on päivitetty 3.11.2020. 
+    Seloste perustuu itsearvioon, Poutapilvi Oy:n tekemään auditointiraporttiin sekä 
+    seuraavilla testausohjelmistoilla suoritettuun tarkastukseen.</p>
+    
+    <strong>Ruudunlukijat</strong>
     <ul>
-    <li> 
-    On todennäköistä, että ruudunlukuohjelma pystyy lukemaan sivustoa heikosti
-    </li>
-    <li>
-      Sivustolla navigointi ilman hiirtä on kankeaa
-      </li>
-    <li>
-      Kartalla näkyvien värien kontrastit eivät välttämättä ole riittäviä, 
-      väriskaalan soveltuvuus värisokeille epävarma.Karttakuvioiden informaatio on kuitenkin tarjolla samaan aikaan kirjoitetussa muodossa oikean reunan alueprofiileissa, mikä auttaa sivuston käyttämistä ilman karttakuvia.
-      </li>
-      <li>
-      PDF:ien värikontrasteissa osa maakuntien väreistä on liian vaaleita,jotta päällä oleva teksti näkyisi riittävän hyvin saavutettavuusstandardin mukaan
-      </li>
-      </ul>
-    <p>
-    Karttasivustoa koskeva seloste on laadittu 19.9.2020. Seloste perustuu itsearvioon ja käyttäjiltä saatuun palautteeseen. Syyskuun aikana valmistuu raportti ulkopuolisen tekemästä auditoinnista, jossa arvioidaan palvelun tekninen toimivuus ja ladattavien karttojen auditointi.
-    </p>
-    <p>
-      Näiden arvioiden ja raportin perustella karttasivustoon tullaan tekemään saavutettavuutta parantavia korjauksia.
-    </p>
+      <li><a href="https://www.nvaccess.org/">NVDA</a></li>
+      <li><a href="https://wiki.gnome.org/Projects/Orca">Orca</a></li>
+      <li><a href="https://www.chromevox.com/">ChromeVox</a></li>
+    </ul>
+        <strong>Saavutettavuuden tarkastuohjelmat</strong>
+    <ul>
+      <li><a href="https://ainspector.github.io/">AInspector</a></li>
+      <li> <a href="https://thepaciellogroup.github.io/WAI-ARIA-Usage/WAI-ARIA_usage.html">WAI-ARIA Usage</a></li>
+      <li><a href="https://validator.w3.org/nu/">Nu Html Checker</a></li>
+    </ul>
+    
+    <p>Näiden arvioiden ja ulkopuolisen raportin perusteella karttasivuston ensimmäiseen versioon 
+    tehtiin lukuisia saavutettavuutta parantavia korjauksia.</p>
+    
     <h3>Palautetta saavutettavuudesta?</h3>
     <p>Huomasitko saavutettavuuspuutteen digipalvelussamme? Kerro se meille ja eemme parhaamme puutteen korjaamiseksi
     </p>
