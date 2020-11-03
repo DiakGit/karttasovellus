@@ -367,23 +367,23 @@ server <- function(input, output) {
     
     output$profiilikartta01 <- renderPlot({
         
-        req(input$value_variable_class)
-        req(input$value_variable)
+        # req(input$value_variable_class)
+        # req(input$value_variable)
         req(input$value_regio_level2)
         
         klik <- get_klik()
         aluenimi_kartta <- klik$id
 
-        dat <- process_data() %>%
-            st_set_geometry(NULL) %>%
-            select(rank,aluenimi,value)
-        aluenimi_taulukko <- unique(dat[input$rank_tbl_rows_selected,]$aluenimi)
-
-        if (aluenimi_kartta != aluenimi_taulukko){
-            aluename <- aluenimi_taulukko
-        } else {
+        # dat <- process_data() %>%
+        #     st_set_geometry(NULL) %>%
+        #     select(rank,aluenimi,value)
+        # aluenimi_taulukko <- unique(dat[input$rank_tbl_rows_selected,]$aluenimi)
+        # 
+        # if (aluenimi_kartta != aluenimi_taulukko){
+        #     aluename <- aluenimi_taulukko
+        # } else {
             aluename <- aluenimi_kartta
-        }
+        # }
         region_data <- get_region_data()
         region_data <- dplyr::filter(region_data, level %in% input$value_regio_level2)
         naapurikoodit <- region_data[region_data$region_name %in% aluename,]$neigbours[[1]]
@@ -427,16 +427,16 @@ server <- function(input, output) {
         
         aluenimi_kartta <- klik$id
         
-        dat <- process_data() %>% 
-            st_set_geometry(NULL) %>% 
-            select(rank,aluenimi,value)
-        aluenimi_taulukko <- unique(dat[input$rank_tbl_rows_selected,]$aluenimi)
-                                    
-        if (aluenimi_kartta != aluenimi_taulukko){
-            aluename <- aluenimi_taulukko
-        } else {
+        # dat <- process_data() %>% 
+        #     st_set_geometry(NULL) %>% 
+        #     select(rank,aluenimi,value)
+        # aluenimi_taulukko <- unique(dat[input$rank_tbl_rows_selected,]$aluenimi)
+        #                             
+        # if (aluenimi_kartta != aluenimi_taulukko){
+        #     aluename <- aluenimi_taulukko
+        # } else {
             aluename <- aluenimi_kartta
-        }
+        # }
 
         region_data <- get_region_data()
         region_data <- dplyr::filter(region_data, level %in% input$value_regio_level2)
@@ -584,16 +584,16 @@ server <- function(input, output) {
                     # aluename <- klik$id
                     aluenimi_kartta <- klik$id
 
-                    dat <- process_data() %>%
-                        st_set_geometry(NULL) %>%
-                        select(rank,aluenimi,value)
-                    aluenimi_taulukko <- unique(dat[input$rank_tbl_rows_selected,]$aluenimi)
-
-                    if (aluenimi_kartta != aluenimi_taulukko){
-                        aluename <- aluenimi_taulukko
-                    } else {
+                    # dat <- process_data() %>%
+                    #     st_set_geometry(NULL) %>%
+                    #     select(rank,aluenimi,value)
+                    # aluenimi_taulukko <- unique(dat[input$rank_tbl_rows_selected,]$aluenimi)
+                    # 
+                    # if (aluenimi_kartta != aluenimi_taulukko){
+                    #     aluename <- aluenimi_taulukko
+                    # } else {
                         aluename <- aluenimi_kartta
-                    }
+                    # }
                     shiny::incProgress(3/10)
                     
                     region_data <- get_region_data()
