@@ -2,7 +2,11 @@ source("./global.R")
 
 
 ui <- fluidPage(
+    uiOutput("output_regio_level_profile"),
+    uiOutput("output_region_profile"),
     uiOutput("output_save_word"),
+    uiOutput("region_profile_html"),
+    tags$hr(),
     # textOutput("aputeksti"),
     # plotOutput("profiilikartta01", width = "90%", height = "500px"),
     uiOutput("output_indicator_class"),
@@ -12,7 +16,9 @@ ui <- fluidPage(
     leaflet::leafletOutput("map1", width = "100%", height = "685px"),
     DT::dataTableOutput("rank_tbl"),
     # verbatimTextOutput("value"),
-    uiOutput("region_profile_html"),
+    # uiOutput("output_regio_level_profile"),
+    # uiOutput("output_region_profile"),
+    # uiOutput("region_profile_html"),
     # DT::dataTableOutput("variable_desctiption")
     gt::gt_output("variable_desctiption_gt")
 )
@@ -119,6 +125,44 @@ server <- function(input, output) {
             )
         # }
         
+    })
+    
+    output$output_regio_level_profile <- renderUI({
+        
+        req(input$value_variable_class)
+        req(input$value_variable)
+        varname <- input$value_variable[1]
+        indicator_df <- varlist_diak()
+        opt_indicator <- unique(indicator_df[indicator_df$var_class %in% input$value_variable_class & indicator_df$variable %in% varname,]$regio_level)
+        opt_indicator <- indicator_df[indicator_df$variable %in% varname,]$regio_level
+        opt_indicator <- factor(opt_indicator, levels = c("Maakunnat","Seutukunnat","Kunnat"))
+        opt_indicator <- sort(opt_indicator)
+        
+        # if (input$sidebar_menu == "info"){
+        #     tagList()
+        # } else {
+        tagList(
+            radioButtons(inputId = "value_regio_level_profile", 
+                         label = "Valitse aluetaso", inline = TRUE,
+                         choices = opt_indicator, selected = "Maakunnat")
+        )
+    })
+    
+    output$output_region_profile <- renderUI({
+        
+        req(input$value_regio_level_profile)
+        
+        region_data <- get_region_data()
+        tmpdat <- region_data[region_data$level %in% input$value_regio_level_profile,]
+        choices <- tmpdat$region_name
+
+        tagList(
+            selectInput(inputId = "value_region_profile", 
+                         label = "Valitse alue",
+                         choices = choices, 
+                        selected = choices[1]),
+            actionButton("button", "Show")
+        )
     })
     
 
@@ -311,21 +355,26 @@ server <- function(input, output) {
         return(naapurikoodit)
     })
 
-    create_alueprofiili_content <- function(aluename2 = aluename, naapurikoodit = naapurikoodit, type = "html"){
+    create_alueprofiili_content <- function(aluename2 = aluename, 
+                                            naapurikoodit = naapurikoodit, 
+                                            aluetaso1 = aluetaso1, 
+                                            type = "html"){
         
         dat <- get_dat()
+        
+        # aluetaso1
 
-        dat[dat$regio_level %in% input$value_regio_level2 & dat$aluenimi %in% aluename2 ,] %>% 
+        dat[dat$regio_level %in% aluetaso1 & dat$aluenimi %in% aluename2 ,] %>% 
             select(aluenimi,var_class,variable,value) %>% 
             mutate(rooli = "valinta") -> tmpdat1
-        dat[dat$regio_level %in% input$value_regio_level2 & dat$aluekoodi %in% naapurikoodit ,] %>% 
+        dat[dat$regio_level %in% aluetaso1 & dat$aluekoodi %in% naapurikoodit ,] %>% 
             filter(!aluenimi %in% aluename2) %>% 
             select(aluenimi,var_class,variable,value) %>% 
             mutate(rooli = "naapuri") -> tmpdat2
         tmpdat <- bind_rows(tmpdat1,tmpdat2) 
         
         # 
-        dat[dat$regio_level %in% input$value_regio_level2,] %>% 
+        dat[dat$regio_level %in% aluetaso1,] %>% 
             group_by(var_class,variable) %>% 
             arrange(desc(value)) %>% 
             slice(1) %>% 
@@ -334,7 +383,7 @@ server <- function(input, output) {
             mutate(rooli = "korkein arvo") %>% 
             select(aluenimi,var_class,variable,value,rooli) -> max_dat
         
-        dat[dat$regio_level %in% input$value_regio_level2,] %>% 
+        dat[dat$regio_level %in% aluetaso1,] %>% 
             group_by(var_class,variable) %>% 
             arrange(value) %>% 
             slice(1) %>% 
@@ -343,7 +392,7 @@ server <- function(input, output) {
             mutate(rooli = "matalin arvo") %>% 
             select(aluenimi,var_class,variable,value,rooli) -> min_dat
         
-        dat[dat$regio_level %in% input$value_regio_level2,] %>% 
+        dat[dat$regio_level %in% aluetaso1,] %>% 
             group_by(variable) %>% 
             arrange(desc(value)) %>%
             mutate(sija = 1:n(),
@@ -369,10 +418,11 @@ server <- function(input, output) {
         
         # req(input$value_variable_class)
         # req(input$value_variable)
-        req(input$value_regio_level2)
+        req(input$value_regio_level_profile)
         
-        klik <- get_klik()
-        aluenimi_kartta <- klik$id
+        # klik <- get_klik()
+        aluenimi_kartta <- input$value_region_profile
+        aluetaso1 <- input$value_regio_level_profile
 
         # dat <- process_data() %>%
         #     st_set_geometry(NULL) %>%
@@ -385,10 +435,12 @@ server <- function(input, output) {
             aluename <- aluenimi_kartta
         # }
         region_data <- get_region_data()
-        region_data <- dplyr::filter(region_data, level %in% input$value_regio_level2)
+        region_data <- dplyr::filter(region_data, level %in% aluetaso1)
         naapurikoodit <- region_data[region_data$region_name %in% aluename,]$neigbours[[1]]
 
-        tabdat <- create_alueprofiili_content(aluename2 = aluename, naapurikoodit = naapurikoodit)
+        tabdat <- create_alueprofiili_content(aluename2 = aluename, 
+                                              aluetaso1 = aluetaso1, 
+                                              naapurikoodit = naapurikoodit)
         
         muuttujaluokka <- "Summamuuttujat"
         lista1_tbl <- tabdat %>%
@@ -420,12 +472,18 @@ server <- function(input, output) {
             facet_wrap(~muuttuja, ncol = 2)
     })
     
-    
-    output$region_profile_html <- renderUI({
-        # klik <- rv$map_click_id
-        klik <- get_klik()
+    observeEvent(input$button, { 
         
-        aluenimi_kartta <- klik$id
+    output$region_profile_html <- renderUI({
+        
+        req(input$value_regio_level_profile)
+        req(input$value_region_profile)
+        # klik <- rv$map_click_id
+        # klik <- get_klik()
+        
+        aluenimi_kartta <- input$value_region_profile
+        aluetaso1 <- input$value_regio_level_profile
+        
         
         # dat <- process_data() %>% 
         #     st_set_geometry(NULL) %>% 
@@ -439,10 +497,12 @@ server <- function(input, output) {
         # }
 
         region_data <- get_region_data()
-        region_data <- dplyr::filter(region_data, level %in% input$value_regio_level2)
+        region_data <- dplyr::filter(region_data, level %in% aluetaso1)
         naapurikoodit <- region_data[region_data$region_name %in% aluename,]$neigbours[[1]]
 
-    tabdat <- create_alueprofiili_content(aluename2 = aluename, naapurikoodit = naapurikoodit)
+    tabdat <- create_alueprofiili_content(aluename2 = aluename, 
+                                          naapurikoodit = naapurikoodit,
+                                          aluetaso1 = aluetaso1)
     
     # Summamuuttujat
     muuttujaluokka <- "Summamuuttujat"
@@ -530,7 +590,7 @@ server <- function(input, output) {
 
     tagList(
         fluidRow(column(width = 12, 
-                        tags$h3(glue("{aluename} ({input$value_regio_level2})"))
+                        tags$h3(glue("{aluename} ({aluetaso1})"))
         )),
         fluidRow(column(12,
                         
@@ -557,16 +617,18 @@ server <- function(input, output) {
     )
     
     })
+    })
     
     # create_report_name <- reactive({
-    #     report_name <- glue("alueprofiili_{input$value_regio_level2}_{get_klik()$id}.docx")
+    #     report_name <- glue("alueprofiili_{aluetaso1}_{get_klik()$id}.docx")
     #     return(report_name)
     # })
     
+    observeEvent(input$button, {
     output$report <- downloadHandler(
 
         filename = function() {
-            file_name <- glue("alueprofiili_{get_klik()$id}_{tolower(input$value_regio_level2)}{input$value_report_format}")
+            file_name <- glue("alueprofiili_{input$value_region_profile}_{tolower(input$value_regio_level_profile)}{input$value_report_format}")
             return(file_name)
         },
         content = function(file) {
@@ -578,31 +640,17 @@ server <- function(input, output) {
             shiny::incProgress(1/10)
             Sys.sleep(1)
             
-
-                    # Set up parameters to pass to Rmd document
-                    klik <- get_klik()
-                    # aluename <- klik$id
-                    aluenimi_kartta <- klik$id
-
-                    # dat <- process_data() %>%
-                    #     st_set_geometry(NULL) %>%
-                    #     select(rank,aluenimi,value)
-                    # aluenimi_taulukko <- unique(dat[input$rank_tbl_rows_selected,]$aluenimi)
-                    # 
-                    # if (aluenimi_kartta != aluenimi_taulukko){
-                    #     aluename <- aluenimi_taulukko
-                    # } else {
+                    aluenimi_kartta <- input$value_region_profile
                         aluename <- aluenimi_kartta
-                    # }
                     shiny::incProgress(3/10)
                     
                     region_data <- get_region_data()
-                    region_data <- dplyr::filter(region_data, level %in% input$value_regio_level2)
+                    region_data <- dplyr::filter(region_data, level %in% input$value_regio_level_profile)
                     naapurikoodit <- region_data[region_data$region_name %in% aluename,]$neigbours[[1]]
                     
                     # klik <- list("id" = "Veteli")
                     params <- list(region = aluename,
-                                   region_level = input$value_regio_level2,
+                                   region_level = input$value_regio_level_profile,
                                    datetime = Sys.time(),
                                    data = get_dat(),
                                    spatdat = process_data(),
@@ -654,6 +702,7 @@ server <- function(input, output) {
                     })
         }
     )
+    })
     
     
     
@@ -851,6 +900,6 @@ server <- function(input, output) {
     
 }
 
-# shinyApp(ui = ui, server = server)
-shinyApp(ui = htmlTemplate("www/index.html"), server = server)
+shinyApp(ui = ui, server = server)
+# shinyApp(ui = htmlTemplate("www/index.html"), server = server)
 
