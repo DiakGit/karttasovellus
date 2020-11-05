@@ -60,6 +60,9 @@
             <a class="nav-link" href="#taulukko">Taulukko</a>
           </li-->
           <li class="nav-item">
+            <a class="nav-link" href="#ohje">Ohje</a>
+          </li>
+          <li class="nav-item">
             <a class="nav-link" href="#indikaattorivertailu">Indikaattorivertailu</a>
           </li>
           <li class="nav-item">
@@ -83,17 +86,20 @@
 
   <h1 id = "content">Huono-osaisuus Suomessa</h1>
   
-  <p class="lead">Näin käytät sovellusta!</p>
-<p>
-  <strong>Valitse muuttujaluokka</strong>-valikosta voit säädellä haluatko katsoa huono-osaisuuden summatietoja 
+  <!--p class="lead">Näin käytät sovellusta!</p-->
+  
+  <p class="lead">Sovelluksessa voit tarkastella erilaisia huono-osaisuuden osoittimia sekä luoda  profiileja alueista. Aluetasoja on kolme: <i>maakunnat, seutukunnat ja kunnat.</i></p>
+  <h2 id = "ohje">Näin käytät sovellusta</h2>
+   <p><a href="#indikaattorivertailu">Muuttujien tarkasteluun</a> ja 
+   <a href="#alueprofiili">alueprofiilien laatimiseen</a> ovat omat valikkonsa.</p>
+   <p><strong>Indikaattorivertailun</strong> <i>valitse muuttujaluokka</i>-valikosta voit säädellä haluatko   katsoa huono-osaisuuden summatietoja 
   vai tarkemmin kunkin  huono-osaisuuden ulottuvuuden osoittimia. 
-  <strong>Valitse muuttuja</strong>-valikosta voit valita tarkemman osoittimen. 
-  <strong>Valitse aluetaso</strong>-valikosta voit valita aluetason: <i>maakunnat, seutukunnat ja kunnat.</i>
-  <strong>Kartta ja taulukot muuttuvat samanaikaisesti valinnan muuttuessa.</strong>
+  <i>Valitse muuttuja</i>-valikosta voit valita tarkemman osoittimen ja 
+  <i>valitse aluetaso</i>-valikosta aluetason.
+  <i>Kartta ja taulukot muuttuvat samanaikaisesti valinnan muuttuessa.</i>
+  Kartan aluetta koskemalla tiedot siirtyvät oikean reunan taulukkoon.
   <br/><br/>
-  Kartan aluetta koskemalla tiedot siirtyvät oikean reunan taulukkoon sekä alueprofiiliin.<br/>
-  Taulukosta näet osoittimen arvot suuruusjärjestyksessä valitsemallasi aluetasolla.
-  Alueprofiilista näet kartalta valitsemasi alueen tiedot kaikista osoittimista.
+  <strong>Alueprofiilin</strong> täytyy valita vain <i>aluetaso</i> sekä <i>alue</i>. Alueprofiili sisältää aina kaikkien osoittimien tiedot sekä valitulta alueelta että alueen rajanaapureista. Lisäksi alueprofiilissa esitetään kunkin osoittimen korkein ja matalin arvo.
   <br/><br/>
   Indikaattorit ja muuttujat on muodostettu vuosien 2017-2019  tilastojen keskiarvosta vuosivaihtelun
   minimoimiseksi, ja suhteuttamalla arvo keskimmäiseen eli mediaanimaakuntaan/-seutukuntaan/-kuntaan
@@ -152,38 +158,53 @@
   <div class="container">
     <div class="row">
       <div class="col-lg-12">
+        <div style = "padding-top: 40px;"></div>
     
-    
+<div class="progress">
+  <div class="progress-bar progress-bar-striped" role="progressbar" style="width: 100%" aria-valuenow="100" aria-valuemin="0" aria-valuemax="100"></div>
+</div>
+
     <h2 id = "alueprofiili">Alueprofiili</h2>
 
     <p>Alueprofiilissa näet kaikki aineiston osoittimet luokan mukaan ryhmiteltynä. 
     Kustakin osoittimesta näytetään valitun alueen lisäksi sen rajanaapurit sekä 
     osoittimen korkeimman ja matalimman arvon alueet. Alueet on järjestetty kunkin osoittimen 
     kohdalla sijan mukaan.</p>
+    <p>Valitse ensin aluetaso, sitten alue ja paina lopuksi <i>Luo alueprofiili</i> -painiketta. Alueprofiilin luominen kestää noin 30 sekuntia. Voit tallentaa profiilin laitteellesi</p>
     
     </div>  
 </div>   
-    <div class="row">    
-    <div class="col-lg-6">
-    <div id="output_regio_level_profile" class="shiny-html-output"></div>
+<div class="row">    
+  <div class="col-lg-6">
+    <div id="output_regio_level_profile" class="shiny-html-output">
     </div>
-    <div class="col-lg-6">
-    <div id="output_region_profile" class="shiny-html-output"></div>
+  </div>
+  <div class="col-lg-6">
+    <div id="output_region_profile" class="shiny-html-output">
     </div>
-    </div>   
+  </div>
+</div>
+<div class="row">    
+  <div class="col-lg-12">
+    <div id="output_button_profile" class="shiny-html-output">
+    <div style="padding-bottom: 30px;"></div>  
+    </div>
+  </div>
+</div>
+    
     
         <div class="row">
       <div class="col-lg-12">
     <!--div id="output_region_profile" class="shiny-html-output"></div-->
 
-    <div id="output_save_word" class="shiny-html-output"></div>
+    <!--div id="output_save_word" class="shiny-html-output"></div-->
     <div id="region_profile_html" class="shiny-html-output"></div>
     
 </div>  
 </div>      
     </div>
     
-      <div class="container">
+      <div class="container bg-light">
     <div class="row">
       <div class="col-lg-12">
     
@@ -235,7 +256,7 @@
     </div>      
 
 
-  <div class="container">
+  <div class="container bg-light">
     <div class="row">
       <div class="col-lg-8">
 

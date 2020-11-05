@@ -31,14 +31,17 @@ body > .container {
 
 h2 {
   padding: 45px 5px 0;
+  font-weight: 600 !important;
 }
 
 h3 {
   padding: 15px 15px 0;
+  font-weight: 600 !important;
 }
 
 h4 {
   padding-top: 25px;
+  font-weight: 600 !important;
 }
 
 
@@ -54,12 +57,9 @@ code {
 /*DIAK-kustomoinnit*/
 
 .bg-light {
-    background-color: rgb(248, 249, 250, .85) !important;
+    background-color: rgb(248, 249, 250, .95) !important;
 }
 
-.bg-alueprofiili {
-    background-color: rgb(210, 210, 210) !important;
-}
 
 
 

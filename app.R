@@ -4,10 +4,12 @@ source("./global.R")
 ui <- fluidPage(
     uiOutput("output_regio_level_profile"),
     uiOutput("output_region_profile"),
-    uiOutput("output_save_word"),
-    uiOutput("region_profile_html"),
+    uiOutput("output_button_profile"),
+    textOutput("aputeksti"),
+    # uiOutput("output_save_word"),
+    shinycssloaders::withSpinner(uiOutput("region_profile_html")),
     tags$hr(),
-    # textOutput("aputeksti"),
+    
     # plotOutput("profiilikartta01", width = "90%", height = "500px"),
     uiOutput("output_indicator_class"),
     uiOutput("output_indicator"),
@@ -160,10 +162,18 @@ server <- function(input, output) {
             selectInput(inputId = "value_region_profile", 
                          label = "Valitse alue",
                          choices = choices, 
-                        selected = choices[1]),
-            actionButton("button", "Show")
+                        selected = choices[1])
         )
     })
+    
+    
+    output$output_button_profile <- renderUI({
+        tagList(
+            actionButton("button", "Luo alueprofiili", class="btn btn-primary")
+        )
+    })
+
+    
     
 
     # Define reactiveValue
@@ -192,6 +202,14 @@ server <- function(input, output) {
         return(klik)
     })
     
+    # EVENTREACTIVE
+    react_value_regio_level_profile <- eventReactive(input$button, { 
+        input$value_regio_level_profile
+        })
+    
+    react_value_region_profile <- eventReactive(input$button, { 
+        input$value_region_profile
+    })
     
     process_data <- reactive({
         
@@ -330,29 +348,8 @@ server <- function(input, output) {
     
     output$aputeksti <- renderText({
         
-        req(input$value_variable_class)
-        req(input$value_variable)
-        req(input$value_regio_level2)
-        
-        klik <- get_klik()
-
-        aluenimi_kartta <- klik$id
-
-        dat <- process_data() %>%
-            st_set_geometry(NULL) %>%
-            select(rank,aluenimi,value)
-        aluenimi_taulukko <- unique(dat[input$rank_tbl_rows_selected,]$aluenimi)
-
-        if (aluenimi_kartta != aluenimi_taulukko){
-            aluename <- aluenimi_taulukko
-        } else {
-            aluename <- aluenimi_kartta
-        }
-        
-        region_data <- get_region_data()
-        region_data <- dplyr::filter(region_data, level %in% input$value_regio_level2)
-        naapurikoodit <- region_data[region_data$region_name %in% aluename,]$neigbours[[1]]
-        return(naapurikoodit)
+        txt <- react_value_region_profile()
+        return(txt)
     })
 
     create_alueprofiili_content <- function(aluename2 = aluename, 
@@ -414,88 +411,124 @@ server <- function(input, output) {
     }
     
     
-    output$profiilikartta01 <- renderPlot({
+    alueprofiilikartta_html <- function(val_aluetaso1 = aluetaso1, 
+                                        val_aluename = aluename, 
+                                        val_region_data = region_data, 
+                                        val_muuttujaluokka = muuttujaluokka){
         
-        # req(input$value_variable_class)
-        # req(input$value_variable)
-        req(input$value_regio_level_profile)
+        region_data <- dplyr::filter(val_region_data, level %in% val_aluetaso1)
+        naapurikoodit <- region_data[region_data$region_name %in% val_aluename,]$neigbours[[1]]
         
-        # klik <- get_klik()
-        aluenimi_kartta <- input$value_region_profile
-        aluetaso1 <- input$value_regio_level_profile
-
-        # dat <- process_data() %>%
-        #     st_set_geometry(NULL) %>%
-        #     select(rank,aluenimi,value)
-        # aluenimi_taulukko <- unique(dat[input$rank_tbl_rows_selected,]$aluenimi)
-        # 
-        # if (aluenimi_kartta != aluenimi_taulukko){
-        #     aluename <- aluenimi_taulukko
-        # } else {
-            aluename <- aluenimi_kartta
-        # }
-        region_data <- get_region_data()
-        region_data <- dplyr::filter(region_data, level %in% aluetaso1)
-        naapurikoodit <- region_data[region_data$region_name %in% aluename,]$neigbours[[1]]
-
-        tabdat <- create_alueprofiili_content(aluename2 = aluename, 
-                                              aluetaso1 = aluetaso1, 
+        tabdat <- create_alueprofiili_content(aluename2 = val_aluename, 
+                                              aluetaso1 = val_aluetaso1, 
                                               naapurikoodit = naapurikoodit)
-        
-        muuttujaluokka <- "Summamuuttujat"
+    
         lista1_tbl <- tabdat %>%
-            filter(var_class == muuttujaluokka) %>%
+            filter(var_class == val_muuttujaluokka) %>%
             filter(rooli %in% c("naapuri","valinta")) %>% 
             # mutate(aluenimi = paste0(aluenimi, " (", rooli, ") ")) %>%
             select(muuttuja,aluenimi,arvo,sija) %>%
             arrange(muuttuja,sija)
         mapdata <- left_join(region_data, lista1_tbl, by = c("region_name" = "aluenimi")) %>% 
             filter(!is.na(muuttuja))
+        plotlista <- list()
+        vars <- unique(mapdata$muuttuja)
+        for (vii in seq_along(vars)){
+            mapdata_tmp <- mapdata[mapdata$muuttuja == vars[vii],]
+            plotlista[[vii]] <- ggplot(data = mapdata_tmp, aes(fill = arvo)) +                    
+                geom_sf(color = alpha("white", 1/3))  +
+                hrbrthemes::theme_ipsum(base_family = "PT Sans", 
+                                        base_size = 12, 
+                                        plot_title_size = 14) +
+                scale_fill_viridis_c(option = "plasma") +
+                theme(axis.text.x = element_blank(),
+                      axis.text.y = element_blank(),
+                      axis.title.x = element_blank(),
+                      axis.title.y = element_blank(),
+                      panel.grid.major = element_blank(),
+                      legend.position = "top", 
+                      legend.key.width = unit(3,"line")) +
+                labs(x = NULL, 
+                     y = NULL, 
+                     fill = NULL,
+                     title = vars[vii] #glue("Huono-osaisuuden summamuuttujat alueella {val_aluename} sekä \n{glue_collapse(unique(mapdata$region_name)[unique(mapdata$region_name) != val_aluename], sep = ', ', last  = ' ja ')}")
+                     # title = add_line_break2(vars[i], n = 35)
+                ) +
+                geom_sf_label(aes(label = paste0(region_name, "\n", round(arvo,1))), 
+                              color = "white", fill = alpha("black", 1/3), family = "PT Sans", size = 3)
+                # ggrepel::geom_label_repel(data = mapdata_tmp %>%
+                #                               sf::st_set_geometry(NULL) %>%
+                #                               bind_cols(mapdata_tmp %>% 
+                #                                             sf::st_centroid() %>% sf::st_coordinates() %>% as_tibble()),
+                #                           aes(label = paste0(region_name, "\n", round(arvo,1)), x = X, y = Y), 
+                #                           color = "white", fill = alpha("black", 1/3), family = "PT Sans", size = 3)
+        }
+        wrap_plots(plotlista, ncol = 1)
+    }
+    
+    
+    output$profiilikartta01 <- renderPlot({
         
-        ggplot(data = mapdata, aes(fill = arvo)) +                    
-            geom_sf(color = alpha("white", 1/3))  +
-            theme_minimal(base_family = "PT Sans", base_size = 12) +
-            scale_fill_viridis_c(option = "plasma") +
-            theme(axis.text = element_blank(),
-                  axis.title = element_blank(),
-                  panel.grid = element_blank()) +
-            labs(x = NULL, y = NULL, fill = NULL,
-                 title = glue("Huono-osaisuuden summamuuttujat alueella {aluename} sekä \n{glue_collapse(unique(mapdata$region_name)[unique(mapdata$region_name) != aluename], sep = ', ', last  = ' ja ')}")
-                 # title = add_line_break2(vars[i], n = 35)
-                 ) +
-            ggrepel::geom_label_repel(data = mapdata %>%
-                                          sf::st_set_geometry(NULL) %>%
-                                          bind_cols(mapdata %>% 
-                                                        sf::st_centroid() %>% sf::st_coordinates() %>% as_tibble()),
-                                      aes(label = paste0(region_name, "\n", round(arvo,1)), x = X, y = Y), 
-                                      color = "white", fill = alpha("black", 1/3), family = "PT Sans", size = 3) + 
-            facet_wrap(~muuttuja, ncol = 2)
+        aluename <- react_value_region_profile()
+        aluetaso1 <- react_value_regio_level_profile()
+        region_data <- get_region_data()
+        muuttujaluokka <- "Summamuuttujat"
+        alueprofiilikartta_html(val_aluetaso1 = aluetaso1, 
+                                val_aluename = aluename, 
+                                val_region_data = region_data, 
+                                val_muuttujaluokka = muuttujaluokka)
+
     })
     
-    observeEvent(input$button, { 
+    
+    output$profiilikartta02 <- renderPlot({
+        
+        aluename <- react_value_region_profile()
+        aluetaso1 <- react_value_regio_level_profile()
+        region_data <- get_region_data()
+        muuttujaluokka <- "Inhimillinen huono-osaisuus"
+        alueprofiilikartta_html(val_aluetaso1 = aluetaso1, 
+                                val_aluename = aluename, 
+                                val_region_data = region_data, 
+                                val_muuttujaluokka = muuttujaluokka)
+        
+    })
+
+    output$profiilikartta03 <- renderPlot({
+        
+        aluename <- react_value_region_profile()
+        aluetaso1 <- react_value_regio_level_profile()
+        region_data <- get_region_data()
+        muuttujaluokka <- "Huono-osaisuuden sosiaaliset seuraukset"
+        alueprofiilikartta_html(val_aluetaso1 = aluetaso1, 
+                                val_aluename = aluename, 
+                                val_region_data = region_data, 
+                                val_muuttujaluokka = muuttujaluokka)
+        
+    })
+    
+    output$profiilikartta04 <- renderPlot({
+        
+        aluename <- react_value_region_profile()
+        aluetaso1 <- react_value_regio_level_profile()
+        region_data <- get_region_data()
+        muuttujaluokka <- "Huono-osaisuuden taloudelliset yhteydet"
+        alueprofiilikartta_html(val_aluetaso1 = aluetaso1, 
+                                val_aluename = aluename, 
+                                val_region_data = region_data, 
+                                val_muuttujaluokka = muuttujaluokka)
+        
+    })
+    
+    
+        
         
     output$region_profile_html <- renderUI({
         
-        req(input$value_regio_level_profile)
-        req(input$value_region_profile)
-        # klik <- rv$map_click_id
-        # klik <- get_klik()
         
-        aluenimi_kartta <- input$value_region_profile
-        aluetaso1 <- input$value_regio_level_profile
+        aluename <- react_value_region_profile()
+        aluetaso1 <- react_value_regio_level_profile()
         
-        
-        # dat <- process_data() %>% 
-        #     st_set_geometry(NULL) %>% 
-        #     select(rank,aluenimi,value)
-        # aluenimi_taulukko <- unique(dat[input$rank_tbl_rows_selected,]$aluenimi)
-        #                             
-        # if (aluenimi_kartta != aluenimi_taulukko){
-        #     aluename <- aluenimi_taulukko
-        # } else {
-            aluename <- aluenimi_kartta
-        # }
-
         region_data <- get_region_data()
         region_data <- dplyr::filter(region_data, level %in% aluetaso1)
         naapurikoodit <- region_data[region_data$region_name %in% aluename,]$neigbours[[1]]
@@ -506,13 +539,13 @@ server <- function(input, output) {
     
     # Summamuuttujat
     muuttujaluokka <- "Summamuuttujat"
-    lista1_tbl <- tabdat %>% 
+    lista1_df <- tabdat %>% 
         filter(var_class == muuttujaluokka) %>%
         mutate(aluenimi = paste0(aluenimi, " (", rooli, ") ")) %>% 
         select(muuttuja,aluenimi,arvo,sija) %>%
         arrange(muuttuja,sija) %>% 
-        mutate(sija = paste0(sija,".")) %>% 
-        gt(
+        mutate(sija = paste0(sija,"."))
+    lista1_tbl <- gt(data = lista1_df,
             rowname_col = "aluenimi",
             groupname_col = "muuttuja"
         ) %>% 
@@ -527,13 +560,13 @@ server <- function(input, output) {
     
     # "Inhimillinen huono-osaisuus"
     muuttujaluokka <- "Inhimillinen huono-osaisuus"
-    lista2_tbl <- tabdat %>% 
+    lista2_df <- tabdat %>% 
         filter(var_class == muuttujaluokka) %>%
         mutate(aluenimi = paste0(aluenimi, " (", rooli, ") ")) %>% 
         select(muuttuja,aluenimi,arvo,sija) %>%
         arrange(muuttuja,sija) %>% 
-        mutate(sija = paste0(sija,".")) %>% 
-        gt(
+        mutate(sija = paste0(sija,"."))
+    lista2_tbl <- gt(data = lista2_df,
             rowname_col = "aluenimi",
             groupname_col = "muuttuja"
         ) %>% 
@@ -545,16 +578,17 @@ server <- function(input, output) {
             align = "right",
             columns = vars(sija)
         )
-    
+
     # "Huono-osaisuuden sosiaaliset seuraukset"
     muuttujaluokka <- "Huono-osaisuuden sosiaaliset seuraukset"
-    lista3_tbl <- tabdat %>% 
+    lista3_df <- tabdat %>% 
         filter(var_class == muuttujaluokka) %>%
         mutate(aluenimi = paste0(aluenimi, " (", rooli, ") ")) %>% 
         select(muuttuja,aluenimi,arvo,sija) %>%
         arrange(muuttuja,sija) %>% 
-        mutate(sija = paste0(sija,".")) %>% 
-        gt(
+        mutate(sija = paste0(sija,".")) 
+    
+    lista3_tbl <- gt(data = lista3_df,
             rowname_col = "aluenimi",
             groupname_col = "muuttuja"
         ) %>% 
@@ -569,13 +603,13 @@ server <- function(input, output) {
     
     # "Huono-osaisuuden taloudelliset yhteydet"
     muuttujaluokka <- "Huono-osaisuuden taloudelliset yhteydet"
-    lista4_tbl <- tabdat %>% 
+    lista4_df <- tabdat %>% 
         filter(var_class == muuttujaluokka) %>%
         mutate(aluenimi = paste0(aluenimi, " (", rooli, ") ")) %>% 
         select(muuttuja,aluenimi,arvo,sija) %>%
         arrange(muuttuja,sija) %>% 
-        mutate(sija = paste0(sija,".")) %>% 
-        gt(
+        mutate(sija = paste0(sija,".")) 
+    lista4_tbl <- gt(data = lista4_df,
             rowname_col = "aluenimi",
             groupname_col = "muuttuja"
         ) %>% 
@@ -587,48 +621,91 @@ server <- function(input, output) {
             align = "right",
             columns = vars(sija)
         )
+    
+
+    
+    rivikorkeus <- 46
+    
+
 
     tagList(
-        fluidRow(column(width = 12, 
-                        tags$h3(glue("{aluename} ({aluetaso1})"))
-        )),
-        fluidRow(column(12,
-                        
-                        tags$div(style = "padding-top: 10px;"),
-                        tags$p("Analyysissä mukana", glue_collapse(unique(tabdat$aluenimi), sep = ", ", last = " ja ")),
-                        tags$h4("Summamuuttujat"),
-                        plotOutput("profiilikartta01", width = "90%", height = "600px"),
-                        lista1_tbl,
-                        # tags$div(id="profiilikartta01", class="shiny-plot-output", height = "450px", width = "90%"),
-                        
-                        
-                        tags$div(style = "padding-top: 50px;"),
-                        tags$h4("Inhimillinen huono-osaisuus"),
-                        lista2_tbl,
-                        
-                        tags$div(style = "padding-top: 50px;"),
-                        tags$h4("Huono-osaisuuden sosiaaliset seuraukset"),
-                        lista3_tbl,
-                        
-                        tags$div(style = "padding-top: 50px;"),
-                        tags$h4("Huono-osaisuuden taloudelliset yhteydet"),
-                        lista4_tbl
-        ))
+        fluidRow(column(width = 6, 
+                        tags$h3(glue("{aluename} ({aluetaso1})")),
+                        tags$p("Analyysissä mukana naapurit: ", glue_collapse(unique(tabdat[tabdat$rooli == "naapuri",]$aluenimi), sep = ", ", last = " ja "))
+                        ),
+                 column(width = 6,
+                        uiOutput("output_save_word")
+                 )
+        ),
+        tags$hr(),
+        fluidRow(
+            column(6,
+                   tags$h4("Summamuuttujat"),  
+                   lista1_tbl
+                   ),
+            column(6,
+                   tags$div(style = "padding-top:60px;"),
+                   # withSpinner(
+                       plotOutput("profiilikartta01", width = "100%", 
+                          height = glue("{(nrow(lista1_df)+1)*rivikorkeus}px")
+                          ), proxy.height = "100px")
+               # )
+            ),
+        tags$hr(),
+        fluidRow(
+            column(6,
+                   tags$h4("Inhimillinen huono-osaisuus"),
+                   lista2_tbl
+                  ),
+            column(6, 
+                   tags$div(style = "padding-top:60px;"),
+                   plotOutput("profiilikartta02", width = "100%", 
+                              # height = glue("{korkeus2}px")
+                              height = glue("{(nrow(lista2_df)+1)*rivikorkeus}px")
+                              )
+                  )
+            ),
+        tags$hr(),
+        fluidRow(
+            column(6,
+                   tags$h4("Huono-osaisuuden sosiaaliset seuraukset"),
+                   lista3_tbl
+            ),
+            column(6,
+                   tags$div(style = "padding-top:60px;"),
+                   plotOutput("profiilikartta03", width = "100%", 
+                              # height = glue("{korkeus3}px")
+                              height = glue("{(nrow(lista3_df)+1)*rivikorkeus}px")
+                   )
+            )
+        ),
+        tags$hr(),
+        fluidRow(
+            column(6,
+                   tags$h4("Huono-osaisuuden taloudelliset yhteydet"),
+                   lista4_tbl
+            ),
+            column(6, 
+                   tags$div(style = "padding-top:60px;"),
+                   plotOutput("profiilikartta04", width = "100%", 
+                              # height = glue("{korkeus4}px")
+                              height = glue("{(nrow(lista4_df)+1)*rivikorkeus}px")
+            )
+        )
     )
-    
+    )
     })
-    })
-    
+
     # create_report_name <- reactive({
     #     report_name <- glue("alueprofiili_{aluetaso1}_{get_klik()$id}.docx")
     #     return(report_name)
     # })
     
-    observeEvent(input$button, {
+
     output$report <- downloadHandler(
 
         filename = function() {
-            file_name <- glue("alueprofiili_{input$value_region_profile}_{tolower(input$value_regio_level_profile)}{input$value_report_format}")
+            file_name <- glue("alueprofiili_{react_value_region_profile()}_{tolower(react_value_regio_level_profile())}{input$value_report_format}")
             return(file_name)
         },
         content = function(file) {
@@ -640,17 +717,16 @@ server <- function(input, output) {
             shiny::incProgress(1/10)
             Sys.sleep(1)
             
-                    aluenimi_kartta <- input$value_region_profile
-                        aluename <- aluenimi_kartta
+                    aluename <- react_value_region_profile()
                     shiny::incProgress(3/10)
                     
                     region_data <- get_region_data()
-                    region_data <- dplyr::filter(region_data, level %in% input$value_regio_level_profile)
+                    region_data <- dplyr::filter(region_data, level %in% react_value_regio_level_profile())
                     naapurikoodit <- region_data[region_data$region_name %in% aluename,]$neigbours[[1]]
                     
                     # klik <- list("id" = "Veteli")
                     params <- list(region = aluename,
-                                   region_level = input$value_regio_level_profile,
+                                   region_level = react_value_regio_level_profile(),
                                    datetime = Sys.time(),
                                    data = get_dat(),
                                    spatdat = process_data(),
@@ -702,15 +778,13 @@ server <- function(input, output) {
                     })
         }
     )
-    })
-    
-    
+
     
     output$output_save_word <- renderUI({
         
         req(input$value_variable)
         tagList(
-            downloadButton("report", "Tallenna alueprofiili laitteellesi!"),
+            downloadButton("report", "Tallenna alueprofiili laitteellesi!", class="btn btn-dark"),
             radioButtons("value_report_format",
                          "Valitse tallennettavan tiedoston tiedostomuoto",
                          choiceNames = list(#"vektorikuva (.pdf)",
@@ -900,6 +974,6 @@ server <- function(input, output) {
     
 }
 
-shinyApp(ui = ui, server = server)
-# shinyApp(ui = htmlTemplate("www/index.html"), server = server)
-
+# shinyApp(ui = ui, server = server)
+shinyApp(ui = htmlTemplate("www/index.html"), server = server)
+# 
