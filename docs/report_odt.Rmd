@@ -3,10 +3,9 @@ title: "Alueprofiili `r params$region` (`r params$region_level`)"
 author: "Diakin karttasovellus `r params$datetime`" 
 #title: "otsikko"
 #author: "minä"
-output: 
-  word_document:
-    toc: false
-    reference_docx: diak_karttasovellus.dotx
+output: odt_document
+    #toc: false
+    #reference_docx: diak_karttasovellus.dotx
 params:
   region: NA
   region_level: NA
@@ -82,11 +81,8 @@ df %>%
   cat(paste0("## ", vars[vi]))
   cat("\n\n")
   print(kable(tmptbl[tmptbl$muuttuja == vars[vi],] %>% 
-                mutate(aluenimi = paste0(aluenimi, " (", rooli, ") ")) %>%
-                arrange(sija) %>% 
-                mutate(sija = paste0(sija, ".")) %>%
-                select(aluenimi,arvo,sija),
-                
+                select(aluenimi,arvo,sija,rooli) %>% 
+                arrange(sija), 
               format = "pipe", 
               row.names = FALSE))
   }

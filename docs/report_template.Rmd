@@ -1,11 +1,12 @@
 ---
 title: "Alueprofiili `r params$region` (`r params$region_level`)"
 author: "Diakin karttasovellus `r params$datetime`" 
+# subtitle: "Diakin karttasovellus `r params$datetime`"
+# date: "päivämärä"
 #title: "otsikko"
 #author: "minä"
 output: 
   word_document:
-    toc: false
     reference_docx: diak_karttasovellus.dotx
 params:
   region: NA
@@ -16,6 +17,12 @@ params:
   region_data: NA
   value_variable: NA
   naapurikoodit: NA
+  fig_width_default: NA
+  fig_height_default: NA
+  fig_dpi: NA
+  doc_format: NA
+  # out_width: NA
+  # odt_kerroin: NA
 ---
 
 Tämä asiakirja on tuotettu automaattisesti [Diakin karttasovelluksen avulla](http://diak.shinyapps.io/karttasovellus) `r params$datetime`. Asiakirjan tiedot perustuvat THL:n Sotkanet-indikaattoripalvelun tietoihin, joihin on yhdistetty Tilastokeskuksen tilasto- ja paikkatietoaineistoja. Tarkempaa tieto indikaattoreista ja metodologiasta löydät sovelluksen [Lisätietoja](http://82.181.82.12/diak_app/#info)-osiosta.
@@ -27,6 +34,7 @@ Tässä raportissa tarkastellaan tasolla `r params$region_level` aluetta `r para
 ```{r knitr_setup, include = FALSE, eval = TRUE}
 
 library(knitr)
+library(dplyr)
 # library(ragg)
 # ragg_png = function(..., res = 300) {
 #   ragg::agg_png(..., res = res, units = "in")
@@ -36,22 +44,14 @@ knitr::opts_chunk$set(list(echo=FALSE, # printtaa koodi outputtiin
                            cache=FALSE, # älä luo välimuistia (isoissa datoissa hyvin kätevä)
                            warning=FALSE, # älä printtaa varoituksia
                            message=FALSE, # älä printtaa pakettien viestejä
-                           fig.width = 12, # kuvien oletusleveys
-                           fig.height = 10,
-                           dpi=300#,
+                           fig.width = params$fig_width_default, # kuvien oletusleveys
+                           fig.height = params$fig_height_default, # kuvien oletuskorkeus
+                           # dpi = params$fig_dpi,
+                           out.width="100%"
+                           # out.width = params$out_width
                            # dev = "ragg_png"
                            )) # kuvien oletuskorkeus
-
-# knitr::opts_chunk$set(list(echo=FALSE,
-#                          eval=TRUE,
-#                          cache=FALSE,
-#                          warning=FALSE,
-#                          message=FALSE,
-#                          results = "asis",
-#                          dev = "png"))
-library(dplyr)
-library(knitr)
-
+# odt_kerroin <- params$odt_kerroin
 ```
 
 
@@ -84,7 +84,7 @@ df %>%
   print(kable(tmptbl[tmptbl$muuttuja == vars[vi],] %>% 
                 mutate(aluenimi = paste0(aluenimi, " (", rooli, ") ")) %>%
                 arrange(sija) %>% 
-                mutate(sija = paste0(sija, ".")) %>%
+                # mutate(sija = paste0(sija, ".")) %>%
                 select(aluenimi,arvo,sija),
                 
               format = "pipe", 
@@ -229,7 +229,7 @@ bind_rows(tmpdat,max_dat,min_dat) %>%
 ```
 
 
-```{r kartta, fig.height=8}
+```{r kartta}
 dat <- params$spatdat
 dat <- sf::st_transform(dat, crs = 3067)
 dat_region <- dat[dat$aluenimi == params$region,]
@@ -265,6 +265,7 @@ figu_height[varn > 4 & varn <= 6] <- 11
 figu_height[varn > 6 & varn <= 9] <- 13.3
 figu_height[varn > 9] <- 13.3
 ncol[varn > 9] <- 3
+# if (params$doc_format == "odt") figu_height <- figu_height/odt_kerroin
 ```
 
 ```{r summa_kuva, fig.height = figu_height}
@@ -287,6 +288,7 @@ figu_height[varn > 4 & varn <= 6] <- 11
 figu_height[varn > 6 & varn <= 9] <- 13.3
 figu_height[varn > 9] <- 13.3
 ncol[varn > 9] <- 3
+# if (params$doc_format == "odt") figu_height <- figu_height/odt_kerroin
 ```
 
 
@@ -310,6 +312,7 @@ figu_height[varn > 4 & varn <= 6] <- 11
 figu_height[varn > 6 & varn <= 9] <- 13.3
 figu_height[varn > 9] <- 13.3
 ncol[varn > 9] <- 3
+# if (params$doc_format == "odt") figu_height <- figu_height/odt_kerroin
 ```
 
 ```{r  sosial_kuva,  fig.height = figu_height}
@@ -334,6 +337,7 @@ figu_height[varn > 4 & varn <= 6] <- 11
 figu_height[varn > 6 & varn <= 9] <- 13.3
 figu_height[varn > 9] <- 13.3
 ncol[varn > 9] <- 3
+# if (params$doc_format == "odt") figu_height <- figu_height/odt_kerroin
 ```
 
 

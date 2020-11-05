@@ -10,6 +10,7 @@ dir_create(here("./data"))
 
 # dir_ls(here("./data_raw/"), glob = "*.xlsx") -> flies
 dd <- read_excel("./data_raw/Kopio_Huono-osaisuuden mittarit - KAIKKI.xlsx")
+dd <- read_excel("./data_raw/Huono-osaisuusindikaattorit - uusimmat.xlsx")
 
 df_tmp <- dd %>%
   rename(aluekoodi = Aluekoodi,
@@ -17,9 +18,18 @@ df_tmp <- dd %>%
          regio_level = Aluetaso) %>% 
   mutate(aluekoodi = as.integer(ifelse(regio_level == "Maakunnat", sub("^MK", "", aluekoodi),
                                        ifelse(regio_level == "Seutukunnat", sub("^SK", "", aluekoodi), aluekoodi)))) %>% 
-  select(regio_level,everything())  
+  select(regio_level,everything())
 
-
+# Uusi data, jossa sarakenimet ei korjattu
+tibble(name1 = names(df_tmp)) %>% 
+  mutate(osoitin = ifelse(grepl("^[A-z] - ", name1), TRUE, FALSE),
+         summa = ifelse(grepl("^[A-Z][a-z]", name1), TRUE, FALSE)) %>%
+  mutate(name2 = ifelse(summa, toupper(name1), sub("^[A-z] - ", "", name1)
+                        )) %>% 
+  pull(name2) -> new_names
+names(df_tmp) <- new_names
+  
+  
 ekaiso <- function(x) {
   substr(x, 1, 1) <- toupper(substr(x, 1, 1))
   x
@@ -44,30 +54,32 @@ df <- df_tmp %>%
 
 # Otetaan seutukuntanimiksi Tilastokeskuksen lyhyemmät
 geofi::municipality_key_2018 %>% 
-  count(sk_name,sk_code) %>% 
-  rename(aluekoodi = sk_code) %>% 
+  count(seutukunta_name_fi,seutukunta_code) %>% 
+  rename(aluekoodi = seutukunta_code,
+         aluename = seutukunta_name_fi) %>% 
   select(-n) -> sk_names
 
 df2 <- left_join(df,sk_names) %>% 
-  mutate(aluenimi = ifelse(regio_level == "Seutukunnat", sk_name, aluenimi)) %>% 
-  select(-sk_name) %>% 
+  mutate(aluenimi = ifelse(regio_level == "Seutukunnat", aluename, aluenimi)) %>% 
+  select(-aluename) %>% 
   filter(!variable %in% c("Inhimillinen","Sosiaalinen","Taloudellinen"),
          !is.na(value)) 
 
-saveRDS(df2, here("./data/df_v20200423.RDS"), 
+saveRDS(df2, here("./data/df_v20201102.RDS"), 
         compress = FALSE)
 
 # Apudata karttojen tekoon
-muni <- geofi::get_municipalities(year = 2017) %>% 
-  filter(mk_name != "Ahvenanmaa")
+muni <- geofi::get_municipalities(year = 2017) %>%
+  filter(maakunta_name_fi != "Ahvenanmaa")
 regio_Seutukunnat <- muni %>% 
-  group_by(sk_code) %>% 
-  summarise() %>% rename(aluekoodi = sk_code) 
+  group_by(seutukunta_code) %>% 
+  summarise() %>% rename(aluekoodi = seutukunta_code) 
 regio_Maakunnat <- muni %>% 
-  group_by(mk_code) %>% 
-  summarise() %>% rename(aluekoodi = mk_code)
+  group_by(maakunta_code) %>% 
+  summarise() %>% rename(aluekoodi = maakunta_code)
 regio_Kunnat <- muni %>% 
-  select(kunta) %>% rename(aluekoodi = kunta)
+  select(municipality_code) %>% 
+  rename(aluekoodi = municipality_code)
 regio_Suomi <- muni %>% 
   mutate(maa = "Suomi") %>% 
   group_by(maa) %>% 
@@ -82,10 +94,67 @@ saveRDS(regio_Seutukunnat,
 saveRDS(regio_Kunnat, 
         here("data/regio_Kunnat.RDS"))
 
+
+
+
+
+
+
+# tehdään aluekoodi/aluenimi -data vielä
+muni <- get_municipalities(year = 2019) %>%
+  filter(maakunta_name_fi != "Ahvenanmaa")
+bind_rows(
+  muni %>% 
+    group_by(seutukunta_code,seutukunta_name_fi) %>% 
+    summarise() %>% rename(region_code = seutukunta_code,
+                           region_name = seutukunta_name_fi) %>% 
+    mutate(level = "Seutukunnat"),
+  muni %>% 
+    group_by(maakunta_code,maakunta_name_fi) %>% 
+    summarise() %>% rename(region_code = maakunta_code,
+                           region_name = maakunta_name_fi) %>% 
+    mutate(level = "Maakunnat"),
+  muni %>% 
+    group_by(municipality_code,municipality_name_fi) %>% 
+    summarise() %>% rename(region_code = municipality_code,
+                           region_name = municipality_name_fi) %>% 
+    mutate(level = "Kunnat")
+) -> region_data
+
+
+# lisätään naapurialueet
+lvs <- unique(region_data$level)
+datalist <- list()
+for (ii in seq_along(lvs)){
+  region_data2 <- region_data[region_data$level == lvs[ii],]
+  datalist2 <- list()
+  for (iii in 1:nrow(region_data2)){
+    this_region <- region_data2$region_code[[iii]]
+    sf::st_intersection(x = region_data2, 
+                        y = region_data2[region_data2$region_code == this_region,]) %>%
+      pull(region_code) -> neigbours
+    datalist2[[iii]] <- tibble(region_code = this_region, 
+                               level = lvs[ii],
+                               neigbours = list(neigbours))
+  }
+  datalist[[ii]] <- do.call(bind_rows, datalist2)
+}
+neigbour_data <- do.call(bind_rows, datalist)
+
+region_data2 <- left_join(region_data,neigbour_data)
+
+saveRDS(region_data2, "./data/region_data.RDS")
+
+
+
+
+
+
+
 if (F){
 
 # Luodaan raaka muuttujakuvaus
-readRDS("./data/df_v20200320.RDS") %>% 
+readRDS("./data/df_v20201102.RDS") %>% 
   distinct(var_class,variable,regio_level) %>% 
   group_by(var_class,variable) %>% 
   summarise(aluetasot = paste(regio_level, collapse = ", ")) %>% 
