@@ -23,6 +23,7 @@ library(forcats)
 library(viridis)
 library(purrr)
 library(janitor)
+library(hrbrthemes)
 
 add_line_break <- function(x = "very many many characters and words and sentences",
                            n = 20){

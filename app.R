@@ -16,7 +16,8 @@ ui <- fluidPage(
     uiOutput("output_regio_level"),
     uiOutput("output_save_map"),
     leaflet::leafletOutput("map1", width = "100%", height = "685px"),
-    DT::dataTableOutput("rank_tbl"),
+    # DT::dataTableOutput("rank_tbl"),
+    plotOutput("rank_plot"),
     # verbatimTextOutput("value"),
     # uiOutput("output_regio_level_profile"),
     # uiOutput("output_region_profile"),
@@ -247,8 +248,8 @@ server <- function(input, output) {
         fin <- readRDS("./data/regio_Suomi.RDS")
         fin <- sf::st_transform(x = fin, crs = "+proj=longlat +datum=WGS84")
         
-        leaflet(fin, options = leafletOptions()) %>%
-            addProviderTiles(provider = providers$CartoDB.Positron) %>% 
+        leaflet(fin, options = leafletOptions(attributionControl=FALSE)) %>%
+            # addProviderTiles(provider = providers$CartoDB.Positron) %>% 
             addPolygons(color = NA, fill = NA) %>% 
             setView(lng = 26.24578, lat = 65.28952, zoom = 5)
         
@@ -295,9 +296,10 @@ server <- function(input, output) {
                                                     direction = "auto")
             ) -> proxy
         
-        proxy %>% clearControls()   %>%
-            addLegend(data = dat, pal = pal, values = ~value, opacity = 0.7, title = add_line_break(input$value_variable, n = 20),
-                      position = "bottomright")
+        # proxy %>% clearControls()   %>%
+        #     addLegend(data = dat, pal = pal, values = ~value, opacity = 0.7, title = add_line_break(input$value_variable, n = 20),
+        #               position = "bottomright")
+        proxy
     })
     
     
@@ -325,14 +327,21 @@ server <- function(input, output) {
         dt <- DT::datatable(dat, 
                         rownames = FALSE, 
                         # style = "bootstrap4",
+                        # extensions = 'Scroller',
                         selection = list(mode = 'single', 
                                          selected = rownro),
                         # filter = "top", extensions = 'Buttons',
-                        options = list(pageLength = 20,
+                        options = list(scrollX = TRUE,
+                                       scrollY = 720,
                                        paging = FALSE,
-                                       scrollY = "680px",
                                        dom = "dt",
-                                       language = list(url = 'datatable_translate.json'))) %>%
+                                       # pageLength = 500,
+                                       language = list(url = 'datatable_translate.json')#,
+                                  #      initComplete  = JS('function() {
+                                  #  $(this.api().table().row(rownro).node()).addClass("selected");
+                                  #  this.api().table().row(rownro).node().scrollIntoView();
+                                  # }')
+                                  )) %>%
             formatStyle(
                 input$value_variable,
                 background = styleColorBar(dat[[input$value_variable]],
@@ -342,8 +351,89 @@ server <- function(input, output) {
                 backgroundRepeat = 'no-repeat',
                 backgroundPosition = 'center'
             )
-        return(dt)
-    })
+        # return(dt)
+    },
+server = TRUE)
+    
+    
+    output$rank_plot <- renderPlot({
+        
+        req(input$value_variable_class)
+        req(input$value_variable)
+        req(input$value_regio_level2)
+        
+        # theme_set(
+        #     theme_minimal(base_family = "PT Sans", base_size = 7) +
+        #         theme(axis.text.y = element_blank(), 
+        #               panel.grid = element_blank(),
+        #               # strip.background = element_rect(color = "white"),
+        #               # plot.background = element_rect(fill = alpha(colour = "#fffff0", 1/3), color = NA),
+        #               plot.title = element_text(size = 9, family = "bold"),
+        #               plot.subtitle = element_text(size = 12, family = "bold"))
+        # )
+        
+        klik <- get_klik()    
+        dat <- process_data() %>% 
+            st_set_geometry(NULL) %>% 
+            select(rank,aluenimi,value) %>% 
+            mutate(aluenimi = factor(aluenimi), 
+                   aluenimi = fct_reorder(aluenimi, -rank)) %>% 
+            mutate(focus = ifelse(aluenimi == klik$id, TRUE, FALSE))
+        # names(dat) <- c("Sijoitus",input$value_regio_level2,input$value_variable)
+    
+        # rownro <- match(klik$id,dat[[input$value_regio_level2]])
+        
+        
+        ggplot(dat, aes(x = value, y = aluenimi, 
+                        color = focus,
+                        fill = value)) + 
+            geom_col() +
+            theme_ipsum(base_family = "Open Sans",
+                        plot_title_family = "Open Sans",
+                        subtitle_family = "Open Sans",
+                        grid_col = "white") +
+            xlim(c(0,max(dat$value, na.rm = TRUE)*1.2)) +
+            labs(y = NULL, x = NULL, 
+                 title = input$value_variable, 
+                 subtitle = input$value_variable_class) +
+            theme(legend.position = "none") +
+            # scale_fill_ipsum() +
+            scale_fill_viridis_c(option = "viridis", direction = -1, alpha = .4) +
+            scale_color_manual(values = c("white","#7e3f9d")) -> plot
+        
+        if (input$value_regio_level2 == "Seutukunnat"){
+            plot <- plot +
+                theme(axis.text.y = element_text(size = 9)) +
+                geom_text(dat = dat[dat$focus,], 
+                          aes(label = paste0(value, " ", rank, "/", max(dat$rank, na.rm = TRUE))), 
+                          color = "black", 
+                          nudge_x = max(dat$value, na.rm = TRUE)*0.1, 
+                          family = "Open Sans")
+        } else if (input$value_regio_level2 == "Kunnat"){
+            plot <- plot +
+                theme(axis.text.y = element_blank()) +
+                geom_text(dat = dat[dat$focus,],
+                          aes(label = paste0(aluenimi, " ",value, " ", rank, "/", max(dat$rank, na.rm = TRUE))), 
+                          color = "black", 
+                          nudge_x = max(dat$value, na.rm = TRUE)*0.1, 
+                          family = "Open Sans")
+        } else if (input$value_regio_level2 == "Maakunnat"){
+            plot <- plot + geom_text(aes(label = value), 
+                                     color = "black", 
+                                     nudge_x = max(dat$value, na.rm = TRUE)*0.1, 
+                                     family = "Open Sans")
+        }
+        plot
+        
+
+        # return(dt)
+    }, alt = reactive({
+        paste("Palkkikuvio tasolla", 
+              input$value_regio_level2,
+              "jossa pystyakselilla aluenimet ja vaaka-akselilla muuttujan",
+              input$value_variable, "arvot. Alue", get_klik()$id, "korostettuna."
+              )
+    }))
     
     
     output$aputeksti <- renderText({
@@ -478,7 +568,7 @@ server <- function(input, output) {
                                 val_region_data = region_data, 
                                 val_muuttujaluokka = muuttujaluokka)
 
-    })
+    }, alt = "Karttakuva jossa huono-osaisuuden summamuuttujat")
     
     
     output$profiilikartta02 <- renderPlot({
@@ -492,7 +582,7 @@ server <- function(input, output) {
                                 val_region_data = region_data, 
                                 val_muuttujaluokka = muuttujaluokka)
         
-    })
+    }, alt = "Karttakuva jossa ihnimillisen huono-osaisuuden osoittimet")
 
     output$profiilikartta03 <- renderPlot({
         
@@ -505,7 +595,7 @@ server <- function(input, output) {
                                 val_region_data = region_data, 
                                 val_muuttujaluokka = muuttujaluokka)
         
-    })
+    }, alt = "Karttakuva jossa huono-osaisuuden sosiaalistenseurausten osoittimet")
     
     output$profiilikartta04 <- renderPlot({
         
@@ -518,7 +608,7 @@ server <- function(input, output) {
                                 val_region_data = region_data, 
                                 val_muuttujaluokka = muuttujaluokka)
         
-    })
+    }, alt = "Karttakuva jossa huono-osaisuuden taloudellisten yhtieyksien osoittimet")
     
     
         
@@ -841,25 +931,25 @@ server <- function(input, output) {
                     
                     ggplot(data = dat, aes(fill = value)) +
                         geom_sf(color = alpha("white", 1/3))  +
-                        scale_fill_viridis(option = "viridis", direction = -1) +
+                        scale_fill_viridis(option = "viridis", direction = -1, alpha = .5) +
                         theme_minimal(base_family = "PT Sans", base_size = 12) +
                         labs(fill = NULL,
                              title = glue("{input$value_variable}"),
                              subtitle = glue("Aluetaso: {input$value_regio_level2}"),
                              caption = glue("Data: THL & Diak\n{Sys.Date()}")) -> p
                     if (input$value_regio_level2 != "Kunnat"){
-                        p + ggrepel::geom_label_repel(data = dat %>%
+                        p + ggrepel::geom_text_repel(data = dat %>%
                                                          sf::st_set_geometry(NULL) %>%
                                                          bind_cols(dat %>% sf::st_centroid() %>% sf::st_coordinates() %>% as_tibble()),
                                                      aes(label = paste0(aluenimi,"\n", value), x = X, y = Y), 
-                                                     color = "white", fill = alpha("black", 2/3), 
+                                                     color = "black", #fill = alpha("black", 2/3), 
                                                      family = "PT Sans", size = 2) -> p
                     } else {
                         p + geom_text(data = dat %>%
                                           sf::st_set_geometry(NULL) %>%
                                           bind_cols(dat %>% sf::st_centroid() %>% sf::st_coordinates() %>% as_tibble()),
                                       aes(label = value, x = X, y = Y), 
-                                      color = "white", 
+                                      color = "black", 
                                       family = "PT Sans", 
                                       size = 2.2) -> p
                     }
