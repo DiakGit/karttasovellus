@@ -8,6 +8,10 @@ library(here)
 #options(tibble.print_max = 200)
 dir_create(here("./data"))
 
+
+# ------------------------------------
+## POIKKILEIKKAUSDATA
+
 # dir_ls(here("./data_raw/"), glob = "*.xlsx") -> flies
 dd <- read_excel("./data_raw/Kopio_Huono-osaisuuden mittarit - KAIKKI.xlsx")
 dd <- read_excel("./data_raw/Huono-osaisuusindikaattorit - uusimmat.xlsx")
@@ -96,9 +100,8 @@ saveRDS(regio_Kunnat,
 
 
 
-
-
-
+# -------------------------------------------
+## NAAPURIDATA
 
 # tehdään aluekoodi/aluenimi -data vielä
 muni <- get_municipalities(year = 2019) %>%
@@ -146,7 +149,69 @@ region_data2 <- left_join(region_data,neigbour_data)
 saveRDS(region_data2, "./data/region_data.RDS")
 
 
+# -------------------------------------------
+## AIKASARJA
+dd <- read_excel("./data_raw/Aikasarjadata.xlsx")
 
+df_tmp <- dd %>%
+  rename(aluekoodi = Aluekoodi,
+         aluenimi = Aluenimi,
+         regio_level = Aluetaso) %>% 
+  mutate(aluekoodi = as.integer(ifelse(regio_level == "Maakunnat", sub("^MK", "", aluekoodi),
+                                       ifelse(regio_level == "Seutukunnat", sub("^SK", "", aluekoodi), aluekoodi)))) %>% 
+  select(regio_level,everything()) %>% 
+  rename(aika = Aika) %>% 
+  # aika muotoa 2017-2019 - otetaan eka vuosi ja lisätään siihen 1
+  ## 2017-2019 ->> 2018
+  mutate(aika = as.integer(substr(aika, start = 1, stop = 4))+1)
+
+# Uusi data, jossa sarakenimet ei korjattu
+tibble(name1 = names(df_tmp)) %>% 
+  mutate(osoitin = ifelse(grepl("^[A-z] - ", name1), TRUE, FALSE),
+         summa = ifelse(grepl("^[A-Z][a-z]", name1), TRUE, FALSE)) %>%
+  mutate(name2 = ifelse(summa, toupper(name1), sub("^[A-z] - ", "", name1)
+  )) %>% 
+  pull(name2) -> new_names
+names(df_tmp) <- new_names
+
+
+ekaiso <- function(x) {
+  substr(x, 1, 1) <- toupper(substr(x, 1, 1))
+  x
+}
+
+# Tsekataan mitkä muuttujat
+df_var_class <- tibble(
+  nms = names(df_tmp)
+) %>% 
+  mutate(nms_sani = gsub(" |-", "", nms)) %>% 
+  mutate(all_upper = grepl("^[[:upper:]]+$", nms_sani)) %>% 
+  mutate(var_class = ifelse(all_upper, nms, NA)) %>% 
+  mutate(var_class = zoo::na.locf0(var_class)) %>% 
+  mutate(var_class = ifelse(all_upper, "Summamuuttujat", ekaiso(tolower(var_class)))) 
+
+df <- df_tmp %>% 
+  pivot_longer(names_to = "variable", values_to = "value", cols = 5:ncol(.)) %>% 
+  left_join(df_var_class %>% select(nms,var_class,all_upper), 
+            by = c("variable" = "nms")) %>% 
+  # Piennetään ALL_UPPER nimet
+  mutate(variable = ifelse(all_upper, ekaiso(tolower(variable)), variable))
+
+# Otetaan seutukuntanimiksi Tilastokeskuksen lyhyemmät
+geofi::municipality_key_2018 %>% 
+  count(seutukunta_name_fi,seutukunta_code) %>% 
+  rename(aluekoodi = seutukunta_code,
+         aluename = seutukunta_name_fi) %>% 
+  select(-n) -> sk_names
+
+df2 <- left_join(df,sk_names) %>% 
+  mutate(aluenimi = ifelse(regio_level == "Seutukunnat", aluename, aluenimi)) %>% 
+  select(-aluename) %>% 
+  filter(!variable %in% c("Inhimillinen","Sosiaalinen","Taloudellinen"),
+         !is.na(value)) 
+
+saveRDS(df2, here("./data/df_v20201121_aikasarja.RDS"), 
+        compress = FALSE)
 
 
 
