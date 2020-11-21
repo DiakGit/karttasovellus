@@ -17,6 +17,7 @@ ui <- fluidPage(
     uiOutput("output_save_map"),
     leaflet::leafletOutput("map1", width = "100%", height = "685px"),
     # DT::dataTableOutput("rank_tbl"),
+    plotOutput("timeseries_plot"),
     plotOutput("rank_plot"),
     # verbatimTextOutput("value"),
     # uiOutput("output_regio_level_profile"),
@@ -32,6 +33,11 @@ server <- function(input, output) {
 
     get_dat <- reactive({
         dat <- readRDS("./data/df_v20201102.RDS")
+        return(dat)
+    })
+    
+    get_dat_timeseries <- reactive({
+        dat <- readRDS("./data/df_v20201121_aikasarja.RDS")
         return(dat)
     })
     
@@ -303,57 +309,57 @@ server <- function(input, output) {
     })
     
     
-    output$rank_tbl <- DT::renderDataTable({
-        
-        req(input$value_variable_class)
-        req(input$value_variable)
-        req(input$value_regio_level2)
-        
-        dat <- process_data() %>% 
-            st_set_geometry(NULL) %>% 
-            select(rank,aluenimi,value) 
-        names(dat) <- c("Sijoitus",input$value_regio_level2,input$value_variable)
-        
-        # klik <- rv$map_click_id
-        # if (is.null(klik)){
-        #     rownro <- NA
-        # } else {
-        #     rownro <- match(klik$id,dat[[input$value_regio_level2]])
-        # }
-        
-        klik <- get_klik()
-        rownro <- match(klik$id,dat[[input$value_regio_level2]])
-        
-        dt <- DT::datatable(dat, 
-                        rownames = FALSE, 
-                        # style = "bootstrap4",
-                        # extensions = 'Scroller',
-                        selection = list(mode = 'single', 
-                                         selected = rownro),
-                        # filter = "top", extensions = 'Buttons',
-                        options = list(scrollX = TRUE,
-                                       scrollY = 720,
-                                       paging = FALSE,
-                                       dom = "dt",
-                                       # pageLength = 500,
-                                       language = list(url = 'datatable_translate.json')#,
-                                  #      initComplete  = JS('function() {
-                                  #  $(this.api().table().row(rownro).node()).addClass("selected");
-                                  #  this.api().table().row(rownro).node().scrollIntoView();
-                                  # }')
-                                  )) %>%
-            formatStyle(
-                input$value_variable,
-                background = styleColorBar(dat[[input$value_variable]],
-                                           color = '#c799ff',
-                                           angle = -90),
-                backgroundSize = '100% 90%',
-                backgroundRepeat = 'no-repeat',
-                backgroundPosition = 'center'
-            )
-        # return(dt)
-    },
-server = TRUE)
+#     output$rank_tbl <- DT::renderDataTable({
+#         
+#         req(input$value_variable_class)
+#         req(input$value_variable)
+#         req(input$value_regio_level2)
+#         
+#         dat <- process_data() %>% 
+#             st_set_geometry(NULL) %>% 
+#             select(rank,aluenimi,value) 
+#         names(dat) <- c("Sijoitus",input$value_regio_level2,input$value_variable)
+#         
+#         # klik <- rv$map_click_id
+#         # if (is.null(klik)){
+#         #     rownro <- NA
+#         # } else {
+#         #     rownro <- match(klik$id,dat[[input$value_regio_level2]])
+#         # }
+#         
+#         klik <- get_klik()
+#         rownro <- match(klik$id,dat[[input$value_regio_level2]])
+#         
+#         dt <- DT::datatable(dat, 
+#                         rownames = FALSE, 
+#                         # style = "bootstrap4",
+#                         # extensions = 'Scroller',
+#                         selection = list(mode = 'single', 
+#                                          selected = rownro),
+#                         # filter = "top", extensions = 'Buttons',
+#                         options = list(scrollX = TRUE,
+#                                        scrollY = 720,
+#                                        paging = FALSE,
+#                                        dom = "dt",
+#                                        # pageLength = 500,
+#                                        language = list(url = 'datatable_translate.json')#,
+#                                   #      initComplete  = JS('function() {
+#                                   #  $(this.api().table().row(rownro).node()).addClass("selected");
+#                                   #  this.api().table().row(rownro).node().scrollIntoView();
+#                                   # }')
+#                                   )) %>%
+#             formatStyle(
+#                 input$value_variable,
+#                 background = styleColorBar(dat[[input$value_variable]],
+#                                            color = '#c799ff',
+#                                            angle = -90),
+#                 backgroundSize = '100% 90%',
+#                 backgroundRepeat = 'no-repeat',
+#                 backgroundPosition = 'center'
+#             )
+#         # return(dt)
+#     },
+# server = TRUE)
     
     
     output$rank_plot <- renderPlot({
@@ -433,6 +439,62 @@ server = TRUE)
               "jossa pystyakselilla aluenimet ja vaaka-akselilla muuttujan",
               input$value_variable, "arvot. Alue", get_klik()$id, "korostettuna."
               )
+    }))
+    
+    
+    output$timeseries_plot <- renderPlot({
+        
+        req(input$value_variable_class)
+        req(input$value_variable)
+        req(input$value_regio_level2)
+
+        klik <- get_klik()    
+        dat <- get_dat_timeseries()
+        region_data <- get_region_data()
+        naapurikoodit <- region_data[region_data$level %in% input$value_regio_level2 & 
+                                     region_data$region_name %in% klik$id,]$neigbours[[1]]
+
+        df <- dat[dat$variable == input$value_variable &
+                  dat$regio_level == input$value_regio_level2 &
+                  dat$aluekoodi %in% naapurikoodit,]
+
+        aika1 <- sort(unique(df$aika)) - 1
+        aika2 <- sort(unique(df$aika)) + 1
+        labels <- paste0(aika1,"-",aika2)
+        
+        ggplot(data = df,
+               aes(x = aika, y = value, color= aluenimi, fill= aluenimi)) +
+            geom_line(show.legend = FALSE) +
+            geom_point(shape = 21, color = "white", stroke = 1, size = 2.5) +
+            ggrepel::geom_text_repel(data = df %>% filter(aika == max(aika, na.rm = TRUE)),
+                                     aes(label = round(value,1)), family = "Open Sans") +
+            ggrepel::geom_text_repel(data = df %>% filter(aika == max(aika, na.rm = TRUE)-1,
+                                                          aluenimi != klik$id),
+                                     aes(label = aluenimi), family = "Open Sans") +
+            # valittu
+            ggrepel::geom_label_repel(data = df %>% filter(aika == max(aika, na.rm = TRUE)-1,
+                                                          aluenimi == klik$id),
+                                     aes(label = aluenimi), color = "white", family = "Open Sans") +
+            
+            scale_x_continuous(breaks = sort(unique(df$aika)), labels = labels) +
+            theme_ipsum(base_family = "Open Sans",
+                        plot_title_family = "Open Sans",
+                        subtitle_family = "Open Sans",
+                        grid_col = "white") +
+            theme(legend.position = "none") +
+            # scale_fill_viridis_d(option = "viridis", direction = -1) +
+            # scale_color_viridis_d(option = "viridis", direction = -1) +
+            labs(y = NULL, x = NULL,
+                 title = input$value_variable,
+                 subtitle = input$value_variable_class) -> plot1
+        plot1
+        
+    }, alt = reactive({
+        paste("Palkkikuvio tasolla", 
+              input$value_regio_level2,
+              "jossa pystyakselilla aluenimet ja vaaka-akselilla muuttujan",
+              input$value_variable, "arvot. Alue", get_klik()$id, "korostettuna."
+        )
     }))
     
     
