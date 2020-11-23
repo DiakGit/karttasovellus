@@ -409,9 +409,9 @@ server <- function(input, output) {
                         color = focus,
                         fill = value)) + 
             geom_col() +
-            theme_ipsum(base_family = "Open Sans",
-                        plot_title_family = "Open Sans",
-                        subtitle_family = "Open Sans",
+            theme_ipsum(base_family = "PT Sans",
+                        plot_title_family = "PT Sans",
+                        subtitle_family = "PT Sans",
                         grid_col = "white") +
             xlim(c(0,max(dat$value, na.rm = TRUE)*1.2)) +
             labs(y = NULL, x = NULL, 
@@ -429,7 +429,7 @@ server <- function(input, output) {
                           aes(label = paste0(value, " ", rank, "/", max(dat$rank, na.rm = TRUE))), 
                           color = "black", 
                           nudge_x = max(dat$value, na.rm = TRUE)*0.1, 
-                          family = "Open Sans")
+                          family = "PT Sans")
         } else if (input$value_regio_level == "Kunnat"){
             plot <- plot +
                 theme(axis.text.y = element_blank()) +
@@ -437,12 +437,12 @@ server <- function(input, output) {
                           aes(label = paste0(aluenimi, " ",value, " ", rank, "/", max(dat$rank, na.rm = TRUE))), 
                           color = "black", 
                           nudge_x = max(dat$value, na.rm = TRUE)*0.1, 
-                          family = "Open Sans")
+                          family = "PT Sans")
         } else if (input$value_regio_level == "Maakunnat"){
             plot <- plot + geom_text(aes(label = value), 
                                      color = "black", 
                                      nudge_x = max(dat$value, na.rm = TRUE)*0.1, 
-                                     family = "Open Sans")
+                                     family = "PT Sans")
         }
         plot
         
@@ -498,23 +498,23 @@ server <- function(input, output) {
             geom_line(show.legend = FALSE) +
             geom_point(shape = 21, color = "white", stroke = 1, size = 2.5) +
             ggrepel::geom_text_repel(data = df %>% filter(aika == max(aika, na.rm = TRUE)),
-                                     aes(label = round(value,1)), family = "Open Sans") +
+                                     aes(label = round(value,1)), family = "PT Sans") +
             ggrepel::geom_text_repel(data = df %>% filter(aika == max(aika, na.rm = TRUE)-1,
                                                           aluenimi != klik$id),
-                                     aes(label = aluenimi), family = "Open Sans") +
+                                     aes(label = aluenimi), family = "PT Sans") +
             # valittu
             ggrepel::geom_label_repel(data = df %>% filter(aika == max(aika, na.rm = TRUE)-1,
                                                           aluenimi == klik$id),
-                                     aes(label = aluenimi), color = "white", family = "Open Sans") +
+                                     aes(label = aluenimi), color = "white", family = "PT Sans") +
             
             scale_x_continuous(breaks = sort(unique(df$aika)), labels = labels) +
-            theme_ipsum(base_family = "Open Sans",
-                        plot_title_family = "Open Sans",
-                        subtitle_family = "Open Sans",
+            theme_ipsum(base_family = "PT Sans",
+                        plot_title_family = "PT Sans",
+                        subtitle_family = "PT Sans",
                         grid_col = "white") +
             theme(legend.position = "none") +
-            # scale_fill_viridis_d(option = "viridis", direction = -1) +
-            # scale_color_viridis_d(option = "viridis", direction = -1) +
+            scale_fill_viridis_d(option = "viridis", direction = -1, begin = .1, end = .9) +
+            scale_color_viridis_d(option = "viridis", direction = -1, begin = .1, end = .9) +
             labs(y = NULL, x = NULL,
                  title = input$value_variable,
                  subtitle = input$value_variable_class) -> plot1
@@ -538,18 +538,24 @@ server <- function(input, output) {
     create_alueprofiili_content <- function(aluename2 = aluename, 
                                             naapurikoodit = naapurikoodit, 
                                             aluetaso1 = aluetaso1, 
-                                            type = "html"){
+                                            type = "html", 
+                                            aikasarja = FALSE){
         
-        dat <- get_dat()
+        if (aikasarja){
+            dat <- get_dat_timeseries()
+            } else {
+            dat <- get_dat()
+            dat$aika <- NA
+            }
         
         # aluetaso1
 
         dat[dat$regio_level %in% aluetaso1 & dat$aluenimi %in% aluename2 ,] %>% 
-            select(aluenimi,var_class,variable,value) %>% 
+            select(aika,aluenimi,var_class,variable,value) %>% 
             mutate(rooli = "valinta") -> tmpdat1
         dat[dat$regio_level %in% aluetaso1 & dat$aluekoodi %in% naapurikoodit ,] %>% 
             filter(!aluenimi %in% aluename2) %>% 
-            select(aluenimi,var_class,variable,value) %>% 
+            select(aika,aluenimi,var_class,variable,value) %>% 
             mutate(rooli = "naapuri") -> tmpdat2
         tmpdat <- bind_rows(tmpdat1,tmpdat2) 
         
@@ -561,7 +567,7 @@ server <- function(input, output) {
             ungroup() %>% 
             # mutate(maksimi = glue("{round(value, 1)} ({ifelse(nchar(aluenimi) > 10, paste0(substr(aluenimi, 1, 10),'...'), aluenimi)})")) %>% 
             mutate(rooli = "korkein arvo") %>% 
-            select(aluenimi,var_class,variable,value,rooli) -> max_dat
+            select(aika,aluenimi,var_class,variable,value,rooli) -> max_dat
         
         dat[dat$regio_level %in% aluetaso1,] %>% 
             group_by(var_class,variable) %>% 
@@ -570,7 +576,7 @@ server <- function(input, output) {
             ungroup() %>% 
             # mutate(minimi = glue("{round(value, 1)} ({ifelse(nchar(aluenimi) > 10, paste0(substr(aluenimi, 1, 10),'...'), aluenimi)})")) %>% 
             mutate(rooli = "matalin arvo") %>% 
-            select(aluenimi,var_class,variable,value,rooli) -> min_dat
+            select(aika,aluenimi,var_class,variable,value,rooli) -> min_dat
         
         dat[dat$regio_level %in% aluetaso1,] %>% 
             group_by(variable) %>% 
@@ -579,7 +585,7 @@ server <- function(input, output) {
                    n = n()) %>% 
             ungroup() %>% 
             # filter(aluenimi %in% aluename2) %>% 
-            select(aluenimi,variable,sija) -> rank_dat
+            select(aika,aluenimi,variable,sija) -> rank_dat
         
         bind_rows(tmpdat,max_dat,min_dat) %>% 
             left_join(rank_dat) %>% 
@@ -587,7 +593,7 @@ server <- function(input, output) {
             rename(muuttuja = variable,
                    arvo = value) %>% 
             filter(!is.na(arvo)) %>% 
-            select(muuttuja,arvo,sija,everything()) %>% 
+            select(aika,muuttuja,arvo,sija,everything()) %>% 
             distinct() -> tabdat
         # tmpdat -> tabdat
         return(tabdat)
@@ -629,6 +635,7 @@ server <- function(input, output) {
                       axis.title.x = element_blank(),
                       axis.title.y = element_blank(),
                       panel.grid.major = element_blank(),
+                      plot.title.position = "plot",
                       legend.position = "top", 
                       legend.key.width = unit(3,"line")) +
                 labs(x = NULL, 
@@ -649,6 +656,70 @@ server <- function(input, output) {
         wrap_plots(plotlista, ncol = 1)
     }
     
+    
+    alueprofiiliaikasarja_html <- function(val_aluetaso1 = aluetaso1, 
+                                        val_aluename = aluename, 
+                                        val_region_data = region_data, 
+                                        val_muuttujaluokka = muuttujaluokka){
+        
+        region_data <- dplyr::filter(val_region_data, level %in% val_aluetaso1)
+        naapurikoodit <- region_data[region_data$region_name %in% val_aluename,]$neigbours[[1]]
+        
+        tabdat <- create_alueprofiili_content(aluename2 = val_aluename, 
+                                              aluetaso1 = val_aluetaso1, 
+                                              naapurikoodit = naapurikoodit, 
+                                              aikasarja = TRUE)
+        
+        lista1_tbl <- tabdat %>%
+            filter(var_class == val_muuttujaluokka) %>%
+            filter(rooli %in% c("naapuri","valinta")) %>% 
+            # mutate(aluenimi = paste0(aluenimi, " (", rooli, ") ")) %>%
+            select(aika,muuttuja,aluenimi,arvo,sija) %>%
+            mutate(value = arvo) %>% 
+            arrange(muuttuja,sija)
+        # mapdata <- left_join(region_data, lista1_tbl, by = c("region_name" = "aluenimi")) %>% 
+        #     filter(!is.na(muuttuja))
+        plotlista <- list()
+        vars <- unique(lista1_tbl$muuttuja)
+        for (vii in seq_along(vars)){
+            plotdata_tmp <- lista1_tbl[lista1_tbl$muuttuja == vars[vii],]
+
+        aika1 <- sort(unique(plotdata_tmp$aika)) - 1
+        aika2 <- sort(unique(plotdata_tmp$aika)) + 1
+        labels <- paste0(aika1,"-\n",aika2)
+
+            plotlista[[vii]] <- ggplot(data = plotdata_tmp,
+               aes(x = aika, y = value, color= aluenimi, fill= aluenimi)) +
+            geom_line(show.legend = FALSE) +
+            geom_point(shape = 21, color = "white", stroke = 1, size = 2.5) +
+            ggrepel::geom_text_repel(data = plotdata_tmp %>% filter(aika == max(aika, na.rm = TRUE)),
+                                     aes(label = round(value,1)), family = "PT Sans") +
+            ggrepel::geom_text_repel(data = plotdata_tmp %>% filter(aika == max(aika, na.rm = TRUE)-1),
+                                     aes(label = aluenimi), family = "PT Sans", nudge_x = -1) +
+            # valittu
+            # ggrepel::geom_label_repel(data = plotdata_tmp %>% filter(aika == max(aika, na.rm = TRUE)-1,
+            #                                               aluenimi == klik$id),
+            #                          aes(label = aluenimi), color = "white", family = "PT Sans") +
+            
+            scale_x_continuous(breaks = sort(unique(plotdata_tmp$aika)), labels = labels) +
+            theme_ipsum(base_family = "PT Sans", 
+                        base_size = 12, 
+                        plot_title_size = 14,
+                        plot_title_family = "PT Sans",
+                        subtitle_family = "PT Sans",
+                        grid_col = "white") +
+            theme(legend.position = "none",
+                  plot.title.position = "plot",
+                  axis.text.x = element_text(size = 9)) +
+                scale_fill_viridis_d(option = "viridis", direction = -1, begin = .1, end = .9) +
+                scale_color_viridis_d(option = "viridis", direction = -1, begin = .1, end = .9) +
+            labs(y = NULL, x = NULL,
+                 title = vars[vii])
+        }
+        wrap_plots(plotlista, ncol = 1)
+    }
+    
+    # alueprofiilin kartat
     
     output$profiilikartta01 <- renderPlot({
         
@@ -703,7 +774,62 @@ server <- function(input, output) {
         
     }, alt = "Karttakuva jossa huono-osaisuuden taloudellisten yhtieyksien osoittimet")
     
+
+    # alueprofiilin aikasarjat
     
+        
+    output$profiiliaikasarja01 <- renderPlot({
+        
+        aluename <- react_value_region_profile()
+        aluetaso1 <- react_value_regio_level_profile()
+        region_data <- get_region_data()
+        muuttujaluokka <- "Summamuuttujat"
+        alueprofiiliaikasarja_html(val_aluetaso1 = aluetaso1, 
+                                val_aluename = aluename, 
+                                val_region_data = region_data, 
+                                val_muuttujaluokka = muuttujaluokka)
+
+    }, alt = "Aikasarjakuva jossa huono-osaisuuden summamuuttujat")
+    
+    
+    output$profiiliaikasarja02 <- renderPlot({
+        
+        aluename <- react_value_region_profile()
+        aluetaso1 <- react_value_regio_level_profile()
+        region_data <- get_region_data()
+        muuttujaluokka <- "Inhimillinen huono-osaisuus"
+        alueprofiiliaikasarja_html(val_aluetaso1 = aluetaso1, 
+                                val_aluename = aluename, 
+                                val_region_data = region_data, 
+                                val_muuttujaluokka = muuttujaluokka)
+        
+    }, alt = "Aikasarjakuva jossa ihnimillisen huono-osaisuuden osoittimet")
+
+    output$profiiliaikasarja03 <- renderPlot({
+        
+        aluename <- react_value_region_profile()
+        aluetaso1 <- react_value_regio_level_profile()
+        region_data <- get_region_data()
+        muuttujaluokka <- "Huono-osaisuuden sosiaaliset seuraukset"
+        alueprofiiliaikasarja_html(val_aluetaso1 = aluetaso1, 
+                                val_aluename = aluename, 
+                                val_region_data = region_data, 
+                                val_muuttujaluokka = muuttujaluokka)
+        
+    }, alt = "Aikasarjakuva jossa huono-osaisuuden sosiaalistenseurausten osoittimet")
+    
+    output$profiiliaikasarja04 <- renderPlot({
+        
+        aluename <- react_value_region_profile()
+        aluetaso1 <- react_value_regio_level_profile()
+        region_data <- get_region_data()
+        muuttujaluokka <- "Huono-osaisuuden taloudelliset yhteydet"
+        alueprofiiliaikasarja_html(val_aluetaso1 = aluetaso1, 
+                                val_aluename = aluename, 
+                                val_region_data = region_data, 
+                                val_muuttujaluokka = muuttujaluokka)
+        
+    }, alt = "Aikasarjakuva jossa huono-osaisuuden taloudellisten yhtieyksien osoittimet")
         
         
     output$region_profile_html <- renderUI({
@@ -735,6 +861,7 @@ server <- function(input, output) {
         # gt::tab_header(title = toupper(muuttujaluokka)) %>%
         tab_options(table.width	= "90%", 
                     table.align = "left",
+                    table.font.size = "80%",
                     row_group.background.color = alpha("grey", 1/6)) %>% 
         cols_align(
             align = "right",
@@ -756,6 +883,7 @@ server <- function(input, output) {
         # gt::tab_header(title = toupper(muuttujaluokka)) %>%
         tab_options(table.width	= "90%", 
                     table.align = "left",
+                    table.font.size = "80%",
                     row_group.background.color = alpha("grey", 1/6)) %>% 
         cols_align(
             align = "right",
@@ -778,6 +906,7 @@ server <- function(input, output) {
         # gt::tab_header(title = toupper(muuttujaluokka)) %>%
         tab_options(table.width	= "90%", 
                     table.align = "left",
+                    table.font.size = "80%",
                     row_group.background.color = alpha("grey", 1/6)) %>% 
         cols_align(
             align = "right",
@@ -799,6 +928,7 @@ server <- function(input, output) {
         # gt::tab_header(title = toupper(muuttujaluokka)) %>%
         tab_options(table.width	= "90%", 
                     table.align = "left",
+                    table.font.size = "80%",
                     row_group.background.color = alpha("grey", 1/6)) %>% 
         cols_align(
             align = "right",
@@ -822,59 +952,82 @@ server <- function(input, output) {
         ),
         tags$hr(),
         fluidRow(
-            column(6,
+            column(3,
                    tags$h4("Summamuuttujat"),  
                    lista1_tbl
                    ),
-            column(6,
+            column(5,
                    tags$div(style = "padding-top:60px;"),
                    # withSpinner(
                        plotOutput("profiilikartta01", width = "100%", 
                           height = glue("{(nrow(lista1_df)+1)*rivikorkeus}px")
+                          ), proxy.height = "100px"),
+            column(4,
+                   tags$div(style = "padding-top:60px;"),
+                   # withSpinner(
+                       plotOutput("profiiliaikasarja01", width = "100%", 
+                          height = glue("{(nrow(lista1_df)+1)*rivikorkeus}px")
                           ), proxy.height = "100px")
-               # )
             ),
         tags$hr(),
         fluidRow(
-            column(6,
+            column(3,
                    tags$h4("Inhimillinen huono-osaisuus"),
                    lista2_tbl
                   ),
-            column(6, 
+            column(5, 
                    tags$div(style = "padding-top:60px;"),
                    plotOutput("profiilikartta02", width = "100%", 
                               # height = glue("{korkeus2}px")
                               height = glue("{(nrow(lista2_df)+1)*rivikorkeus}px")
                               )
-                  )
-            ),
+                  ),
+            column(4,
+                   tags$div(style = "padding-top:60px;"),
+                   # withSpinner(
+                   plotOutput("profiiliaikasarja02", width = "100%", 
+                              height = glue("{(nrow(lista2_df)+1)*rivikorkeus}px")
+                   ), proxy.height = "100px")
+        ),
         tags$hr(),
         fluidRow(
-            column(6,
+            column(3,
                    tags$h4("Huono-osaisuuden sosiaaliset seuraukset"),
                    lista3_tbl
             ),
-            column(6,
+            column(5,
                    tags$div(style = "padding-top:60px;"),
                    plotOutput("profiilikartta03", width = "100%", 
                               # height = glue("{korkeus3}px")
                               height = glue("{(nrow(lista3_df)+1)*rivikorkeus}px")
                    )
-            )
+            ),
+            column(4,
+                   tags$div(style = "padding-top:60px;"),
+                   # withSpinner(
+                   plotOutput("profiiliaikasarja03", width = "100%", 
+                              height = glue("{(nrow(lista3_df)+1)*rivikorkeus}px")
+                   ), proxy.height = "100px")
         ),
         tags$hr(),
         fluidRow(
-            column(6,
+            column(3,
                    tags$h4("Huono-osaisuuden taloudelliset yhteydet"),
                    lista4_tbl
             ),
-            column(6, 
+            column(5, 
                    tags$div(style = "padding-top:60px;"),
                    plotOutput("profiilikartta04", width = "100%", 
                               # height = glue("{korkeus4}px")
                               height = glue("{(nrow(lista4_df)+1)*rivikorkeus}px")
             )
-        )
+        ),
+        column(4,
+               tags$div(style = "padding-top:60px;"),
+               # withSpinner(
+               plotOutput("profiiliaikasarja04", width = "100%", 
+                          height = glue("{(nrow(lista4_df)+1)*rivikorkeus}px")
+               ), proxy.height = "100px")
     )
     )
     })
