@@ -1,10 +1,6 @@
 ---
 title: "Alueprofiili `r params$region` (`r params$region_level`)"
 author: "Diakin karttasovellus `r params$datetime`" 
-# subtitle: "Diakin karttasovellus `r params$datetime`"
-# date: "päivämärä"
-#title: "otsikko"
-#author: "minä"
 output: 
   word_document:
     reference_docx: diak_karttasovellus.dotx
@@ -12,6 +8,7 @@ params:
   region: NA
   region_level: NA
   data: NA
+  data_aikasarja: NA
   datetime: NA
   spatdat: NA
   region_data: NA
@@ -21,8 +18,6 @@ params:
   fig_height_default: NA
   fig_dpi: NA
   doc_format: NA
-  # out_width: NA
-  # odt_kerroin: NA
 ---
 
 Tämä asiakirja on tuotettu automaattisesti [Diakin karttasovelluksen avulla](http://diak.shinyapps.io/karttasovellus) `r params$datetime`. Asiakirjan tiedot perustuvat THL:n Sotkanet-indikaattoripalvelun tietoihin, joihin on yhdistetty Tilastokeskuksen tilasto- ja paikkatietoaineistoja. Tarkempaa tieto indikaattoreista ja metodologiasta löydät sovelluksen [Lisätietoja](http://82.181.82.12/diak_app/#info)-osiosta.
@@ -35,10 +30,6 @@ Tässä raportissa tarkastellaan tasolla `r params$region_level` aluetta `r para
 
 library(knitr)
 library(dplyr)
-# library(ragg)
-# ragg_png = function(..., res = 300) {
-#   ragg::agg_png(..., res = res, units = "in")
-# }
 knitr::opts_chunk$set(list(echo=FALSE, # printtaa koodi outputtiin
                            eval=TRUE, # evaluoi kaikki kimpaleet jos ei erikseen kielletty
                            cache=FALSE, # älä luo välimuistia (isoissa datoissa hyvin kätevä)
@@ -46,12 +37,8 @@ knitr::opts_chunk$set(list(echo=FALSE, # printtaa koodi outputtiin
                            message=FALSE, # älä printtaa pakettien viestejä
                            fig.width = params$fig_width_default, # kuvien oletusleveys
                            fig.height = params$fig_height_default, # kuvien oletuskorkeus
-                           # dpi = params$fig_dpi,
                            out.width="100%"
-                           # out.width = params$out_width
-                           # dev = "ragg_png"
                            )) # kuvien oletuskorkeus
-# odt_kerroin <- params$odt_kerroin
 ```
 
 
@@ -106,18 +93,12 @@ theme_set(
 )
 
 
-create_plot <- function(varclass, reglevel = params$region_level, regname = params$region, 
+create_map_plot <- function(varclass, reglevel = params$region_level, regname = params$region, 
                         spatdat = params$spatdat, naapurikoodit = params$naapurikoodit,
                         ncol = 2){
   params$data %>% 
     filter(var_class %in% varclass,
            regio_level == reglevel) -> dattemp
-  
-  # if (reglevel != "Kunnat"){
-  #   params$data %>% 
-  #   filter(var_class %in% varclass) -> datmuni 
-  # }
-  
 
 dattemp %>% 
   distinct(variable) %>% 
@@ -126,17 +107,8 @@ dattemp %>%
 for (i in 1:length(vars)){
     
     plot_dat <- dattemp %>% filter(variable %in% vars[i])
-    
-    # plot_dat00 <- plot_dat[plot_dat$aluenimi == regname,]
-    # if (nrow(plot_dat00) == 0) next()
-    # plot_dat01 <- plot_dat[grepl("Helsi|Uude|Uusim", plot_dat$aluenimi),]
-    # plot_dat02 <- plot_dat %>% arrange(desc(value)) %>% slice(1)
-    # plot_dat03 <- plot_dat %>% arrange(value) %>% slice(1)
-    # plot_dat1 <- bind_rows(plot_dat01,plot_dat02,plot_dat03) %>%
-    #   distinct()
-    
+
     spatdat <- sf::st_transform(spatdat, dat, crs = 3067)
-    # dat_region <- dat[dat$aluenimi == params$region,]
     dat_naapurit <- spatdat[spatdat$aluekoodi %in% naapurikoodit,] %>% select(-value)
     dat_naapurit2 <- left_join(dat_naapurit,
                                plot_dat %>%
@@ -167,8 +139,7 @@ theme(axis.text = element_blank(),
 wrap_plots(gg_x2, ncol = ncol) +
   plot_annotation(
     subtitle = glue("Kuhunkin kuvioon on merkitty alueen '{regname}' lisäksi alueen rajanaapurit"),
-    theme = theme_minimal() + theme(plot.background = element_rect(fill = NA, color = alpha(colour = "dim grey", 1/6)))# + 
-      # theme(plot.title = element_text(face = "bold", size = 12))
+    theme = theme_minimal() + theme(plot.background = element_rect(fill = NA, color = alpha(colour = "dim grey", 1/6)))
   )
 }
 ```
@@ -268,13 +239,19 @@ ncol[varn > 9] <- 3
 # if (params$doc_format == "odt") figu_height <- figu_height/odt_kerroin
 ```
 
-```{r summa_kuva, fig.height = figu_height}
-create_plot(varclass = muuttujaluokka, ncol = ncol)
+```{r summa_kartta, fig.height = figu_height}
+create_map_plot(varclass = muuttujaluokka, ncol = ncol)
 ```
 
 ```{r summa_tbl, results = "asis"}
 create_table(tabdat, muuttujaluokka)
 ```
+
+```{r summa_kartta, fig.height = figu_height}
+create_timeseries_plot(varclass = muuttujaluokka, ncol = ncol)
+```
+
+
 
 # Inhimillinen huono-osaisuus
 
@@ -292,8 +269,8 @@ ncol[varn > 9] <- 3
 ```
 
 
-```{r inhim_kuva,  fig.height = figu_height}
-create_plot(varclass = muuttujaluokka, ncol = ncol)
+```{r inhim_kartta,  fig.height = figu_height}
+create_map_plot(varclass = muuttujaluokka, ncol = ncol)
 ```
 
 ```{r inhim_tbl, results = "asis"}
@@ -315,8 +292,8 @@ ncol[varn > 9] <- 3
 # if (params$doc_format == "odt") figu_height <- figu_height/odt_kerroin
 ```
 
-```{r  sosial_kuva,  fig.height = figu_height}
-create_plot(varclass = muuttujaluokka, ncol = ncol)
+```{r  sosial_kartta,  fig.height = figu_height}
+create_map_plot(varclass = muuttujaluokka, ncol = ncol)
 ```
 
 ```{r sosial_taulukko, results = "asis"}
@@ -341,8 +318,8 @@ ncol[varn > 9] <- 3
 ```
 
 
-```{r talous_kuva,  fig.height = figu_height}
-create_plot(varclass = muuttujaluokka, ncol = ncol)
+```{r talous_kartta,  fig.height = figu_height}
+create_map_plot(varclass = muuttujaluokka, ncol = ncol)
 ```
 
 
