@@ -108,27 +108,31 @@ for (i in 1:length(vars)){
     
     plot_dat <- dattemp %>% filter(variable %in% vars[i])
 
-    spatdat <- sf::st_transform(spatdat, dat, crs = 3067)
+    # spatdat <- sf::st_transform(spatdat, dat, crs = 3067)
     dat_naapurit <- spatdat[spatdat$aluekoodi %in% naapurikoodit,] %>% select(-value)
     dat_naapurit2 <- left_join(dat_naapurit,
                                plot_dat %>%
                                  select(aluekoodi,value)
                                )
     
-    p <- ggplot(data = dat_naapurit2, aes(fill = value)) +                    
+    p <- ggplot(data = dat_naapurit2, aes(fill = value, label = value)) +                    
     geom_sf(color = alpha("white", 1/3))  +
     theme_minimal(base_family = "PT Sans", base_size = 12) +
       scale_fill_viridis_c(option = "plasma") +
 theme(axis.text = element_blank(),
           axis.title = element_blank(),
+      plot.title.position = "plot",
           panel.grid = element_blank()) +
       labs(x = NULL, y = NULL, fill = NULL,
            title = add_line_break2(vars[i], n = 35)) +
     ggrepel::geom_label_repel(data = dat_naapurit2 %>%
                         sf::st_set_geometry(NULL) %>%
-                        bind_cols(dat_naapurit2 %>% 
-                                    sf::st_centroid() %>% sf::st_coordinates() %>% as_tibble()),
-                     aes(label = paste0(aluenimi, "\n", round(value,1)), x = X, y = Y), color = "white", fill = alpha("black", 1/3), family = "PT Sans")
+                        bind_cols(dat_naapurit2 %>%
+                                    sf::st_centroid() %>%
+                                    sf::st_coordinates() %>% as_tibble()),
+                     aes(label = paste0(aluenimi, "\n",
+                                        round(value,1)), x = X, y = Y),
+                     color = "white", fill = alpha("black", 1/3), family = "PT Sans")
 
     
     gg_x[[i]] <- p
@@ -142,6 +146,65 @@ wrap_plots(gg_x2, ncol = ncol) +
     theme = theme_minimal() + theme(plot.background = element_rect(fill = NA, color = alpha(colour = "dim grey", 1/6)))
   )
 }
+
+
+create_timeseries_plot <- function(varclass, reglevel = params$region_level, regname = params$region, 
+                        spatdat = params$spatdat, naapurikoodit = params$naapurikoodit,
+                        ncol = 2){
+  params$data_aikasarja %>% 
+    filter(var_class %in% varclass,
+           regio_level == reglevel) -> dattemp
+
+dattemp %>% 
+  distinct(variable) %>% 
+    pull(variable) -> vars
+  gg_x <- list()
+for (i in 1:length(vars)){
+    
+    plot_dat <- dattemp %>% filter(variable %in% vars[i])
+
+    plotdata_tmp <- plot_dat[plot_dat$aluekoodi %in% naapurikoodit,]
+    
+        aika1 <- sort(unique(plotdata_tmp$aika)) - 1
+        aika2 <- sort(unique(plotdata_tmp$aika)) + 1
+        labels <- paste0(aika1,"-\n",aika2)
+    
+    p <- ggplot(data = plotdata_tmp,
+               aes(x = aika, y = value, color= aluenimi, fill= aluenimi)) +
+            geom_line(show.legend = FALSE) +
+            geom_point(shape = 21, color = "white", stroke = 1, size = 2.5) +
+            ggrepel::geom_text_repel(data = plotdata_tmp %>% filter(aika == max(aika, na.rm = TRUE)),
+                                     aes(label = round(value,1)), family = "PT Sans") +
+            ggrepel::geom_text_repel(data = plotdata_tmp %>% filter(aika == max(aika, na.rm = TRUE)-1),
+                                     aes(label = aluenimi), family = "PT Sans", nudge_x = -1) +
+            scale_x_continuous(breaks = sort(unique(plotdata_tmp$aika)), labels = labels) +
+            theme_ipsum(base_family = "PT Sans", 
+                        base_size = 12, 
+                        plot_title_size = 14,
+                        plot_title_family = "PT Sans",
+                        subtitle_family = "PT Sans",
+                        grid_col = "white") +
+            theme(legend.position = "none",
+                  plot.title.position = "plot",
+                  axis.text.x = element_text(size = 9)) +
+                scale_fill_viridis_d(option = "viridis", direction = -1, begin = .1, end = .9) +
+                scale_color_viridis_d(option = "viridis", direction = -1, begin = .1, end = .9) +
+            labs(y = NULL, x = NULL,
+                 title = add_line_break2(vars[i], n = 35))
+
+    
+    gg_x[[i]] <- p
+}
+  
+  gg_x2 <- purrr::compact(gg_x)
+
+wrap_plots(gg_x2, ncol = ncol) +
+  plot_annotation(
+    subtitle = glue("Kuhunkin kuvioon on merkitty alueen '{regname}' lisäksi alueen rajanaapurit"),
+    theme = theme_minimal() + theme(plot.background = element_rect(fill = NA, color = alpha(colour = "dim grey", 1/6)))
+  )
+}
+
 ```
 
 
@@ -247,7 +310,7 @@ create_map_plot(varclass = muuttujaluokka, ncol = ncol)
 create_table(tabdat, muuttujaluokka)
 ```
 
-```{r summa_kartta, fig.height = figu_height}
+```{r summa_kuva, fig.height = figu_height}
 create_timeseries_plot(varclass = muuttujaluokka, ncol = ncol)
 ```
 
@@ -277,6 +340,10 @@ create_map_plot(varclass = muuttujaluokka, ncol = ncol)
 create_table(tabdat, muuttujaluokka)
 ```
 
+```{r inhim_kuva, fig.height = figu_height}
+create_timeseries_plot(varclass = muuttujaluokka, ncol = ncol)
+```
+
 
 # Huono-osaisuuden sosiaaliset seuraukset
 
@@ -300,6 +367,9 @@ create_map_plot(varclass = muuttujaluokka, ncol = ncol)
 create_table(tabdat, muuttujaluokka)
 ```
 
+```{r sosial_kuva, fig.height = figu_height}
+create_timeseries_plot(varclass = muuttujaluokka, ncol = ncol)
+```
 
 
 # Huono-osaisuuden taloudelliset yhteydet
@@ -327,4 +397,7 @@ create_map_plot(varclass = muuttujaluokka, ncol = ncol)
 create_table(tabdat, muuttujaluokka)
 ```
 
+```{r talous_kuva, fig.height = figu_height}
+create_timeseries_plot(varclass = muuttujaluokka, ncol = ncol)
+```
 

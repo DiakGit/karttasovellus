@@ -258,6 +258,31 @@ server <- function(input, output) {
         return(res)
     })
     
+    process_data_profile_doc <- reactive({
+        
+        req(input$value_variable_class)
+        req(input$value_variable)
+        req(input$value_regio_level)
+        
+        dat <- get_dat()
+        
+        dat_1 <- dat[dat$regio_level %in% react_value_regio_level_profile() & dat$variable %in% input$value_variable,]
+        
+        reg <- readRDS(glue("./data/regio_{react_value_regio_level_profile()}.RDS"))
+        res <- left_join(reg, dat_1)    
+        
+        res <- res %>%
+            select(-regio_level) %>%
+            filter(!is.na(value)) %>%
+            arrange(desc(value)) %>%
+            mutate(value = round(value, 1)) %>%
+            mutate(rank = 1:n())
+        
+        res <- sf::st_transform(x = res, crs = "+proj=longlat +datum=WGS84")
+        
+        return(res)
+    })
+    
     
     # ----------------------------------------------------------------------
     # MAP MAAKUNNAT
@@ -627,8 +652,8 @@ server <- function(input, output) {
             plotlista[[vii]] <- ggplot(data = mapdata_tmp, aes(fill = arvo)) +                    
                 geom_sf(color = alpha("white", 1/3))  +
                 hrbrthemes::theme_ipsum(base_family = "PT Sans", 
-                                        base_size = 12, 
-                                        plot_title_size = 14) +
+                                        base_size = 11, 
+                                        plot_title_size = 12) +
                 scale_fill_viridis_c(option = "plasma") +
                 theme(axis.text.x = element_blank(),
                       axis.text.y = element_blank(),
@@ -703,8 +728,8 @@ server <- function(input, output) {
             
             scale_x_continuous(breaks = sort(unique(plotdata_tmp$aika)), labels = labels) +
             theme_ipsum(base_family = "PT Sans", 
-                        base_size = 12, 
-                        plot_title_size = 14,
+                        base_size = 11, 
+                        plot_title_size = 12,
                         plot_title_family = "PT Sans",
                         subtitle_family = "PT Sans",
                         grid_col = "white") +
@@ -1065,7 +1090,8 @@ server <- function(input, output) {
                                    region_level = react_value_regio_level_profile(),
                                    datetime = Sys.time(),
                                    data = get_dat(),
-                                   spatdat = process_data(),
+                                   data_aikasarja = get_dat_timeseries(),
+                                   spatdat = process_data_profile_doc(),
                                    region_data = region_data,
                                    value_variable = input$value_variable,
                                    naapurikoodit = naapurikoodit#,
