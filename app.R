@@ -136,6 +136,19 @@ server <- function(input, output) {
         
     })
     
+    output$output_regio_choice_mode <- renderUI({
+        
+        req(input$value_variable_class)
+        req(input$value_variable)
+        req(input$value_regio_level)
+        opt_indicator <- c("karttaa klikkaamalla", "kaikki alueet")
+        
+        tagList(
+            checkboxInput(inputId = "value_regio_choice_mode", 
+                         label = "Näytä kaikki alueet aikasarjassa", value = FALSE)
+        )
+    })
+    
 
     
     output$output_regio_level_profile <- renderUI({
@@ -449,23 +462,39 @@ server <- function(input, output) {
         req(input$value_variable_class)
         req(input$value_variable)
         req(input$value_regio_level)
-
+        # req(input$value_regio_choice_mode)
+        
+        
         klik <- get_klik()    
         dat <- get_dat_timeseries()
         region_data <- get_region_data()
         naapurikoodit <- region_data[region_data$level %in% input$value_regio_level & 
-                                     region_data$region_name %in% klik$id,]$neigbours[[1]]
-
+                                         region_data$region_name %in% klik$id,]$neigbours[[1]]
+        
         df <- dat[dat$variable == input$value_variable &
-                  dat$regio_level == input$value_regio_level &
-                  dat$aluekoodi %in% naapurikoodit,]
+                      dat$regio_level == input$value_regio_level &
+                      dat$aluekoodi %in% naapurikoodit,]
+    
 
         aika1 <- sort(unique(df$aika)) - 1
         aika2 <- sort(unique(df$aika)) + 1
         labels <- paste0(aika1,"-",aika2)
         
         ggplot(data = df,
-               aes(x = aika, y = value, color= aluenimi, fill= aluenimi)) +
+               aes(x = aika, y = value, color= aluenimi, fill= aluenimi)) -> plot0
+        if (input$value_regio_choice_mode){
+            
+            
+            alfa = ifelse(input$value_regio_level == "Kunnat", .1, .4)
+            
+            plot0 <- plot0 + geom_line(data = dat[dat$variable == input$value_variable &
+                                                      dat$regio_level == input$value_regio_level,], color = "dim grey", alpha = alfa)
+            
+            
+            
+        }
+        
+        plot0 +
             geom_line(show.legend = FALSE) +
             geom_point(shape = 21, color = "white", stroke = 1, size = 2.5) +
             ggrepel::geom_text_repel(data = df %>% filter(aika == max(aika, na.rm = TRUE)),
