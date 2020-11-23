@@ -128,13 +128,15 @@ server <- function(input, output) {
         #     tagList()
         # } else {
             tagList(
-                radioButtons(inputId = "value_regio_level2", 
+                radioButtons(inputId = "value_regio_level", 
                              label = "Valitse aluetaso", inline = TRUE,
                              choices = opt_indicator, selected = "Maakunnat")
             )
         # }
         
     })
+    
+
     
     output$output_regio_level_profile <- renderUI({
         
@@ -191,16 +193,16 @@ server <- function(input, output) {
         rv$map_click_id <- input$map1_shape_click
     })
     # 2. clear selection if different filter is chosen
-    observeEvent(input$value_regio_level2, {
+    observeEvent(input$value_regio_level, {
         rv$map_click_id <- NULL
     })
     
     get_klik <- reactive({
         # req(input$value_variable_class)
         # req(input$value_variable)
-        req(input$value_regio_level2)
+        req(input$value_regio_level)
         reg <- readRDS("./data/regiokey.RDS")
-        idnimi <- reg[reg$aluetaso == input$value_regio_level2,]$aluenimi[1]
+        idnimi <- reg[reg$aluetaso == input$value_regio_level,]$aluenimi[1]
         
         klik <- rv$map_click_id
         if (is.null(klik)){
@@ -222,13 +224,13 @@ server <- function(input, output) {
         
         req(input$value_variable_class)
         req(input$value_variable)
-        req(input$value_regio_level2)
+        req(input$value_regio_level)
         
         dat <- get_dat()
         
-        dat_1 <- dat[dat$regio_level %in% input$value_regio_level2 & dat$variable %in% input$value_variable,]
+        dat_1 <- dat[dat$regio_level %in% input$value_regio_level & dat$variable %in% input$value_variable,]
         
-        reg <- readRDS(glue("./data/regio_{input$value_regio_level2}.RDS"))
+        reg <- readRDS(glue("./data/regio_{input$value_regio_level}.RDS"))
         res <- left_join(reg, dat_1)    
         
         res <- res %>%
@@ -263,7 +265,7 @@ server <- function(input, output) {
     
     observe({
         
-        req(input$value_regio_level2)
+        req(input$value_regio_level)
         req(input$value_variable)
         
         dat <- process_data()
@@ -313,22 +315,22 @@ server <- function(input, output) {
 #         
 #         req(input$value_variable_class)
 #         req(input$value_variable)
-#         req(input$value_regio_level2)
+#         req(input$value_regio_level)
 #         
 #         dat <- process_data() %>% 
 #             st_set_geometry(NULL) %>% 
 #             select(rank,aluenimi,value) 
-#         names(dat) <- c("Sijoitus",input$value_regio_level2,input$value_variable)
+#         names(dat) <- c("Sijoitus",input$value_regio_level,input$value_variable)
 #         
 #         # klik <- rv$map_click_id
 #         # if (is.null(klik)){
 #         #     rownro <- NA
 #         # } else {
-#         #     rownro <- match(klik$id,dat[[input$value_regio_level2]])
+#         #     rownro <- match(klik$id,dat[[input$value_regio_level]])
 #         # }
 #         
 #         klik <- get_klik()
-#         rownro <- match(klik$id,dat[[input$value_regio_level2]])
+#         rownro <- match(klik$id,dat[[input$value_regio_level]])
 #         
 #         dt <- DT::datatable(dat, 
 #                         rownames = FALSE, 
@@ -366,7 +368,7 @@ server <- function(input, output) {
         
         req(input$value_variable_class)
         req(input$value_variable)
-        req(input$value_regio_level2)
+        req(input$value_regio_level)
         
         # theme_set(
         #     theme_minimal(base_family = "PT Sans", base_size = 7) +
@@ -385,9 +387,9 @@ server <- function(input, output) {
             mutate(aluenimi = factor(aluenimi), 
                    aluenimi = fct_reorder(aluenimi, -rank)) %>% 
             mutate(focus = ifelse(aluenimi == klik$id, TRUE, FALSE))
-        # names(dat) <- c("Sijoitus",input$value_regio_level2,input$value_variable)
+        # names(dat) <- c("Sijoitus",input$value_regio_level,input$value_variable)
     
-        # rownro <- match(klik$id,dat[[input$value_regio_level2]])
+        # rownro <- match(klik$id,dat[[input$value_regio_level]])
         
         
         ggplot(dat, aes(x = value, y = aluenimi, 
@@ -407,7 +409,7 @@ server <- function(input, output) {
             scale_fill_viridis_c(option = "viridis", direction = -1, alpha = .4) +
             scale_color_manual(values = c("white","#7e3f9d")) -> plot
         
-        if (input$value_regio_level2 == "Seutukunnat"){
+        if (input$value_regio_level == "Seutukunnat"){
             plot <- plot +
                 theme(axis.text.y = element_text(size = 9)) +
                 geom_text(dat = dat[dat$focus,], 
@@ -415,7 +417,7 @@ server <- function(input, output) {
                           color = "black", 
                           nudge_x = max(dat$value, na.rm = TRUE)*0.1, 
                           family = "Open Sans")
-        } else if (input$value_regio_level2 == "Kunnat"){
+        } else if (input$value_regio_level == "Kunnat"){
             plot <- plot +
                 theme(axis.text.y = element_blank()) +
                 geom_text(dat = dat[dat$focus,],
@@ -423,7 +425,7 @@ server <- function(input, output) {
                           color = "black", 
                           nudge_x = max(dat$value, na.rm = TRUE)*0.1, 
                           family = "Open Sans")
-        } else if (input$value_regio_level2 == "Maakunnat"){
+        } else if (input$value_regio_level == "Maakunnat"){
             plot <- plot + geom_text(aes(label = value), 
                                      color = "black", 
                                      nudge_x = max(dat$value, na.rm = TRUE)*0.1, 
@@ -435,7 +437,7 @@ server <- function(input, output) {
         # return(dt)
     }, alt = reactive({
         paste("Palkkikuvio tasolla", 
-              input$value_regio_level2,
+              input$value_regio_level,
               "jossa pystyakselilla aluenimet ja vaaka-akselilla muuttujan",
               input$value_variable, "arvot. Alue", get_klik()$id, "korostettuna."
               )
@@ -446,16 +448,16 @@ server <- function(input, output) {
         
         req(input$value_variable_class)
         req(input$value_variable)
-        req(input$value_regio_level2)
+        req(input$value_regio_level)
 
         klik <- get_klik()    
         dat <- get_dat_timeseries()
         region_data <- get_region_data()
-        naapurikoodit <- region_data[region_data$level %in% input$value_regio_level2 & 
+        naapurikoodit <- region_data[region_data$level %in% input$value_regio_level & 
                                      region_data$region_name %in% klik$id,]$neigbours[[1]]
 
         df <- dat[dat$variable == input$value_variable &
-                  dat$regio_level == input$value_regio_level2 &
+                  dat$regio_level == input$value_regio_level &
                   dat$aluekoodi %in% naapurikoodit,]
 
         aika1 <- sort(unique(df$aika)) - 1
@@ -491,7 +493,7 @@ server <- function(input, output) {
         
     }, alt = reactive({
         paste("Palkkikuvio tasolla", 
-              input$value_regio_level2,
+              input$value_regio_level,
               "jossa pystyakselilla aluenimet ja vaaka-akselilla muuttujan",
               input$value_variable, "arvot. Alue", get_klik()$id, "korostettuna."
         )
@@ -977,7 +979,7 @@ server <- function(input, output) {
     output$save_map <- downloadHandler(
         
         filename = function() {
-            file_name <- glue("map_{janitor::make_clean_names(input$value_variable)}_{tolower(input$value_regio_level2)}.png")
+            file_name <- glue("map_{janitor::make_clean_names(input$value_variable)}_{tolower(input$value_regio_level)}.png")
             return(file_name)
         },
         content = function(file) {
@@ -997,9 +999,9 @@ server <- function(input, output) {
                         theme_minimal(base_family = "PT Sans", base_size = 12) +
                         labs(fill = NULL,
                              title = glue("{input$value_variable}"),
-                             subtitle = glue("Aluetaso: {input$value_regio_level2}"),
+                             subtitle = glue("Aluetaso: {input$value_regio_level}"),
                              caption = glue("Data: THL & Diak\n{Sys.Date()}")) -> p
-                    if (input$value_regio_level2 != "Kunnat"){
+                    if (input$value_regio_level != "Kunnat"){
                         p + ggrepel::geom_text_repel(data = dat %>%
                                                          sf::st_set_geometry(NULL) %>%
                                                          bind_cols(dat %>% sf::st_centroid() %>% sf::st_coordinates() %>% as_tibble()),
