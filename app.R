@@ -510,7 +510,7 @@ server <- function(input, output) {
         if (input$value_regio_choice_mode){
             
             
-            alfa = ifelse(input$value_regio_level == "Kunnat", .1, .4)
+            alfa = ifelse(input$value_regio_level == "Kunnat", .1, .2)
             
             plot0 <- plot0 + geom_line(data = dat[dat$variable == input$value_variable &
                                                       dat$regio_level == input$value_regio_level,], color = "dim grey", alpha = alfa)
@@ -538,8 +538,8 @@ server <- function(input, output) {
                         subtitle_family = "PT Sans",
                         grid_col = "white") +
             theme(legend.position = "none") +
-            scale_fill_viridis_d(option = "viridis", direction = -1, begin = .1, end = .9) +
-            scale_color_viridis_d(option = "viridis", direction = -1, begin = .1, end = .9) +
+            scale_fill_viridis_d(option = "plasma", direction = -1, begin = .1, end = .9) +
+            scale_color_viridis_d(option = "plasma", direction = -1, begin = .1, end = .9) +
             labs(y = NULL, x = NULL,
                  title = input$value_variable,
                  subtitle = input$value_variable_class) -> plot1
