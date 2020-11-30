@@ -22,7 +22,7 @@ params:
 
 Tämä asiakirja on tuotettu automaattisesti [Diakin karttasovelluksen avulla](http://diak.shinyapps.io/karttasovellus) `r params$datetime`. Asiakirjan tiedot perustuvat THL:n Sotkanet-indikaattoripalvelun tietoihin, joihin on yhdistetty Tilastokeskuksen tilasto- ja paikkatietoaineistoja. Tarkempaa tieto indikaattoreista ja metodologiasta löydät sovelluksen [Lisätietoja](http://82.181.82.12/diak_app/#info)-osiosta.
 
-Sitten ehkä virkkeen parin ns. sisällöllinen sisäänheittokappale.
+Alueprofiili sisältää aina kaikkien osoittimien tiedot sekä valitulta alueelta että alueen rajanaapureista. Lisäksi alueprofiilissa esitetään kunkin osoittimen korkein ja matalin arvo. Tiedot esitetään taulukkoina, karttakuvioina sekä aikasarjakuvioina, joista näkee kunkin osoittimen kehityksen 2010-luvulla sekä valitulla alueella että sen naapureissa.
 
 Tässä raportissa tarkastellaan tasolla `r params$region_level` aluetta `r params$region`. Lisäksi tarkastelussa ovat rajanaapurit: `r params$region_data %>% filter(level == params$region_level) %>% filter(region_code %in% params$naapurikoodit) %>% pull(region_name) %>% glue_collapse(sep = ", ", last = " ja ")`.
 
