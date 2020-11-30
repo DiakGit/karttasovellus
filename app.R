@@ -2,6 +2,7 @@ source("./global.R")
 
 
 ui <- fluidPage(
+    # use_waitress(),
     uiOutput("output_regio_level_profile"),
     uiOutput("output_region_profile"),
     uiOutput("output_button_profile"),
@@ -9,13 +10,12 @@ ui <- fluidPage(
     # uiOutput("output_save_word"),
     shinycssloaders::withSpinner(uiOutput("region_profile_html")),
     tags$hr(),
-    
     # plotOutput("profiilikartta01", width = "90%", height = "500px"),
     uiOutput("output_indicator_class"),
     uiOutput("output_indicator"),
     uiOutput("output_regio_level"),
     uiOutput("output_save_map"),
-    leaflet::leafletOutput("map1", width = "100%", height = "685px"),
+    leaflet::leafletOutput("map1", width = "100%", height = "285px"),
     # DT::dataTableOutput("rank_tbl"),
     plotOutput("timeseries_plot"),
     plotOutput("rank_plot"),
@@ -30,6 +30,13 @@ ui <- fluidPage(
 
 # Define server logic for random distribution app ----
 server <- function(input, output) {
+    
+    
+    # waitress <- Waitress$new("#rank_plot") # call the waitress
+    
+    
+    # w <- Waiter$new(c("rank_plot", "timeseries_plot"))
+    
 
     get_dat <- reactive({
         dat <- readRDS("./data/df_v20201102.RDS")
@@ -404,6 +411,7 @@ server <- function(input, output) {
     
     output$rank_plot <- renderPlot({
         
+        
         req(input$value_variable_class)
         req(input$value_variable)
         req(input$value_regio_level)
@@ -469,8 +477,7 @@ server <- function(input, output) {
                                      nudge_x = max(dat$value, na.rm = TRUE)*0.1, 
                                      family = "PT Sans")
         }
-        plot
-        
+        plot + scale_y_discrete(expand = expansion(add = 2))
 
         # return(dt)
     }, alt = reactive({
@@ -801,7 +808,6 @@ server <- function(input, output) {
     
 
     # alueprofiilin aikasarjat
-    
         
     output$profiiliaikasarja01 <- renderPlot({
         
@@ -859,7 +865,7 @@ server <- function(input, output) {
         
     output$region_profile_html <- renderUI({
         
-        
+
         aluename <- react_value_region_profile()
         aluetaso1 <- react_value_regio_level_profile()
         
@@ -960,19 +966,15 @@ server <- function(input, output) {
             columns = vars(sija)
         )
     
-
-    
     rivikorkeus <- 46
-    
-
 
     tagList(
-        fluidRow(column(width = 6, 
+        fluidRow(column(width = 6,
                         tags$h3(glue("{aluename} ({aluetaso1})")),
                         tags$p("Analyysissä mukana naapurit: ", glue_collapse(unique(tabdat[tabdat$rooli == "naapuri",]$aluenimi), sep = ", ", last = " ja "))
                         ),
                  column(width = 6,
-                        uiOutput("output_save_word")
+                        withSpinner(uiOutput("output_save_word"), proxy.height = "100px")
                  )
         ),
         tags$hr(),
@@ -986,13 +988,13 @@ server <- function(input, output) {
                    # withSpinner(
                        plotOutput("profiilikartta01", width = "100%", 
                           height = glue("{(nrow(lista1_df)+1)*rivikorkeus}px")
-                          ), proxy.height = "100px"),
+                          )),
             column(4,
                    tags$div(style = "padding-top:60px;"),
                    # withSpinner(
                        plotOutput("profiiliaikasarja01", width = "100%", 
                           height = glue("{(nrow(lista1_df)+1)*rivikorkeus}px")
-                          ), proxy.height = "100px")
+                          ))
             ),
         tags$hr(),
         fluidRow(
@@ -1012,7 +1014,7 @@ server <- function(input, output) {
                    # withSpinner(
                    plotOutput("profiiliaikasarja02", width = "100%", 
                               height = glue("{(nrow(lista2_df)+1)*rivikorkeus}px")
-                   ), proxy.height = "100px")
+                   ))
         ),
         tags$hr(),
         fluidRow(
@@ -1032,7 +1034,7 @@ server <- function(input, output) {
                    # withSpinner(
                    plotOutput("profiiliaikasarja03", width = "100%", 
                               height = glue("{(nrow(lista3_df)+1)*rivikorkeus}px")
-                   ), proxy.height = "100px")
+                   ))
         ),
         tags$hr(),
         fluidRow(
@@ -1052,16 +1054,11 @@ server <- function(input, output) {
                # withSpinner(
                plotOutput("profiiliaikasarja04", width = "100%", 
                           height = glue("{(nrow(lista4_df)+1)*rivikorkeus}px")
-               ), proxy.height = "100px")
+               ))
     )
-    )
-    })
+        )
 
-    # create_report_name <- reactive({
-    #     report_name <- glue("alueprofiili_{aluetaso1}_{get_klik()$id}.docx")
-    #     return(report_name)
-    # })
-    
+    })
 
     output$report <- downloadHandler(
 
