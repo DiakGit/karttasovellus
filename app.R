@@ -553,10 +553,21 @@ server <- function(input, output) {
         plot1
         
     }, alt = reactive({
-        paste("Palkkikuvio tasolla", 
-              input$value_regio_level,
-              "jossa pystyakselilla aluenimet ja vaaka-akselilla muuttujan",
-              input$value_variable, "arvot. Alue", get_klik()$id, "korostettuna."
+        
+        # alt-tekstiin
+        klik <- get_klik()  
+        region_data <- get_region_data()
+        naapurikoodit <- region_data[region_data$level %in% input$value_regio_level & 
+                                         region_data$region_name %in% klik$id,]$neigbours[[1]]
+        region_nms <- region_data[region_data$level %in% input$value_regio_level & region_data$region_code %in% naapurikoodit, ]$region_name
+        
+        
+        paste("Aikasarjakuvio tasolla", 
+              input$value_regio_level, 
+              ", jossa alueina näytetään ", 
+              glue_collapse(region_nms, sep = ", ", last = " ja "),
+              ". Vaaka-akselilla esitetään vuodet ja pystyakselilla muuttujan",
+              input$value_variable, "arvot."
         )
     }))
     
