@@ -39,8 +39,8 @@ server <- function(input, output) {
     })
     
     get_dat_timeseries <- reactive({
-        dat <- readRDS("./data/df_v20201121_aikasarja.RDS")
-        return(dat)
+        dat_aika <- readRDS("./data/df_v20201121_aikasarja.RDS")
+        return(dat_aika)
     })
     
     get_region_data <- reactive({
@@ -601,7 +601,8 @@ server <- function(input, output) {
     alueprofiilikartta_html <- function(val_aluetaso1 = aluetaso1, 
                                         val_aluename = aluename, 
                                         val_region_data = region_data, 
-                                        val_muuttujaluokka = muuttujaluokka){
+                                        val_muuttujaluokka = muuttujaluokka,
+                                        val_muuttuja = muuttuja){
         
         region_data <- dplyr::filter(val_region_data, level %in% val_aluetaso1)
         naapurikoodit <- region_data[region_data$region_name %in% val_aluename,]$neigbours[[1]]
@@ -611,7 +612,8 @@ server <- function(input, output) {
                                               naapurikoodit = naapurikoodit)
         
         lista1_tbl <- tabdat %>%
-            filter(var_class == val_muuttujaluokka) %>%
+            filter(var_class == val_muuttujaluokka,
+                   muuttuja == val_muuttuja) %>%
             filter(rooli %in% c("naapuri","valinta")) %>% 
             # mutate(aluenimi = paste0(aluenimi, " (", rooli, ") ")) %>%
             select(muuttuja,aluenimi,arvo,sija) %>%
@@ -651,7 +653,8 @@ server <- function(input, output) {
     alueprofiiliaikasarja_html <- function(val_aluetaso1 = aluetaso1, 
                                            val_aluename = aluename, 
                                            val_region_data = region_data, 
-                                           val_muuttujaluokka = muuttujaluokka){
+                                           val_muuttujaluokka = muuttujaluokka,
+                                           val_muuttuja = muuttuja){
         
         region_data <- dplyr::filter(val_region_data, level %in% val_aluetaso1)
         naapurikoodit <- region_data[region_data$region_name %in% val_aluename,]$neigbours[[1]]
@@ -662,7 +665,8 @@ server <- function(input, output) {
                                               aikasarja = TRUE)
         
         lista1_tbl <- tabdat %>%
-            filter(var_class == val_muuttujaluokka) %>%
+            filter(var_class == val_muuttujaluokka,
+                   muuttuja == val_muuttuja) %>%
             filter(rooli %in% c("naapuri","valinta")) %>% 
             select(aika,muuttuja,aluenimi,arvo,sija) %>%
             mutate(value = arvo) %>% 
@@ -704,118 +708,133 @@ server <- function(input, output) {
         wrap_plots(plotlista, ncol = 1)
     }
     
-    # alueprofiilin kartat
-    
-    output$profiilikartta01 <- renderPlot({
+    ### alueprofiilin_kartat ----
+    output$profiilikartta01_01 <- renderPlot({
         
         aluename <- react_value_region_profile()
         aluetaso1 <- react_value_regio_level_profile()
         region_data <- get_region_data()
         muuttujaluokka <- "Summamuuttujat"
+        muuttuja <- "Huono-osaisuus yhteensä"
         alueprofiilikartta_html(val_aluetaso1 = aluetaso1, 
                                 val_aluename = aluename, 
                                 val_region_data = region_data, 
-                                val_muuttujaluokka = muuttujaluokka)
+                                val_muuttujaluokka = muuttujaluokka,
+                                val_muuttuja = muuttuja)
         
     }, alt = "Karttakuva jossa huono-osaisuuden summamuuttujat")
     
     
-    output$profiilikartta02 <- renderPlot({
+    output$profiilikartta02_01 <- renderPlot({
         
         aluename <- react_value_region_profile()
         aluetaso1 <- react_value_regio_level_profile()
         region_data <- get_region_data()
         muuttujaluokka <- "Inhimillinen huono-osaisuus"
+        muuttuja <- "Pitkäaikaistyöttömyys"
         alueprofiilikartta_html(val_aluetaso1 = aluetaso1, 
                                 val_aluename = aluename, 
                                 val_region_data = region_data, 
-                                val_muuttujaluokka = muuttujaluokka)
+                                val_muuttujaluokka = muuttujaluokka, 
+                                val_muuttuja = muuttuja)
         
     }, alt = "Karttakuva jossa ihnimillisen huono-osaisuuden osoittimet")
     
-    output$profiilikartta03 <- renderPlot({
+    output$profiilikartta03_01 <- renderPlot({
         
         aluename <- react_value_region_profile()
         aluetaso1 <- react_value_regio_level_profile()
         region_data <- get_region_data()
         muuttujaluokka <- "Huono-osaisuuden sosiaaliset seuraukset"
+        muuttuja <- "Kodin ulkopuolelle sijoitetut 0 – 17-vuotiaat"
         alueprofiilikartta_html(val_aluetaso1 = aluetaso1, 
                                 val_aluename = aluename, 
                                 val_region_data = region_data, 
-                                val_muuttujaluokka = muuttujaluokka)
+                                val_muuttujaluokka = muuttujaluokka, 
+                                val_muuttuja = muuttuja)
         
     }, alt = "Karttakuva jossa huono-osaisuuden sosiaalistenseurausten osoittimet")
     
-    output$profiilikartta04 <- renderPlot({
+    output$profiilikartta04_01 <- renderPlot({
         
         aluename <- react_value_region_profile()
         aluetaso1 <- react_value_regio_level_profile()
         region_data <- get_region_data()
         muuttujaluokka <- "Huono-osaisuuden taloudelliset yhteydet"
+        muuttuja <- "Päihdehuollon avopalveluissa asiakkaita"
         alueprofiilikartta_html(val_aluetaso1 = aluetaso1, 
                                 val_aluename = aluename, 
                                 val_region_data = region_data, 
-                                val_muuttujaluokka = muuttujaluokka)
+                                val_muuttujaluokka = muuttujaluokka, 
+                                val_muuttuja = muuttuja)
         
     }, alt = "Karttakuva jossa huono-osaisuuden taloudellisten yhtieyksien osoittimet")
     
     
-    # alueprofiilin aikasarjat
-    
-    output$profiiliaikasarja01 <- renderPlot({
+    # 
+    ### alueprofiilin_aikasarjat ----
+    output$profiiliaikasarja01_01 <- renderPlot({
         
         aluename <- react_value_region_profile()
         aluetaso1 <- react_value_regio_level_profile()
         region_data <- get_region_data()
         muuttujaluokka <- "Summamuuttujat"
+        muuttuja <- "Huono-osaisuus yhteensä"
         alueprofiiliaikasarja_html(val_aluetaso1 = aluetaso1, 
                                    val_aluename = aluename, 
                                    val_region_data = region_data, 
-                                   val_muuttujaluokka = muuttujaluokka)
+                                   val_muuttujaluokka = muuttujaluokka, 
+                                   val_muuttuja = muuttuja)
         
     }, alt = "Aikasarjakuva jossa huono-osaisuuden summamuuttujat")
     
     
-    output$profiiliaikasarja02 <- renderPlot({
+    output$profiiliaikasarja02_01 <- renderPlot({
         
         aluename <- react_value_region_profile()
         aluetaso1 <- react_value_regio_level_profile()
         region_data <- get_region_data()
         muuttujaluokka <- "Inhimillinen huono-osaisuus"
+        muuttuja <- "Pitkäaikaistyöttömyys"
         alueprofiiliaikasarja_html(val_aluetaso1 = aluetaso1, 
                                    val_aluename = aluename, 
                                    val_region_data = region_data, 
-                                   val_muuttujaluokka = muuttujaluokka)
+                                   val_muuttujaluokka = muuttujaluokka, 
+                                   val_muuttuja = muuttuja)
         
     }, alt = "Aikasarjakuva jossa ihnimillisen huono-osaisuuden osoittimet")
     
-    output$profiiliaikasarja03 <- renderPlot({
+    output$profiiliaikasarja03_01 <- renderPlot({
         
         aluename <- react_value_region_profile()
         aluetaso1 <- react_value_regio_level_profile()
         region_data <- get_region_data()
         muuttujaluokka <- "Huono-osaisuuden sosiaaliset seuraukset"
+        muuttuja <- "Kodin ulkopuolelle sijoitetut 0 – 17-vuotiaat"
         alueprofiiliaikasarja_html(val_aluetaso1 = aluetaso1, 
                                    val_aluename = aluename, 
                                    val_region_data = region_data, 
-                                   val_muuttujaluokka = muuttujaluokka)
+                                   val_muuttujaluokka = muuttujaluokka, 
+                                   val_muuttuja = muuttuja)
         
     }, alt = "Aikasarjakuva jossa huono-osaisuuden sosiaalistenseurausten osoittimet")
     
-    output$profiiliaikasarja04 <- renderPlot({
+    output$profiiliaikasarja04_01<- renderPlot({
         
         aluename <- react_value_region_profile()
         aluetaso1 <- react_value_regio_level_profile()
         region_data <- get_region_data()
         muuttujaluokka <- "Huono-osaisuuden taloudelliset yhteydet"
+        muuttuja <- "Päihdehuollon avopalveluissa asiakkaita"
         alueprofiiliaikasarja_html(val_aluetaso1 = aluetaso1, 
                                    val_aluename = aluename, 
                                    val_region_data = region_data, 
-                                   val_muuttujaluokka = muuttujaluokka)
+                                   val_muuttujaluokka = muuttujaluokka, 
+                                   val_muuttuja = muuttuja)
         
     }, alt = "Aikasarjakuva jossa huono-osaisuuden taloudellisten yhtieyksien osoittimet")
     
-    
+    ### profiili_html ----
     output$region_profile_html <- renderUI({
         
         
@@ -837,10 +856,13 @@ server <- function(input, output) {
             mutate(aluenimi = paste0(aluenimi, " (", rooli, ") ")) %>% 
             select(muuttuja,aluenimi,arvo,sija) %>%
             arrange(muuttuja,sija) %>% 
-            mutate(sija = paste0(sija,"."))
-        lista1_tbl <- gt(data = lista1_df,
-                         rowname_col = "aluenimi",
-                         groupname_col = "muuttuja"
+            mutate(sija = paste0(sija,".")) %>%
+            filter(muuttuja == "Huono-osaisuus yhteensä") %>% 
+            select(-muuttuja)
+            
+        lista1_tbl1 <- gt(data = lista1_df,
+                         rowname_col = "aluenimi"#,
+                         # groupname_col = "muuttuja"
         ) %>% 
             # gt::tab_header(title = toupper(muuttujaluokka)) %>%
             tab_options(table.width	= "90%", 
@@ -854,72 +876,82 @@ server <- function(input, output) {
         
         # "Inhimillinen huono-osaisuus"
         muuttujaluokka <- "Inhimillinen huono-osaisuus"
-        lista2_df <- tabdat %>% 
+        lista2_df <- tabdat %>%
             filter(var_class == muuttujaluokka) %>%
-            mutate(aluenimi = paste0(aluenimi, " (", rooli, ") ")) %>% 
+            mutate(aluenimi = paste0(aluenimi, " (", rooli, ") ")) %>%
             select(muuttuja,aluenimi,arvo,sija) %>%
-            arrange(muuttuja,sija) %>% 
-            mutate(sija = paste0(sija,"."))
-        lista2_tbl <- gt(data = lista2_df,
-                         rowname_col = "aluenimi",
-                         groupname_col = "muuttuja"
-        ) %>% 
+            arrange(muuttuja,sija) %>%
+            mutate(sija = paste0(sija,".")) %>%
+            filter(muuttuja == "Pitkäaikaistyöttömyys") %>% 
+            select(-muuttuja)
+        
+        lista2_tbl1 <- gt(data = lista2_df,
+                         rowname_col = "aluenimi"#,
+                         # groupname_col = "muuttuja"
+        ) %>%
             # gt::tab_header(title = toupper(muuttujaluokka)) %>%
-            tab_options(table.width	= "90%", 
+            tab_options(table.width	= "90%",
                         table.align = "left",
                         table.font.size = "80%",
-                        row_group.background.color = alpha("grey", 1/6)) %>% 
+                        row_group.background.color = alpha("grey", 1/6)) %>%
             cols_align(
                 align = "right",
                 columns = vars(sija)
             )
-        
+
         # "Huono-osaisuuden sosiaaliset seuraukset"
         muuttujaluokka <- "Huono-osaisuuden sosiaaliset seuraukset"
-        lista3_df <- tabdat %>% 
+        lista3_df <- tabdat %>%
             filter(var_class == muuttujaluokka) %>%
-            mutate(aluenimi = paste0(aluenimi, " (", rooli, ") ")) %>% 
+            mutate(aluenimi = paste0(aluenimi, " (", rooli, ") ")) %>%
             select(muuttuja,aluenimi,arvo,sija) %>%
-            arrange(muuttuja,sija) %>% 
-            mutate(sija = paste0(sija,".")) 
-        
-        lista3_tbl <- gt(data = lista3_df,
-                         rowname_col = "aluenimi",
-                         groupname_col = "muuttuja"
-        ) %>% 
+            arrange(muuttuja,sija) %>%
+            mutate(sija = paste0(sija,".")) %>%
+            filter(muuttuja == "Kodin ulkopuolelle sijoitetut 0 – 17-vuotiaat") %>% 
+            select(-muuttuja)
+
+        lista3_tbl1 <- gt(data = lista3_df,
+                         rowname_col = "aluenimi"#,
+                         # groupname_col = "muuttuja"
+        ) %>%
             # gt::tab_header(title = toupper(muuttujaluokka)) %>%
-            tab_options(table.width	= "90%", 
+            tab_options(table.width	= "90%",
                         table.align = "left",
                         table.font.size = "80%",
-                        row_group.background.color = alpha("grey", 1/6)) %>% 
+                        row_group.background.color = alpha("grey", 1/6)) %>%
             cols_align(
                 align = "right",
                 columns = vars(sija)
             )
-        
+
         # "Huono-osaisuuden taloudelliset yhteydet"
         muuttujaluokka <- "Huono-osaisuuden taloudelliset yhteydet"
-        lista4_df <- tabdat %>% 
+        lista4_df <- tabdat %>%
             filter(var_class == muuttujaluokka) %>%
-            mutate(aluenimi = paste0(aluenimi, " (", rooli, ") ")) %>% 
+            mutate(aluenimi = paste0(aluenimi, " (", rooli, ") ")) %>%
             select(muuttuja,aluenimi,arvo,sija) %>%
-            arrange(muuttuja,sija) %>% 
-            mutate(sija = paste0(sija,".")) 
-        lista4_tbl <- gt(data = lista4_df,
-                         rowname_col = "aluenimi",
-                         groupname_col = "muuttuja"
-        ) %>% 
+            arrange(muuttuja,sija) %>%
+            mutate(sija = paste0(sija,".")) %>%
+            filter(muuttuja == "Päihdehuollon avopalveluissa asiakkaita") %>% 
+            select(-muuttuja)
+        
+        lista4_tbl1 <- gt(data = lista4_df,
+                         rowname_col = "aluenimi"#,
+                         # groupname_col = "muuttuja"
+        ) %>%
             # gt::tab_header(title = toupper(muuttujaluokka)) %>%
-            tab_options(table.width	= "90%", 
+            tab_options(table.width	= "90%",
                         table.align = "left",
                         table.font.size = "80%",
-                        row_group.background.color = alpha("grey", 1/6)) %>% 
+                        row_group.background.color = alpha("grey", 1/6)) %>%
             cols_align(
                 align = "right",
                 columns = vars(sija)
             )
         
         rivikorkeus <- 46
+        kartan_oletuskorkeus <- 350
+        aikasarjan_oletuskorkeus <- 350
         
         tagList(
             fluidRow(column(width = 6,
@@ -931,84 +963,152 @@ server <- function(input, output) {
             )
             ),
             tags$hr(),
+            # esimerkki uudesta, yli yhtä monta riviä kuin muuttujaa!
+            
+            # -----------------------------------------
+            tags$h4("Summamuuttujat"), 
+            # -----------------------------------------
             fluidRow(
-                column(3,
-                       tags$h4("Summamuuttujat"),  
-                       lista1_tbl
-                ),
-                column(5,
-                       tags$div(style = "padding-top:60px;"),
-                       # withSpinner(
-                       plotOutput("profiilikartta01", width = "100%", 
-                                  height = glue("{(nrow(lista1_df)+1)*rivikorkeus}px")
-                       )),
                 column(4,
-                       tags$div(style = "padding-top:60px;"),
-                       # withSpinner(
-                       plotOutput("profiiliaikasarja01", width = "100%", 
-                                  height = glue("{(nrow(lista1_df)+1)*rivikorkeus}px")
-                       ))
+                       tags$h5("Osoittimen_nimi"),
+                       lista1_tbl1
+                       ),
+                column(4, 
+                       plotOutput("profiilikartta01_01", 
+                                  width = "100%")
+                ),
+                column(4, 
+                       plotOutput("profiiliaikasarja01_01", 
+                                  width = "100%")
+                ),
             ),
-            tags$hr(),
+            
+            # -----------------------------------------
+            tags$h4("Inhimillinen huono-osaisuus"), 
+            # -----------------------------------------
             fluidRow(
-                column(3,
-                       tags$h4("Inhimillinen huono-osaisuus"),
-                       lista2_tbl
-                ),
-                column(5, 
-                       tags$div(style = "padding-top:60px;"),
-                       plotOutput("profiilikartta02", width = "100%", 
-                                  # height = glue("{korkeus2}px")
-                                  height = glue("{(nrow(lista2_df)+1)*rivikorkeus}px")
-                       )
-                ),
                 column(4,
-                       tags$div(style = "padding-top:60px;"),
-                       # withSpinner(
-                       plotOutput("profiiliaikasarja02", width = "100%", 
-                                  height = glue("{(nrow(lista2_df)+1)*rivikorkeus}px")
-                       ))
+                       tags$h5("Osoittimen_nimi"),
+                       lista2_tbl1
+                ),
+                column(4, 
+                       plotOutput("profiilikartta02_01", 
+                                  width = "100%")
+                ),
+                column(4, 
+                       plotOutput("profiiliaikasarja02_01", 
+                                  width = "100%")
+                ),
             ),
-            tags$hr(),
+            
+            # -----------------------------------------
+            tags$h4("Huono-osaisuuden sosiaaliset seuraukset"), 
+            # -----------------------------------------
             fluidRow(
-                column(3,
-                       tags$h4("Huono-osaisuuden sosiaaliset seuraukset"),
-                       lista3_tbl
-                ),
-                column(5,
-                       tags$div(style = "padding-top:60px;"),
-                       plotOutput("profiilikartta03", width = "100%", 
-                                  # height = glue("{korkeus3}px")
-                                  height = glue("{(nrow(lista3_df)+1)*rivikorkeus}px")
-                       )
-                ),
                 column(4,
-                       tags$div(style = "padding-top:60px;"),
-                       # withSpinner(
-                       plotOutput("profiiliaikasarja03", width = "100%", 
-                                  height = glue("{(nrow(lista3_df)+1)*rivikorkeus}px")
-                       ))
+                       tags$h5("Osoittimen_nimi"),
+                       lista3_tbl1
+                ),
+                column(4, 
+                       plotOutput("profiilikartta03_01", 
+                                  width = "100%")
+                ),
+                column(4, 
+                       plotOutput("profiiliaikasarja03_01", 
+                                  width = "100%")
+                ),
             ),
-            tags$hr(),
+
+            # -----------------------------------------
+            tags$h4("Huono-osaisuuden taloudelliset yhteydet"), 
+            # -----------------------------------------
             fluidRow(
-                column(3,
-                       tags$h4("Huono-osaisuuden taloudelliset yhteydet"),
-                       lista4_tbl
-                ),
-                column(5, 
-                       tags$div(style = "padding-top:60px;"),
-                       plotOutput("profiilikartta04", width = "100%", 
-                                  # height = glue("{korkeus4}px")
-                                  height = glue("{(nrow(lista4_df)+1)*rivikorkeus}px")
-                       )
-                ),
                 column(4,
-                       tags$div(style = "padding-top:60px;"),
-                       # withSpinner(
-                       plotOutput("profiiliaikasarja04", width = "100%", 
-                                  height = glue("{(nrow(lista4_df)+1)*rivikorkeus}px")
-                       ))
-            )
+                       tags$h5("Osoittimen_nimi"),
+                       lista4_tbl1
+                ),
+                column(4, 
+                       plotOutput("profiilikartta04_01", 
+                                  width = "100%")
+                ),
+                column(4, 
+                       plotOutput("profiiliaikasarja04_01", 
+                                  width = "100%")
+                ),
+            ),
+            
+            
+            
+            # fluidRow(
+            #     column(3,
+            #            tags$h4("Summamuuttujat"),  
+            #            lista1_tbl
+            #     ),
+            #     column(5,
+            #            tags$div(style = "padding-top:60px;"),
+            #            plotOutput("profiilikartta01", width = "100%", 
+            #                       height = glue("{(nrow(lista1_df)+1)*rivikorkeus}px")
+            #            )),
+            #     column(4,
+            #            tags$div(style = "padding-top:60px;"),
+            #            plotOutput("profiiliaikasarja01", width = "100%", 
+            #                       height = glue("{(nrow(lista1_df)+1)*rivikorkeus}px")
+            #            ))
+            # ),
+            # tags$hr(),
+            # fluidRow(
+            #     column(3,
+            #            tags$h4("Inhimillinen huono-osaisuus"),
+            #            lista2_tbl
+            #     ),
+            #     column(5, 
+            #            tags$div(style = "padding-top:60px;"),
+            #            plotOutput("profiilikartta02", width = "100%", 
+            #                       height = glue("{(nrow(lista2_df)+1)*rivikorkeus}px")
+            #            )
+            #     ),
+            #     column(4,
+            #            tags$div(style = "padding-top:60px;"),
+            #            plotOutput("profiiliaikasarja02", width = "100%", 
+            #                       height = glue("{(nrow(lista2_df)+1)*rivikorkeus}px")
+            #            ))
+            # ),
+            # tags$hr(),
+            # fluidRow(
+            #     column(3,
+            #            tags$h4("Huono-osaisuuden sosiaaliset seuraukset"),
+            #            lista3_tbl
+            #     ),
+            #     column(5,
+            #            tags$div(style = "padding-top:60px;"),
+            #            plotOutput("profiilikartta03", width = "100%", 
+            #                       height = glue("{(nrow(lista3_df)+1)*rivikorkeus}px")
+            #            )
+            #     ),
+            #     column(4,
+            #            tags$div(style = "padding-top:60px;"),
+            #            plotOutput("profiiliaikasarja03", width = "100%", 
+            #                       height = glue("{(nrow(lista3_df)+1)*rivikorkeus}px")
+            #            ))
+            # ),
+            # tags$hr(),
+            # fluidRow(
+            #     column(3,
+            #            tags$h4("Huono-osaisuuden taloudelliset yhteydet"),
+            #            lista4_tbl
+            #     ),
+            #     column(5, 
+            #            tags$div(style = "padding-top:60px;"),
+            #            plotOutput("profiilikartta04", width = "100%", 
+            #                       height = glue("{(nrow(lista4_df)+1)*rivikorkeus}px")
+            #            )
+            #     ),
+            #     column(4,
+            #            tags$div(style = "padding-top:60px;"),
+            #            plotOutput("profiiliaikasarja04", width = "100%", 
+            #                       height = glue("{(nrow(lista4_df)+1)*rivikorkeus}px")
+            #            ))
+            # )
         )
         
     })
