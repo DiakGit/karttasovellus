@@ -615,16 +615,11 @@ server <- function(input, output) {
             filter(var_class == val_muuttujaluokka,
                    muuttuja == val_muuttuja) %>%
             filter(rooli %in% c("naapuri","valinta")) %>% 
-            # mutate(aluenimi = paste0(aluenimi, " (", rooli, ") ")) %>%
             select(muuttuja,aluenimi,arvo,sija) %>%
             arrange(muuttuja,sija)
-        mapdata <- left_join(region_data, lista1_tbl, by = c("region_name" = "aluenimi")) %>% 
+        mapdata_tmp <- left_join(region_data, lista1_tbl, by = c("region_name" = "aluenimi")) %>% 
             filter(!is.na(muuttuja))
-        plotlista <- list()
-        vars <- unique(mapdata$muuttuja)
-        for (vii in seq_along(vars)){
-            mapdata_tmp <- mapdata[mapdata$muuttuja == vars[vii],]
-            plotlista[[vii]] <- ggplot(data = mapdata_tmp, aes(fill = arvo)) +                    
+            plot <- ggplot(data = mapdata_tmp, aes(fill = arvo)) +                    
                 geom_sf(color = alpha("white", 1/3))  +
                 hrbrthemes::theme_ipsum(base_family = "PT Sans", 
                                         base_size = 11, 
@@ -636,17 +631,17 @@ server <- function(input, output) {
                       axis.title.y = element_blank(),
                       panel.grid.major = element_blank(),
                       plot.title.position = "plot",
+                      plot.title = element_text(face = "plain"),
                       legend.position = "top", 
                       legend.key.width = unit(3,"line")) +
                 labs(x = NULL, 
                      y = NULL, 
                      fill = NULL,
-                     title = vars[vii]
+                     title = val_muuttuja
                 ) +
                 geom_sf_label(aes(label = paste0(region_name, "\n", round(arvo,1))), 
                               color = "white", fill = alpha("black", 1/3), family = "PT Sans", size = 3)
-        }
-        wrap_plots(plotlista, ncol = 1)
+        plot
     }
     
     
@@ -664,24 +659,19 @@ server <- function(input, output) {
                                               naapurikoodit = naapurikoodit, 
                                               aikasarja = TRUE)
         
-        lista1_tbl <- tabdat %>%
+        plotdata_tmp <- tabdat %>%
             filter(var_class == val_muuttujaluokka,
                    muuttuja == val_muuttuja) %>%
             filter(rooli %in% c("naapuri","valinta")) %>% 
             select(aika,muuttuja,aluenimi,arvo,sija) %>%
             mutate(value = arvo) %>% 
             arrange(muuttuja,sija)
-        
-        plotlista <- list()
-        vars <- unique(lista1_tbl$muuttuja)
-        for (vii in seq_along(vars)){
-            plotdata_tmp <- lista1_tbl[lista1_tbl$muuttuja == vars[vii],]
+        # plotdata_tmp <- lista1_tbl[lista1_tbl$muuttuja == vars[vii],]
+        aika1 <- sort(unique(plotdata_tmp$aika)) - 1
+        aika2 <- sort(unique(plotdata_tmp$aika)) + 1
+        labels <- paste0(aika1,"-\n",aika2)
             
-            aika1 <- sort(unique(plotdata_tmp$aika)) - 1
-            aika2 <- sort(unique(plotdata_tmp$aika)) + 1
-            labels <- paste0(aika1,"-\n",aika2)
-            
-            plotlista[[vii]] <- ggplot(data = plotdata_tmp,
+        plot <- ggplot(data = plotdata_tmp,
                                        aes(x = aika, y = value, color= aluenimi, fill= aluenimi)) +
                 geom_line(show.legend = FALSE) +
                 geom_point(shape = 21, color = "white", stroke = 1, size = 2.5) +
@@ -699,13 +689,15 @@ server <- function(input, output) {
                             grid_col = "white") +
                 theme(legend.position = "none",
                       plot.title.position = "plot",
+                      plot.title = element_text(face = "plain"),
                       axis.text.x = element_text(size = 9)) +
                 scale_fill_viridis_d(option = "viridis", direction = -1, begin = .1, end = .9) +
                 scale_color_viridis_d(option = "viridis", direction = -1, begin = .1, end = .9) +
                 labs(y = NULL, x = NULL,
-                     title = vars[vii])
-        }
-        wrap_plots(plotlista, ncol = 1)
+                     title = val_muuttuja
+                     )
+        return(plot)
+
     }
     
     ### alueprofiilin_kartat ----
@@ -851,9 +843,9 @@ server <- function(input, output) {
         gt_tbl <- gt(data = lst_df,
                      rowname_col = "aluenimi"
         ) %>% 
-            tab_options(table.width	= "90%", 
+            tab_options(table.width	= "100%", 
                         table.align = "left",
-                        table.font.size = "80%",
+                        # table.font.size = "80%",
                         row_group.background.color = alpha("grey", 1/6)) %>% 
             cols_align(
                 align = "right",
@@ -881,14 +873,13 @@ server <- function(input, output) {
             filter(var_class == muuttujaluokka)
         muuttujanimi <- unique(tabdat_tmp$muuttuja)
         
+        for (ix in seq_along(muuttujanimi)){
+            lista_tbl <- create_raw_tbl(dd1 = tabdat_tmp, muuttujanimi= muuttujanimi, varnro = ix)
+            tbl_temp1 <- create_gt_tbl(lst_df = lista_tbl)
+            assign(x = paste0("lista1_tbl", stringr::str_pad(ix, width = 2, pad = 0)), value = tbl_temp1)
+        }
+        
         # 1
-        varnro <- 1
-        lista1_tbl <- create_raw_tbl(dd1 = tabdat_tmp, 
-                                    muuttujanimi= muuttujanimi, 
-                                    varnro = varnro)
-        
-        lista1_tbl01 <- create_gt_tbl(lst_df = lista1_tbl)
-        
         output$aikasarja1_01 <- renderPlot({
             
             alueprofiiliaikasarja_html(val_aluetaso1 = aluetaso1, 
@@ -911,12 +902,6 @@ server <- function(input, output) {
         }, alt = "Karttakuva jossa huono-osaisuuden summamuuttujat")
         
         # 2
-        lista1_tbl <-create_raw_tbl(dd1 = tabdat_tmp, 
-                                   muuttujanimi= muuttujanimi, 
-                                   varnro = 2)
-        
-        lista1_tbl02 <- create_gt_tbl(lst_df = lista1_tbl)
-
         output$aikasarja1_02 <- renderPlot({
             
             alueprofiiliaikasarja_html(val_aluetaso1 = aluetaso1, 
@@ -939,13 +924,6 @@ server <- function(input, output) {
         }, alt = "Karttakuva jossa huono-osaisuuden summamuuttujat")
         
         # 3
-        varnro <- 3
-        lista1_tbl <-create_raw_tbl(dd1 = tabdat_tmp, 
-                                      muuttujanimi= muuttujanimi, 
-                                      varnro = varnro)
-        
-        lista1_tbl03 <- create_gt_tbl(lst_df = lista1_tbl)
-        
         output$aikasarja1_03 <- renderPlot({
             
             alueprofiiliaikasarja_html(val_aluetaso1 = aluetaso1, 
@@ -968,13 +946,6 @@ server <- function(input, output) {
         }, alt = "Karttakuva jossa huono-osaisuuden summamuuttujat")
         
         # 4
-        varnro <- 4
-        lista1_tbl <-create_raw_tbl(dd1 = tabdat_tmp, 
-                                      muuttujanimi= muuttujanimi, 
-                                      varnro = varnro)
-        
-        lista1_tbl04 <- create_gt_tbl(lst_df = lista1_tbl)
-        
         output$aikasarja1_04 <- renderPlot({
             
             alueprofiiliaikasarja_html(val_aluetaso1 = aluetaso1, 
@@ -998,9 +969,9 @@ server <- function(input, output) {
 
         
         tagList(
+            fluidRow(tags$h5(muuttujanimi[1])),
             fluidRow(
                 column(3,
-                       tags$h5(muuttujanimi[1]),
                        lista1_tbl01
                 ),
                 column(5, 
@@ -1013,9 +984,9 @@ server <- function(input, output) {
                 )
             ),
             # 2
+            fluidRow(tags$h5(muuttujanimi[2])),
             fluidRow(
                 column(3,
-                       tags$h5(muuttujanimi[2]),
                        lista1_tbl02
                 ),
                 column(5, 
@@ -1028,9 +999,9 @@ server <- function(input, output) {
                 )
             ),
             # 3
+            fluidRow(tags$h5(muuttujanimi[3])),
             fluidRow(
                 column(3,
-                       tags$h5(muuttujanimi[3]),
                        lista1_tbl03
                 ),
                 column(5, 
@@ -1043,9 +1014,9 @@ server <- function(input, output) {
                 )
             ),
             # 4
+            fluidRow(tags$h5(muuttujanimi[4])),
             fluidRow(
                 column(3,
-                       tags$h5(muuttujanimi[4]),
                        lista1_tbl04
                 ),
                 column(5, 
@@ -1075,35 +1046,25 @@ server <- function(input, output) {
         
         # Summamuuttujat
         muuttujaluokka <- "Inhimillinen huono-osaisuus"
-        muuttujanimi <- "Pitkäaikaistyöttömyys"
-        lista1_df <- tabdat %>% 
-            filter(var_class == muuttujaluokka) %>%
-            mutate(aluenimi = paste0(aluenimi, " (", rooli, ") ")) %>% 
-            select(muuttuja,aluenimi,arvo,sija) %>%
-            arrange(muuttuja,sija) %>% 
-            mutate(sija = paste0(sija,".")) %>%
-            filter(muuttuja == muuttujanimi) %>% 
-            select(-muuttuja)
+        tabdat_tmp <- tabdat %>% 
+            filter(var_class == muuttujaluokka)
+        muuttujanimi <- unique(tabdat_tmp$muuttuja)
         
-        lista2_tbl01 <- gt(data = lista1_df,
-                          rowname_col = "aluenimi"
-        ) %>% 
-            tab_options(table.width	= "90%", 
-                        table.align = "left",
-                        table.font.size = "80%",
-                        row_group.background.color = alpha("grey", 1/6)) %>% 
-            cols_align(
-                align = "right",
-                columns = vars(sija)
-            )
-        
+        varnro <- 1
+        for (ix in seq_along(muuttujanimi)){
+            lista_tbl <- create_raw_tbl(dd1 = tabdat_tmp, muuttujanimi= muuttujanimi, varnro = ix)
+            tbl_temp1 <- create_gt_tbl(lst_df = lista_tbl)
+            assign(x = paste0("lista2_tbl", stringr::str_pad(ix, width = 2, pad = 0)), value = tbl_temp1)
+        }
+
+            
         output$aikasarja2_01 <- renderPlot({
             
             alueprofiiliaikasarja_html(val_aluetaso1 = aluetaso1, 
                                        val_aluename = aluename, 
                                        val_region_data = region_data, 
                                        val_muuttujaluokka = muuttujaluokka, 
-                                       val_muuttuja = muuttujanimi)
+                                       val_muuttuja = muuttujanimi[1])
             
         }, alt = "Aikasarjakuva jossa Inhimillinen huono-osaisuus")
         
@@ -1114,15 +1075,15 @@ server <- function(input, output) {
                                     val_aluename = aluename, 
                                     val_region_data = region_data, 
                                     val_muuttujaluokka = muuttujaluokka,
-                                    val_muuttuja = muuttujanimi)
+                                    val_muuttuja = muuttujanimi[1])
             
         }, alt = "Karttakuva jossa Inhimillinen huono-osaisuus")
         
         
         tagList(
+            fluidRow(tags$h5(muuttujanimi[1])),
             fluidRow(
                 column(3,
-                       tags$h5(muuttujanimi),
                        lista2_tbl01
                 ),
                 column(5, 
@@ -1133,7 +1094,7 @@ server <- function(input, output) {
                        plotOutput("aikasarja2_01", 
                                   width = "100%")
                 ),
-            ),
+            )
         )
     })
     
@@ -1271,20 +1232,6 @@ server <- function(input, output) {
             ## ## ##
             tags$h4("Summamuuttujat"), 
             ## ## ##
-            # fluidRow(
-            #     column(4,
-            #            tags$h5("Osoittimen_nimi"),
-            #            lista1_tbl1
-            #            ),
-            #     column(4, 
-            #            plotOutput("profiilikartta01_01", 
-            #                       width = "100%")
-            #     ),
-            #     column(4, 
-            #            plotOutput("profiiliaikasarja01_01", 
-            #                       width = "100%")
-            #     ),
-            # ),
             uiOutput("summamuuttuja_01"),
             ## ## ##
             tags$h4("Inhimillinen huono-osaisuus"),
