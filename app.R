@@ -28,14 +28,9 @@ ui <- fluidPage(
 )
 
 
-# Define server logic for random distribution app ----
+# Serverin logiikka ----
 server <- function(input, output) {
     
-    
-    # waitress <- Waitress$new("#rank_plot") # call the waitress
-    
-    
-    # w <- Waiter$new(c("rank_plot", "timeseries_plot"))
     
     
     get_dat <- reactive({
@@ -74,6 +69,7 @@ server <- function(input, output) {
     #   |_| |_|\__,_|_| |_|_|_|\_\__,_|\__|
     #                                      
     # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+    ## hanikat ----
     
     output$output_indicator_class <- renderUI({
         
@@ -211,7 +207,7 @@ server <- function(input, output) {
     })
     
     
-    
+    ## reaktiivisuus ----
     
     # Define reactiveValue
     rv <- reactiveValues(selected = NULL)
@@ -307,7 +303,7 @@ server <- function(input, output) {
     #   |___|_| |_|\__,_|_|_|\_\__,_|\__,_|\__|\__\___/|_|  |_|_|\_\\__,_| \_/ |_|\___/ \__|
     #                                                                                       
     # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
-    
+    ## indikaattorikuviot ----
     
     output$map1 <- leaflet::renderLeaflet({
         
@@ -534,7 +530,7 @@ server <- function(input, output) {
     #   /_/   \_\_|\__,_|\___| .__/|_|  \___/|_| |_|_|_|_|
     #                        |_|                          
     # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
-    
+    ## alueprofiilit ----
     
     
     create_alueprofiili_content <- function(aluename2 = aluename, 
@@ -1103,6 +1099,7 @@ server <- function(input, output) {
     #     |_|\__,_|_|_|\___|_| |_|_| |_|\__,_|___/
     #                                             
     # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+    ## tallennus ----
     
     output$output_save_word <- renderUI({
         
