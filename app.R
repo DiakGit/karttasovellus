@@ -834,7 +834,33 @@ server <- function(input, output) {
         
     }, alt = "Aikasarjakuva jossa huono-osaisuuden taloudellisten yhtieyksien osoittimet")
     
+    ## html-profiilin apufunktioita ----
     
+    create_raw_tbl <- function(dd1 = tabdat_tmp, muuttujanimi= muuttujanimi, varnro = 1){
+        dd2 <- dd1 %>% 
+            mutate(aluenimi = paste0(aluenimi, " (", rooli, ") ")) %>% 
+            select(muuttuja,aluenimi,arvo,sija) %>%
+            arrange(muuttuja,sija) %>% 
+            mutate(sija = paste0(sija,"."))
+        dd3 <- dd2[dd2$muuttuja == muuttujanimi[varnro], ] %>% 
+            select(-muuttuja)
+        return(dd3)
+    }
+    
+    create_gt_tbl <- function(lst_df = lista1_tbl02){
+        gt_tbl <- gt(data = lst_df,
+                     rowname_col = "aluenimi"
+        ) %>% 
+            tab_options(table.width	= "90%", 
+                        table.align = "left",
+                        table.font.size = "80%",
+                        row_group.background.color = alpha("grey", 1/6)) %>% 
+            cols_align(
+                align = "right",
+                columns = vars(sija)
+            )
+        return(gt_tbl)
+    }
     
     output$summamuuttuja_01 <- renderUI({
         
@@ -857,25 +883,11 @@ server <- function(input, output) {
         
         # 1
         varnro <- 1
-        lista1_df <- tabdat_tmp %>% 
-            mutate(aluenimi = paste0(aluenimi, " (", rooli, ") ")) %>% 
-            select(muuttuja,aluenimi,arvo,sija) %>%
-            arrange(muuttuja,sija) %>% 
-            mutate(sija = paste0(sija,".")) %>%
-            filter(muuttuja == muuttujanimi[varnro]) %>% 
-            select(-muuttuja)
+        lista1_tbl <- create_raw_tbl(dd1 = tabdat_tmp, 
+                                    muuttujanimi= muuttujanimi, 
+                                    varnro = varnro)
         
-        lista1_tbl01 <- gt(data = lista1_df,
-                          rowname_col = "aluenimi"
-        ) %>% 
-            tab_options(table.width	= "90%", 
-                        table.align = "left",
-                        table.font.size = "80%",
-                        row_group.background.color = alpha("grey", 1/6)) %>% 
-            cols_align(
-                align = "right",
-                columns = vars(sija)
-            )
+        lista1_tbl01 <- create_gt_tbl(lst_df = lista1_tbl)
         
         output$aikasarja1_01 <- renderPlot({
             
@@ -893,40 +905,25 @@ server <- function(input, output) {
             alueprofiilikartta_html(val_aluetaso1 = aluetaso1, 
                                     val_aluename = aluename, 
                                     val_region_data = region_data, 
-                                    val_muuttujaluokka = muuttujaluokka,
+                                    val_muuttujaluokka = muuttujaluokka,  
                                     val_muuttuja = muuttujanimi[1])
             
         }, alt = "Karttakuva jossa huono-osaisuuden summamuuttujat")
         
-        # 3
-        varnro <- 3
-        lista1_df <- tabdat_tmp %>% 
-            mutate(aluenimi = paste0(aluenimi, " (", rooli, ") ")) %>% 
-            select(muuttuja,aluenimi,arvo,sija) %>%
-            arrange(muuttuja,sija) %>% 
-            mutate(sija = paste0(sija,".")) %>%
-            filter(muuttuja == muuttujanimi[varnro]) %>% 
-            select(-muuttuja)
+        # 2
+        lista1_tbl <-create_raw_tbl(dd1 = tabdat_tmp, 
+                                   muuttujanimi= muuttujanimi, 
+                                   varnro = 2)
         
-        lista1_tbl02 <- gt(data = lista1_df,
-                          rowname_col = "aluenimi"
-        ) %>% 
-            tab_options(table.width	= "90%", 
-                        table.align = "left",
-                        table.font.size = "80%",
-                        row_group.background.color = alpha("grey", 1/6)) %>% 
-            cols_align(
-                align = "right",
-                columns = vars(sija)
-            )
-        
+        lista1_tbl02 <- create_gt_tbl(lst_df = lista1_tbl)
+
         output$aikasarja1_02 <- renderPlot({
             
             alueprofiiliaikasarja_html(val_aluetaso1 = aluetaso1, 
                                        val_aluename = aluename, 
                                        val_region_data = region_data, 
-                                       val_muuttujaluokka = muuttujaluokka, 
-                                       val_muuttuja = muuttujanimi[varnro])
+                                       val_muuttujaluokka = muuttujaluokka,  
+                                       val_muuttuja = muuttujanimi[2])
             
         }, alt = "Aikasarjakuva jossa huono-osaisuuden summamuuttujat")
         
@@ -937,7 +934,65 @@ server <- function(input, output) {
                                     val_aluename = aluename, 
                                     val_region_data = region_data, 
                                     val_muuttujaluokka = muuttujaluokka,
-                                    val_muuttuja = muuttujanimi[varnro])
+                                    val_muuttuja = muuttujanimi[2])
+            
+        }, alt = "Karttakuva jossa huono-osaisuuden summamuuttujat")
+        
+        # 3
+        varnro <- 3
+        lista1_tbl <-create_raw_tbl(dd1 = tabdat_tmp, 
+                                      muuttujanimi= muuttujanimi, 
+                                      varnro = varnro)
+        
+        lista1_tbl03 <- create_gt_tbl(lst_df = lista1_tbl)
+        
+        output$aikasarja1_03 <- renderPlot({
+            
+            alueprofiiliaikasarja_html(val_aluetaso1 = aluetaso1, 
+                                       val_aluename = aluename, 
+                                       val_region_data = region_data, 
+                                       val_muuttujaluokka = muuttujaluokka,  
+                                       val_muuttuja = muuttujanimi[3])
+            
+        }, alt = "Aikasarjakuva jossa huono-osaisuuden summamuuttujat")
+        
+        
+        output$kartta1_03 <- renderPlot({
+            
+            alueprofiilikartta_html(val_aluetaso1 = aluetaso1, 
+                                    val_aluename = aluename, 
+                                    val_region_data = region_data, 
+                                    val_muuttujaluokka = muuttujaluokka,
+                                    val_muuttuja = muuttujanimi[3])
+            
+        }, alt = "Karttakuva jossa huono-osaisuuden summamuuttujat")
+        
+        # 4
+        varnro <- 4
+        lista1_tbl <-create_raw_tbl(dd1 = tabdat_tmp, 
+                                      muuttujanimi= muuttujanimi, 
+                                      varnro = varnro)
+        
+        lista1_tbl04 <- create_gt_tbl(lst_df = lista1_tbl)
+        
+        output$aikasarja1_04 <- renderPlot({
+            
+            alueprofiiliaikasarja_html(val_aluetaso1 = aluetaso1, 
+                                       val_aluename = aluename, 
+                                       val_region_data = region_data, 
+                                       val_muuttujaluokka = muuttujaluokka,  
+                                       val_muuttuja = muuttujanimi[4])
+            
+        }, alt = "Aikasarjakuva jossa huono-osaisuuden summamuuttujat")
+        
+        
+        output$kartta1_04 <- renderPlot({
+            
+            alueprofiilikartta_html(val_aluetaso1 = aluetaso1, 
+                                    val_aluename = aluename, 
+                                    val_region_data = region_data, 
+                                    val_muuttujaluokka = muuttujaluokka,
+                                    val_muuttuja = muuttujanimi[4])
             
         }, alt = "Karttakuva jossa huono-osaisuuden summamuuttujat")
 
@@ -955,12 +1010,12 @@ server <- function(input, output) {
                 column(4, 
                        plotOutput("aikasarja1_01", 
                                   width = "100%")
-                ),
+                )
             ),
             # 2
             fluidRow(
                 column(3,
-                       tags$h5(muuttujanimi[3]),
+                       tags$h5(muuttujanimi[2]),
                        lista1_tbl02
                 ),
                 column(5, 
@@ -970,7 +1025,37 @@ server <- function(input, output) {
                 column(4, 
                        plotOutput("aikasarja1_02", 
                                   width = "100%")
+                )
+            ),
+            # 3
+            fluidRow(
+                column(3,
+                       tags$h5(muuttujanimi[3]),
+                       lista1_tbl03
                 ),
+                column(5, 
+                       plotOutput("kartta1_03", 
+                                  width = "100%")
+                ),
+                column(4, 
+                       plotOutput("aikasarja1_03", 
+                                  width = "100%")
+                )
+            ),
+            # 4
+            fluidRow(
+                column(3,
+                       tags$h5(muuttujanimi[4]),
+                       lista1_tbl04
+                ),
+                column(5, 
+                       plotOutput("kartta1_04", 
+                                  width = "100%")
+                ),
+                column(4, 
+                       plotOutput("aikasarja1_04", 
+                                  width = "100%")
+                )
             )
         )
     })
@@ -1183,9 +1268,9 @@ server <- function(input, output) {
             tags$hr(),
             # esimerkki uudesta, yli yhtä monta riviä kuin muuttujaa!
             
-            # -----------------------------------------
+            ## ## ##
             tags$h4("Summamuuttujat"), 
-            # -----------------------------------------
+            ## ## ##
             # fluidRow(
             #     column(4,
             #            tags$h5("Osoittimen_nimi"),
@@ -1201,14 +1286,14 @@ server <- function(input, output) {
             #     ),
             # ),
             uiOutput("summamuuttuja_01"),
-            # -----------------------------------------
+            ## ## ##
             tags$h4("Inhimillinen huono-osaisuus"),
-            # -----------------------------------------
+            ## ## ##
             uiOutput("inhimillinen_01")
             
-            # # -----------------------------------------
+            # ## ## ##
             # tags$h4("Inhimillinen huono-osaisuus"), 
-            # # -----------------------------------------
+            # ## ## ##
             # fluidRow(
             #     column(4,
             #            tags$h5("Osoittimen_nimi"),
@@ -1224,9 +1309,9 @@ server <- function(input, output) {
             #     ),
             # ),
             # 
-            # # -----------------------------------------
+            # ## ## ##
             # tags$h4("Huono-osaisuuden sosiaaliset seuraukset"), 
-            # # -----------------------------------------
+            # ## ## ##
             # fluidRow(
             #     column(4,
             #            tags$h5("Osoittimen_nimi"),
@@ -1242,9 +1327,9 @@ server <- function(input, output) {
             #     ),
             # ),
             # 
-            # # -----------------------------------------
+            # ## ## ##
             # tags$h4("Huono-osaisuuden taloudelliset yhteydet"), 
-            # -----------------------------------------
+            ## ## ##
             # fluidRow(
             #     column(4,
             #            tags$h5("Osoittimen_nimi"),
