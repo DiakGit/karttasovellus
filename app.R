@@ -649,7 +649,7 @@ server <- function(input, output) {
                                            val_aluename = aluename, 
                                            val_region_data = region_data, 
                                            val_muuttujaluokka = muuttujaluokka,
-                                           val_muuttuja = muuttuja){
+                                           val_muuttuja1 = muuttuja){
         
         region_data <- dplyr::filter(val_region_data, level %in% val_aluetaso1)
         naapurikoodit <- region_data[region_data$region_name %in% val_aluename,]$neigbours[[1]]
@@ -659,9 +659,9 @@ server <- function(input, output) {
                                               naapurikoodit = naapurikoodit, 
                                               aikasarja = TRUE)
         
-        plotdata_tmp <- tabdat %>%
-            filter(var_class == val_muuttujaluokka,
-                   muuttuja == val_muuttuja) %>%
+        tabdat1 <- tabdat[tabdat$var_class == val_muuttujaluokka & tabdat$muuttuja == val_muuttuja1, ]
+        
+        plotdata_tmp <- tabdat1 %>%
             filter(rooli %in% c("naapuri","valinta")) %>% 
             select(aika,muuttuja,aluenimi,arvo,sija) %>%
             mutate(value = arvo) %>% 
@@ -694,7 +694,7 @@ server <- function(input, output) {
                 scale_fill_viridis_d(option = "viridis", direction = -1, begin = .1, end = .9) +
                 scale_color_viridis_d(option = "viridis", direction = -1, begin = .1, end = .9) +
                 labs(y = NULL, x = NULL,
-                     title = val_muuttuja
+                     title = val_muuttuja1
                      )
         return(plot)
 
@@ -879,156 +879,34 @@ server <- function(input, output) {
             assign(x = paste0("lista1_tbl", stringr::str_pad(ix, width = 2, pad = 0)), value = tbl_temp1)
         }
         
-        # 1
-        output$aikasarja1_01 <- renderPlot({
-            
-            alueprofiiliaikasarja_html(val_aluetaso1 = aluetaso1, 
-                                       val_aluename = aluename, 
-                                       val_region_data = region_data, 
-                                       val_muuttujaluokka = muuttujaluokka, 
-                                       val_muuttuja = muuttujanimi[1])
-            
+        output$aikasarja1_01 <- renderPlot({alueprofiiliaikasarja_html(val_muuttuja = muuttujanimi[1], val_aluetaso1 = aluetaso1, val_aluename = aluename, val_region_data = region_data, val_muuttujaluokka = muuttujaluokka)
+        }, alt = "Aikasarjakuva jossa huono-osaisuuden summamuuttujat")
+        output$aikasarja1_02 <- renderPlot({alueprofiiliaikasarja_html(val_muuttuja = muuttujanimi[2], val_aluetaso1 = aluetaso1, val_aluename = aluename, val_region_data = region_data, val_muuttujaluokka = muuttujaluokka)
+        }, alt = "Aikasarjakuva jossa huono-osaisuuden summamuuttujat")
+        output$aikasarja1_03 <- renderPlot({alueprofiiliaikasarja_html(val_muuttuja = muuttujanimi[3], val_aluetaso1 = aluetaso1, val_aluename = aluename, val_region_data = region_data, val_muuttujaluokka = muuttujaluokka)
+        }, alt = "Aikasarjakuva jossa huono-osaisuuden summamuuttujat")
+        output$aikasarja1_04 <- renderPlot({alueprofiiliaikasarja_html(val_muuttuja = muuttujanimi[4], val_aluetaso1 = aluetaso1, val_aluename = aluename, val_region_data = region_data, val_muuttujaluokka = muuttujaluokka)
         }, alt = "Aikasarjakuva jossa huono-osaisuuden summamuuttujat")
         
-        
-        output$kartta1_01 <- renderPlot({
-            
-            alueprofiilikartta_html(val_aluetaso1 = aluetaso1, 
-                                    val_aluename = aluename, 
-                                    val_region_data = region_data, 
-                                    val_muuttujaluokka = muuttujaluokka,  
-                                    val_muuttuja = muuttujanimi[1])
-            
+        output$kartta1_01 <- renderPlot({alueprofiilikartta_html(val_muuttuja = muuttujanimi[1], val_aluetaso1 = aluetaso1, val_aluename = aluename, val_region_data = region_data, val_muuttujaluokka = muuttujaluokka)
         }, alt = "Karttakuva jossa huono-osaisuuden summamuuttujat")
-        
-        # 2
-        output$aikasarja1_02 <- renderPlot({
-            
-            alueprofiiliaikasarja_html(val_aluetaso1 = aluetaso1, 
-                                       val_aluename = aluename, 
-                                       val_region_data = region_data, 
-                                       val_muuttujaluokka = muuttujaluokka,  
-                                       val_muuttuja = muuttujanimi[2])
-            
-        }, alt = "Aikasarjakuva jossa huono-osaisuuden summamuuttujat")
-        
-        
-        output$kartta1_02 <- renderPlot({
-            
-            alueprofiilikartta_html(val_aluetaso1 = aluetaso1, 
-                                    val_aluename = aluename, 
-                                    val_region_data = region_data, 
-                                    val_muuttujaluokka = muuttujaluokka,
-                                    val_muuttuja = muuttujanimi[2])
-            
+        output$kartta1_02 <- renderPlot({alueprofiilikartta_html(val_muuttuja = muuttujanimi[2], val_aluetaso1 = aluetaso1, val_aluename = aluename, val_region_data = region_data, val_muuttujaluokka = muuttujaluokka)
         }, alt = "Karttakuva jossa huono-osaisuuden summamuuttujat")
-        
-        # 3
-        output$aikasarja1_03 <- renderPlot({
-            
-            alueprofiiliaikasarja_html(val_aluetaso1 = aluetaso1, 
-                                       val_aluename = aluename, 
-                                       val_region_data = region_data, 
-                                       val_muuttujaluokka = muuttujaluokka,  
-                                       val_muuttuja = muuttujanimi[3])
-            
-        }, alt = "Aikasarjakuva jossa huono-osaisuuden summamuuttujat")
-        
-        
-        output$kartta1_03 <- renderPlot({
-            
-            alueprofiilikartta_html(val_aluetaso1 = aluetaso1, 
-                                    val_aluename = aluename, 
-                                    val_region_data = region_data, 
-                                    val_muuttujaluokka = muuttujaluokka,
-                                    val_muuttuja = muuttujanimi[3])
-            
+        output$kartta1_03 <- renderPlot({alueprofiilikartta_html(val_muuttuja = muuttujanimi[3], val_aluetaso1 = aluetaso1, val_aluename = aluename, val_region_data = region_data, val_muuttujaluokka = muuttujaluokka)
         }, alt = "Karttakuva jossa huono-osaisuuden summamuuttujat")
-        
-        # 4
-        output$aikasarja1_04 <- renderPlot({
-            
-            alueprofiiliaikasarja_html(val_aluetaso1 = aluetaso1, 
-                                       val_aluename = aluename, 
-                                       val_region_data = region_data, 
-                                       val_muuttujaluokka = muuttujaluokka,  
-                                       val_muuttuja = muuttujanimi[4])
-            
-        }, alt = "Aikasarjakuva jossa huono-osaisuuden summamuuttujat")
-        
-        
-        output$kartta1_04 <- renderPlot({
-            
-            alueprofiilikartta_html(val_aluetaso1 = aluetaso1, 
-                                    val_aluename = aluename, 
-                                    val_region_data = region_data, 
-                                    val_muuttujaluokka = muuttujaluokka,
-                                    val_muuttuja = muuttujanimi[4])
-            
+        output$kartta1_04 <- renderPlot({alueprofiilikartta_html(val_muuttuja = muuttujanimi[4], val_aluetaso1 = aluetaso1, val_aluename = aluename, val_region_data = region_data, val_muuttujaluokka = muuttujaluokka)
         }, alt = "Karttakuva jossa huono-osaisuuden summamuuttujat")
-
         
         tagList(
             fluidRow(tags$h5(muuttujanimi[1])),
-            fluidRow(
-                column(3,
-                       lista1_tbl01
-                ),
-                column(5, 
-                       plotOutput("kartta1_01", 
-                                  width = "100%")
-                ),
-                column(4, 
-                       plotOutput("aikasarja1_01", 
-                                  width = "100%")
-                )
-            ),
-            # 2
+            fluidRow(column(3,lista1_tbl01),column(5,plotOutput("kartta1_01",width = "100%")),column(4,plotOutput("aikasarja1_01",width = "100%"))),
             fluidRow(tags$h5(muuttujanimi[2])),
-            fluidRow(
-                column(3,
-                       lista1_tbl02
-                ),
-                column(5, 
-                       plotOutput("kartta1_02", 
-                                  width = "100%")
-                ),
-                column(4, 
-                       plotOutput("aikasarja1_02", 
-                                  width = "100%")
-                )
-            ),
-            # 3
+            fluidRow(column(3,lista1_tbl01),column(5,plotOutput("kartta1_02",width = "100%")),column(4,plotOutput("aikasarja1_02",width = "100%"))),
             fluidRow(tags$h5(muuttujanimi[3])),
-            fluidRow(
-                column(3,
-                       lista1_tbl03
-                ),
-                column(5, 
-                       plotOutput("kartta1_03", 
-                                  width = "100%")
-                ),
-                column(4, 
-                       plotOutput("aikasarja1_03", 
-                                  width = "100%")
-                )
-            ),
-            # 4
+            fluidRow(column(3,lista1_tbl01),column(5,plotOutput("kartta1_03",width = "100%")),column(4,plotOutput("aikasarja1_03",width = "100%"))),
             fluidRow(tags$h5(muuttujanimi[4])),
-            fluidRow(
-                column(3,
-                       lista1_tbl04
-                ),
-                column(5, 
-                       plotOutput("kartta1_04", 
-                                  width = "100%")
-                ),
-                column(4, 
-                       plotOutput("aikasarja1_04", 
-                                  width = "100%")
-                )
+            fluidRow(column(3,lista1_tbl01),column(5,plotOutput("kartta1_04",width = "100%")),column(4,plotOutput("aikasarja1_04",width = "100%")))
             )
-        )
     })
     
     output$inhimillinen_01 <- renderUI({
