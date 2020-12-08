@@ -140,24 +140,69 @@ server <- function(input, output) {
         # } else {
         tagList(
             radioButtons(inputId = "value_regio_level", 
-                         label = "Valitse aluetaso", inline = TRUE,
+                         label = "Valitse aluetaso", inline = FALSE,
                          choices = opt_indicator, selected = "Maakunnat")
         )
         # }
         
     })
     
-    output$output_regio_choice_mode <- renderUI({
+    
+    output$output_regio_select <- renderUI({
+        
+        req(input$value_regio_level)
+        
+        region_data <- get_region_data()
+        tmpdat <- region_data[region_data$level %in% input$value_regio_level,]
+        choices <- tmpdat$region_name
+        
+        tagList(
+            selectInput(inputId = "value_region_selected", 
+                        label = "Valitse alue",
+                        choices = choices, 
+                        selected = choices[1])
+        )
+    })
+    
+    # output$output_time_series_all <- renderUI({
+    #     
+    #     req(input$value_variable_class)
+    #     req(input$value_variable)
+    #     req(input$value_regio_level)
+    # 
+    #     tagList(
+    #         checkboxInput(inputId = "value_regio_timeseries_all", 
+    #                       label = "Näytä kaikki alueet aikasarjassa", 
+    #                       value = FALSE)
+    #     )
+    # })
+    
+    output$output_regio_show_mode <- renderUI({
         
         req(input$value_variable_class)
         req(input$value_variable)
         req(input$value_regio_level)
-        opt_indicator <- c("karttaa klikkaamalla", "kaikki alueet")
+        # req(input$value_region_selected)
+        varlist <- varlist_diak()
+        varlist_kunta <- varlist[varlist$regio_level == "Kunnat",]$variable
+        
+        if (input$value_regio_level != "Kunnat" & input$value_variable %in% varlist_kunta){
+        opt_indicator <- c("kaikki tason alueet", 
+                           "valittu alue ja sen naapurit", 
+                           "valitun alueen kunnat")
+        } else {
+        opt_indicator <- c("kaikki tason alueet", 
+                           "valittu alue ja sen naapurit")
+        }
         
         tagList(
-            checkboxInput(inputId = "value_regio_choice_mode", 
-                          label = "Näytä kaikki alueet aikasarjassa", value = FALSE)
+            radioButtons(inputId = "value_regio_show_mode", 
+                         choices = opt_indicator, 
+                         selected = opt_indicator[1],
+                         label = "Kuvioissa näytettävät alueet", 
+                         inline = FALSE)
         )
+
     })
     
     
@@ -178,7 +223,7 @@ server <- function(input, output) {
         # } else {
         tagList(
             radioButtons(inputId = "value_regio_level_profile", 
-                         label = "Valitse aluetaso", inline = TRUE,
+                         label = "Valitse aluetaso", inline = FALSE,
                          choices = opt_indicator, selected = "Maakunnat")
         )
     })
@@ -228,10 +273,10 @@ server <- function(input, output) {
         reg <- readRDS("./data/regiokey.RDS")
         idnimi <- reg[reg$aluetaso == input$value_regio_level,]$aluenimi[1]
         
-        klik <- rv$map_click_id
-        if (is.null(klik)){
-            klik <- list("id" = idnimi)
-        }
+        # klik <- rv$map_click_id
+        # if (is.null(klik)){
+            klik <- list("id" = input$value_region_selected)
+        # }
         return(klik)
     })
     
@@ -264,10 +309,44 @@ server <- function(input, output) {
             mutate(value = round(value, 1)) %>%
             mutate(rank = 1:n())
         
-        res <- sf::st_transform(x = res, crs = "+proj=longlat +datum=WGS84")
+        # res <- sf::st_transform(x = res, crs = "+proj=longlat +datum=WGS84")
         
         return(res)
     })
+    
+
+    create_municipalities_within_region <- function(varname = input$value_variable, 
+                                                    regio_level = input$value_regio_level,
+                                                    aluenimi = klik$id,
+                                                    timeseries = TRUE){
+        if (timeseries){
+            dat <- get_dat_timeseries()
+        } else {
+            dat <- get_dat()
+        }
+        
+        
+        dat_1 <- dat[dat$regio_level %in% "Kunnat" & dat$variable %in% varname,]
+        
+        if (regio_level == "Maakunnat"){
+            muni_key_subset <- geofi::municipality_key_2019 %>% 
+                filter(maakunta_name_fi == aluenimi) %>% 
+                select(name_fi)
+        } else {
+            muni_key_subset <- geofi::municipality_key_2019 %>% 
+                filter(seutukunta_name_fi == aluenimi) %>% 
+                select(name_fi) 
+        }
+        
+        dat <- right_join(dat_1, muni_key_subset, by = c("aluenimi" = "name_fi")) %>% 
+            mutate(color = TRUE, fill = value) %>% 
+            select(-regio_level) %>%
+            filter(!is.na(value)) %>%
+            arrange(desc(value)) %>%
+            mutate(value = round(value, 1)) %>%
+            mutate(rank = 1:n())
+        return(dat)
+    }
     
     process_data_profile_doc <- reactive({
         
@@ -305,130 +384,340 @@ server <- function(input, output) {
     # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
     ## indikaattorikuviot ----
     
-    output$map1 <- leaflet::renderLeaflet({
-        
-        fin <- readRDS("./data/regio_Suomi.RDS")
-        fin <- sf::st_transform(x = fin, crs = "+proj=longlat +datum=WGS84")
-        
-        leaflet(fin, options = leafletOptions(attributionControl=FALSE)) %>%
-            # addProviderTiles(provider = providers$CartoDB.Positron) %>% 
-            addPolygons(color = NA, fill = NA) %>% 
-            setView(lng = 26.24578, lat = 65.28952, zoom = 5)
-        
-    })
+    # output$map1 <- leaflet::renderLeaflet({
+    #     
+    #     fin <- readRDS("./data/regio_Suomi.RDS")
+    #     fin <- sf::st_transform(x = fin, crs = "+proj=longlat +datum=WGS84")
+    #     
+    #     leaflet(fin, options = leafletOptions(attributionControl=FALSE)) %>%
+    #         # addProviderTiles(provider = providers$CartoDB.Positron) %>% 
+    #         addPolygons(color = NA, fill = NA) %>% 
+    #         setView(lng = 26.24578, lat = 65.28952, zoom = 5)
+    #     
+    # })
+    # 
+    # observe({
+    #     
+    #     req(input$value_regio_level)
+    #     req(input$value_variable)
+    #     
+    #     dat <- process_data()
+    #     
+    #     pal <- leaflet::colorNumeric(palette = "viridis", domain = dat$value, reverse = TRUE)
+    #     
+    #     labels <- sprintf(
+    #         "%s <br/><i>%s</i>: <strong>%s</strong><br/>Sija: %s/%s",
+    #         dat$aluenimi,dat$variable, dat$value, rank, nrow(dat)
+    #     ) %>% lapply(htmltools::HTML)
+    #     
+    #     proxy <- leafletProxy("map1")
+    #     
+    #     proxy %>% 
+    #         clearShapes() %>% 
+    #         addPolygons(data = dat, 
+    #                     fillColor = ~pal(value),
+    #                     color = "white",
+    #                     weight = 1,
+    #                     opacity = 1,
+    #                     dashArray = "3",
+    #                     fillOpacity = 0.4,
+    #                     highlight = highlightOptions(
+    #                         weight = 2,
+    #                         color = "#666",
+    #                         dashArray = "",
+    #                         fillOpacity = 0.4,
+    #                         bringToFront = TRUE),
+    #                     group = "polygons",
+    #                     label = labels,
+    #                     layerId = dat$aluenimi,
+    #                     labelOptions = labelOptions(opacity = .7,
+    #                                                 style = list("font-weight" = "normal",
+    #                                                              padding = "2px 4px"),
+    #                                                 textsize = "12px",
+    #                                                 direction = "auto")
+    #         ) -> proxy
+    #     
+    #     # proxy %>% clearControls()   %>%
+    #     #     addLegend(data = dat, pal = pal, values = ~value, opacity = 0.7, title = add_line_break(input$value_variable, n = 20),
+    #     #               position = "bottomright")
+    #     proxy
+    # })
+    # 
+    # output$static_map <- renderPlot({
+    #     
+    #     dat <- process_data()
+    #     dat <- sf::st_transform(dat, crs = 3067)
+    #     
+    #     ggplot(data = dat, aes(fill = value)) +
+    #         geom_sf(color = alpha("white", 1/3))  +
+    #         scale_fill_viridis(option = "viridis", direction = -1, alpha = .5) +
+    #         theme_minimal(base_family = "PT Sans", base_size = 12) +
+    #         labs(fill = NULL,
+    #              title = glue("{input$value_variable}"),
+    #              subtitle = glue("Aluetaso: {input$value_regio_level}"),
+    #              caption = glue("Data: THL & Diak\n{Sys.Date()}")) -> p
+    #     if (input$value_regio_level != "Kunnat"){
+    #         p + ggrepel::geom_text_repel(data = dat %>%
+    #                                          sf::st_set_geometry(NULL) %>%
+    #                                          bind_cols(dat %>% sf::st_centroid() %>% sf::st_coordinates() %>% as_tibble()),
+    #                                      aes(label = paste0(aluenimi,"\n", value), x = X, y = Y), 
+    #                                      color = "black", #fill = alpha("black", 2/3), 
+    #                                      family = "PT Sans", size = 2) -> p
+    #     } else {
+    #         p + geom_text(data = dat %>%
+    #                           sf::st_set_geometry(NULL) %>%
+    #                           bind_cols(dat %>% sf::st_centroid() %>% sf::st_coordinates() %>% as_tibble()),
+    #                       aes(label = value, x = X, y = Y), 
+    #                       color = "black", 
+    #                       family = "PT Sans", 
+    #                       size = 2.2) -> p
+    #     }
+    #     p + theme(axis.text = element_blank(),
+    #               axis.title = element_blank(),
+    #               panel.grid = element_blank(),
+    #               plot.title.position = "plot")
+    #     
+    # })
+    # 
+    # 
+    # output$rank_plot <- renderPlot({
+    #     
+    #     
+    #     req(input$value_variable_class)
+    #     req(input$value_variable)
+    #     req(input$value_regio_level)
+    #     
+    #     klik <- get_klik()    
+    #     dat <- process_data() %>% 
+    #         st_set_geometry(NULL) %>% 
+    #         select(rank,aluekoodi,aluenimi,value) %>% 
+    #         mutate(aluenimi = factor(aluenimi), 
+    #                aluenimi = fct_reorder(aluenimi, -rank),
+    #                fill = value)
+    #     
+    #     if (input$value_regio_show_mode == "valittu alue ja sen naapurit"){
+    #         region_data <- get_region_data()
+    #         naapurikoodit <- region_data[region_data$level %in% input$value_regio_level & 
+    #                                          region_data$region_name %in% klik$id,]$neigbours[[1]]
+    #         
+    #         dat$fill <- ifelse(!dat$aluekoodi %in% naapurikoodit, NA, dat$fill)
+    #     }
+    #     
+    #     
+    #     
+    #     ggplot(dat, aes(x = value, y = aluenimi), 
+    #            fill = "grey20"
+    #            ) + 
+    #         geom_col(aes(fill = fill)) +
+    #         theme_ipsum(base_family = "PT Sans",
+    #                     plot_title_family = "PT Sans",
+    #                     subtitle_family = "PT Sans",
+    #                     grid_col = "white") +
+    #         xlim(c(0,max(dat$value, na.rm = TRUE)*1.2)) +
+    #         labs(fill = NULL,
+    #              title = glue("{input$value_variable}"),
+    #              subtitle = glue("Aluetaso: {input$value_regio_level}"),
+    #              caption = glue("Data: THL & Diak\n{Sys.Date()}"))  +
+    #         theme(legend.position = "none",
+    #               plot.title.position = "plot") +
+    #         # scale_fill_ipsum() +
+    #         scale_fill_viridis_c(option = "viridis", direction = -1, alpha = .4, ) +
+    #         scale_color_manual(values = c("white","#7e3f9d")) -> plot
+    #     
+    #     # Tolppakuvion eri aluetasoilla erityyppiset tolppakuviot
+    #     if (input$value_regio_level == "Seutukunnat"){
+    #         plot <- plot +
+    #             theme(axis.text.y = element_text(size = 9)) +
+    #             geom_text(dat = dat[!is.na(dat$fill),], 
+    #                       aes(label = paste0(value, " ", rank, "/", max(rank, na.rm = TRUE))), 
+    #                       color = "black", 
+    #                       nudge_x = max(dat$value, na.rm = TRUE)*0.1, 
+    #                       family = "PT Sans")
+    #     } else if (input$value_regio_level == "Kunnat"){
+    #         plot <- plot +
+    #             theme(axis.text.y = element_blank()) #+
+    #             # geom_text(dat = dat[!is.na(dat$fill),],
+    #             #           aes(label = paste0(aluenimi, " ",value, " ", rank, "/", max(rank, na.rm = TRUE))), 
+    #             #           color = "black", 
+    #             #           nudge_x = max(dat$value, na.rm = TRUE)*0.1, 
+    #             #           family = "PT Sans")
+    #     } else if (input$value_regio_level == "Maakunnat"){
+    #         plot <- plot + geom_text(aes(label = value), 
+    #                                  color = "black", 
+    #                                  nudge_x = max(dat$value, na.rm = TRUE)*0.1, 
+    #                                  family = "PT Sans")
+    #     }
+    #     plot + scale_y_discrete(expand = expansion(add = 2))
+    #     
+    #     # return(dt)
+    # }, alt = reactive({
+    #     paste("Palkkikuvio tasolla", 
+    #           input$value_regio_level,
+    #           "jossa pystyakselilla aluenimet ja vaaka-akselilla muuttujan",
+    #           input$value_variable, "arvot. Alue", get_klik()$id, "korostettuna."
+    #     )
+    # }))
     
-    observe({
-        
-        req(input$value_regio_level)
-        req(input$value_variable)
-        
-        dat <- process_data()
-        
-        pal <- leaflet::colorNumeric(palette = "viridis", domain = dat$value, reverse = TRUE)
-        
-        labels <- sprintf(
-            "%s <br/><i>%s</i>: <strong>%s</strong><br/>Sija: %s/%s",
-            dat$aluenimi,dat$variable, dat$value, dat$rank, nrow(dat)
-        ) %>% lapply(htmltools::HTML)
-        
-        proxy <- leafletProxy("map1")
-        
-        proxy %>% 
-            clearShapes() %>% 
-            addPolygons(data = dat, 
-                        fillColor = ~pal(value),
-                        color = "white",
-                        weight = 1,
-                        opacity = 1,
-                        dashArray = "3",
-                        fillOpacity = 0.4,
-                        highlight = highlightOptions(
-                            weight = 2,
-                            color = "#666",
-                            dashArray = "",
-                            fillOpacity = 0.4,
-                            bringToFront = TRUE),
-                        group = "polygons",
-                        label = labels,
-                        layerId = dat$aluenimi,
-                        labelOptions = labelOptions(opacity = .7,
-                                                    style = list("font-weight" = "normal",
-                                                                 padding = "2px 4px"),
-                                                    textsize = "12px",
-                                                    direction = "auto")
-            ) -> proxy
-        
-        # proxy %>% clearControls()   %>%
-        #     addLegend(data = dat, pal = pal, values = ~value, opacity = 0.7, title = add_line_break(input$value_variable, n = 20),
-        #               position = "bottomright")
-        proxy
-    })
     
-    
-    output$rank_plot <- renderPlot({
+    output$map_rank_plot <- renderPlot({
         
+        ## kartta ----
         
         req(input$value_variable_class)
         req(input$value_variable)
         req(input$value_regio_level)
+        req(input$value_region_selected)
+        req(input$value_regio_show_mode)
         
-        klik <- get_klik()    
+        klik <- get_klik()
+        dat <- process_data()
+        
+        region_data <- get_region_data()
+        naapurikoodit <- region_data[region_data$level %in% input$value_regio_level & 
+                                         region_data$region_name %in% klik$id,]$neigbours[[1]]
+        
+        dat <- dat %>% #sf::st_transform(crs = 3067) %>% 
+            mutate(color = ifelse(aluenimi %in% klik$id, TRUE, FALSE))
+        
+        if (input$value_regio_show_mode == "kaikki tason alueet"){
+            dat <- dat
+        } else if (input$value_regio_show_mode == "valittu alue ja sen naapurit"){
+            dat <- dat %>% filter(aluekoodi %in% naapurikoodit)
+        } else if (input$value_regio_show_mode == "valitun alueen kunnat"){
+
+            dat <- create_municipalities_within_region(varname = input$value_variable, 
+                                                       regio_level = input$value_regio_level,
+                                                       aluenimi = klik$id,
+                                                       timeseries = FALSE)
+            
+            reg <- readRDS(glue("./data/regio_Kunnat.RDS"))
+            res <- left_join(reg, dat) %>% 
+                filter(!is.na(aluenimi))
+            
+            dat <- res %>%
+                filter(!is.na(value)) %>%
+                arrange(desc(value)) %>%
+                mutate(value = round(value, 1)) %>%
+                mutate(rank = 1:n(), 
+                      color = TRUE) 
+        }
+            
+            
+            
+        
+        ggplot(data = dat, aes(fill = value, color = color)) +
+            geom_sf()  +
+            scale_fill_viridis(option = "viridis", direction = -1, alpha = .5) +
+            scale_color_manual(values = c(alpha("white", 1/3), "black")) +
+            theme_minimal(base_family = "PT Sans", base_size = 12) -> p
+            # labs(fill = NULL,
+            #      title = glue("{input$value_variable}"),
+            #      subtitle = glue("Aluetaso: {input$value_regio_level}"),
+            #      caption = glue("Data: THL & Diak\n{Sys.Date()}")) -> p
+        if (input$value_regio_show_mode == "kaikki tason alueet"){
+            p + geom_sf_label(data = dat %>% filter(aluenimi == klik$id),
+                              aes(label = paste(aluenimi, value)),
+                              fill = alpha("white",2/3), color = "black", family = "PT Sans") -> p
+        } else if (input$value_regio_show_mode == "valittu alue ja sen naapurit"){
+            p + geom_sf_label(data = dat,
+                              aes(label = paste(aluenimi, value)),
+                              fill = alpha("white",2/3), color = "black", family = "PT Sans") -> p
+        } else if (input$value_regio_show_mode == "valitun alueen kunnat"){
+                p + ggrepel::geom_label_repel(data = dat %>%
+                                                 sf::st_set_geometry(NULL) %>%
+                                                 bind_cols(dat %>% sf::st_centroid() %>% sf::st_coordinates() %>% as_tibble()),
+                                             aes(label = paste0(aluenimi,"\n", value), x = X, y = Y),
+                                             color = "black", fill = alpha("white", 1/3),
+                                             family = "PT Sans", size = 3, lineheight = .8) -> p
+            
+        }
+
+        p + theme(axis.text = element_blank(),
+                  axis.title = element_blank(),
+                  panel.grid = element_blank(),
+                  legend.position = "none",
+                  plot.title.position = "plot") +
+            labs(fill = NULL) -> p1
+        
+        ## Tolpat ----
+        
         dat <- process_data() %>% 
             st_set_geometry(NULL) %>% 
-            select(rank,aluenimi,value) %>% 
+            select(rank,aluekoodi,aluenimi,value) %>% 
             mutate(aluenimi = factor(aluenimi), 
-                   aluenimi = fct_reorder(aluenimi, -rank)) %>% 
-            mutate(focus = ifelse(aluenimi == klik$id, TRUE, FALSE))
+                   aluenimi = fct_reorder(aluenimi, -rank),
+                   fill = value,
+                   color = ifelse(aluenimi %in% klik$id, TRUE, FALSE))
         
-        ggplot(dat, aes(x = value, y = aluenimi, 
-                        color = focus,
-                        fill = value)) + 
-            geom_col() +
+        if (input$value_regio_show_mode == "valittu alue ja sen naapurit"){
+            dat$fill <- ifelse(!dat$aluekoodi %in% naapurikoodit, NA, dat$fill)
+        } else if (input$value_regio_show_mode == "valitun alueen kunnat"){
+            
+            dat <- create_municipalities_within_region(varname = input$value_variable, 
+                                                       regio_level = input$value_regio_level,
+                                                       aluenimi = klik$id,
+                                                       timeseries = FALSE)
+        }
+        
+        
+        
+        ggplot(dat, aes(x = value, y = reorder(aluenimi, -rank))
+        ) + 
+            geom_col(aes(fill = fill)) +
             theme_ipsum(base_family = "PT Sans",
                         plot_title_family = "PT Sans",
                         subtitle_family = "PT Sans",
                         grid_col = "white") +
             xlim(c(0,max(dat$value, na.rm = TRUE)*1.2)) +
-            labs(y = NULL, x = NULL, 
-                 title = input$value_variable, 
-                 subtitle = input$value_variable_class) +
-            theme(legend.position = "none") +
+            theme(legend.position = "none",
+                  plot.title.position = "plot") +
             # scale_fill_ipsum() +
-            scale_fill_viridis_c(option = "viridis", direction = -1, alpha = .4) +
-            scale_color_manual(values = c("white","#7e3f9d")) -> plot
+            scale_fill_viridis_c(option = "viridis", direction = -1, alpha = .4, na.value="grey90") +
+            scale_color_manual(values = c("white","black")) + 
+            geom_col(aes(color = color), fill = NA) -> plot
         
+        # Tolppakuvion eri aluetasoilla erityyppiset tolppakuviot
         if (input$value_regio_level == "Seutukunnat"){
             plot <- plot +
                 theme(axis.text.y = element_text(size = 9)) +
-                geom_text(dat = dat[dat$focus,], 
-                          aes(label = paste0(value, " ", rank, "/", max(dat$rank, na.rm = TRUE))), 
+                geom_text(dat = dat[!is.na(dat$fill),], 
+                          aes(label = paste0(value, " ", rank, "/", max(rank, na.rm = TRUE))), 
                           color = "black", 
                           nudge_x = max(dat$value, na.rm = TRUE)*0.1, 
-                          family = "PT Sans")
+                          family = "PT Sans", size = 2.5)
         } else if (input$value_regio_level == "Kunnat"){
             plot <- plot +
                 theme(axis.text.y = element_blank()) +
-                geom_text(dat = dat[dat$focus,],
-                          aes(label = paste0(aluenimi, " ",value, " ", rank, "/", max(dat$rank, na.rm = TRUE))), 
-                          color = "black", 
-                          nudge_x = max(dat$value, na.rm = TRUE)*0.1, 
-                          family = "PT Sans")
+            geom_text(dat = dat[dat$color,],
+                      aes(label = paste0(aluenimi, " ",value, " ", rank, "/", max(rank, na.rm = TRUE))),
+                      color = "black",
+                      nudge_x = max(dat$value, na.rm = TRUE)*0.1,
+                      family = "PT Sans")
         } else if (input$value_regio_level == "Maakunnat"){
             plot <- plot + geom_text(aes(label = value), 
                                      color = "black", 
                                      nudge_x = max(dat$value, na.rm = TRUE)*0.1, 
                                      family = "PT Sans")
         }
-        plot + scale_y_discrete(expand = expansion(add = 2))
+        plot + scale_y_discrete(expand = expansion(add = 2)) +
+            labs(x = NULL, y = NULL) -> p2
         
-        # return(dt)
-    }, alt = reactive({
-        paste("Palkkikuvio tasolla", 
-              input$value_regio_level,
-              "jossa pystyakselilla aluenimet ja vaaka-akselilla muuttujan",
-              input$value_variable, "arvot. Alue", get_klik()$id, "korostettuna."
-        )
-    }))
+        p2 + p1 +
+            plot_layout(
+                ncol = 2,
+                widths = c(1, 1.2)
+            ) -> plotlist
+        wrap_plots(plotlist, ncol = 1) +
+            plot_annotation(
+                     title = glue("{input$value_variable}"),
+                     subtitle = glue("Aluetaso: {input$value_regio_level}"),
+                     caption = glue("Diak Huono-osaisuus Suomessa karttasovellus\nData: THL \n{Sys.Date()}"),
+                     theme = theme(plot.title = element_text(family = "PT Sans", size = 20),
+                                   plot.subtitle = element_text(family = "PT Sans", size = 16),
+                                   plot.caption = element_text(family = "PT Sans", size = 12))
+                     )
+
+    })
     
     
     output$timeseries_plot <- renderPlot({
@@ -436,8 +725,9 @@ server <- function(input, output) {
         req(input$value_variable_class)
         req(input$value_variable)
         req(input$value_regio_level)
-        # req(input$value_regio_choice_mode)
-        
+        req(input$value_region_selected)
+        req(input$value_regio_show_mode)
+
         
         klik <- get_klik()    
         dat <- get_dat_timeseries()
@@ -446,52 +736,81 @@ server <- function(input, output) {
                                          region_data$region_name %in% klik$id,]$neigbours[[1]]
         
         df <- dat[dat$variable == input$value_variable &
-                      dat$regio_level == input$value_regio_level &
-                      dat$aluekoodi %in% naapurikoodit,]
+                      dat$regio_level == input$value_regio_level,] #%>% 
+            # mutate(color = ifelse(aluenimi %in% klik$id, TRUE, FALSE))
+        
+        df2 <- df[df$aluekoodi %in% naapurikoodit,]
         
         
         aika1 <- sort(unique(df$aika)) - 1
         aika2 <- sort(unique(df$aika)) + 1
         labels <- paste0(aika1,"-",aika2)
         
-        ggplot(data = df,
-               aes(x = aika, y = value, color= aluenimi, fill= aluenimi)) -> plot0
-        if (input$value_regio_choice_mode){
+        ggplot() -> plot0
+        
+        
+        if (input$value_regio_show_mode == "kaikki tason alueet"){
             
+        plot0 <- plot0 + geom_line(data = df,aes(x = aika, y = value, color= aluenimi, fill= aluenimi), show.legend = FALSE) +
+            geom_point(shape = 21, color = "white", stroke = 1, size = 2.5) +
+            # ggrepel::geom_text_repel(data = df %>% filter(color, aika == max(aika, na.rm = TRUE)),
+            #                          aes(x = aika, y = value, color= aluenimi, label = round(value,1)), family = "PT Sans") +
+            geom_text(data = df %>% filter(aika == max(aika, na.rm = TRUE),
+                                                          aluenimi == klik$id),
+                                     aes(x = aika, y = value, color= aluenimi, label = paste(aluenimi, round(value,1))),color = "black", family = "PT Sans", nudge_x = .2)
+            
+        } else if (input$value_regio_show_mode == "valittu alue ja sen naapurit"){
             
             alfa = ifelse(input$value_regio_level == "Kunnat", .1, .2)
             
-            plot0 <- plot0 + geom_line(data = dat[dat$variable == input$value_variable &
-                                                      dat$regio_level == input$value_regio_level,], color = "dim grey", alpha = alfa)
+            plot0 <- plot0 + 
+                geom_line(data = df2,aes(x = aika, y = value, color= aluenimi, fill= aluenimi), show.legend = FALSE) +
+                geom_line(data = df,
+                          aes(x = aika, y = value, group = aluenimi),
+                          color = "dim grey", alpha = alfa) +
+                geom_point(shape = 21, color = "white", stroke = 1, size = 2.5) +
+                ggrepel::geom_text_repel(data = df2 %>% filter(aika == max(aika, na.rm = TRUE)),
+                                         aes(x = aika, y = value, color= aluenimi, label = round(value,1)), family = "PT Sans") +
+                ggrepel::geom_text_repel(data = df2 %>% filter(aika == max(aika, na.rm = TRUE)-1),
+                                         aes(x = aika, y = value, color= aluenimi, label = aluenimi), family = "PT Sans")
             
             
+        } else if (input$value_regio_show_mode == "valitun alueen kunnat"){
             
+            dat2 <- create_municipalities_within_region(varname = input$value_variable, 
+                                                       regio_level = input$value_regio_level,
+                                                       aluenimi = klik$id,
+                                                       timeseries = TRUE)
+            
+            plot0 <- plot0 + 
+                geom_line(data = dat2,aes(x = aika, y = value, color= aluenimi, fill= aluenimi), show.legend = FALSE) +
+                geom_point(shape = 21, color = "white", stroke = 1, size = 2.5) +
+                ggrepel::geom_text_repel(data = dat2 %>% filter(aika == max(aika, na.rm = TRUE)),
+                                         aes(x = aika, y = value, color= aluenimi, label = paste(aluenimi, round(value,1))), nudge_x = .2, family = "PT Sans")
         }
         
         plot0 +
-            geom_line(show.legend = FALSE) +
-            geom_point(shape = 21, color = "white", stroke = 1, size = 2.5) +
-            ggrepel::geom_text_repel(data = df %>% filter(aika == max(aika, na.rm = TRUE)),
-                                     aes(label = round(value,1)), family = "PT Sans") +
-            ggrepel::geom_text_repel(data = df %>% filter(aika == max(aika, na.rm = TRUE)-1,
-                                                          aluenimi != klik$id),
-                                     aes(label = aluenimi), family = "PT Sans") +
-            # valittu
-            ggrepel::geom_label_repel(data = df %>% filter(aika == max(aika, na.rm = TRUE)-1,
-                                                           aluenimi == klik$id),
-                                      aes(label = aluenimi), color = "white", family = "PT Sans") +
+            # 
+            # # valittu
+            # ggrepel::geom_label_repel(data = df %>% filter(aika == max(aika, na.rm = TRUE)-1,
+            #                                                aluenimi == klik$id),
+            #                           aes(label = aluenimi), color = "white", family = "PT Sans") +
             
             scale_x_continuous(breaks = sort(unique(df$aika)), labels = labels) +
             theme_ipsum(base_family = "PT Sans",
                         plot_title_family = "PT Sans",
                         subtitle_family = "PT Sans",
                         grid_col = "white") +
-            theme(legend.position = "none") +
             scale_fill_viridis_d(option = "plasma", direction = -1, begin = .1, end = .9) +
             scale_color_viridis_d(option = "plasma", direction = -1, begin = .1, end = .9) +
-            labs(y = NULL, x = NULL,
-                 title = input$value_variable,
-                 subtitle = input$value_variable_class) -> plot1
+            labs(fill = NULL,
+                 x = NULL,
+                 y = NULL,
+                 title = glue("{input$value_variable}"),
+                 subtitle = glue("Aluetaso: {input$value_regio_level}"),
+                 caption = glue("Data: THL & Diak\n{Sys.Date()}"))  +
+            theme(legend.position = "none",
+                  plot.title.position = "plot") -> plot1
         plot1
         
     }, alt = reactive({
