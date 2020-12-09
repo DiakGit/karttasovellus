@@ -717,25 +717,56 @@ server <- function(input, output) {
         
     }, alt = reactive({
         
-
-        region_data <- get_region_data()
-        naapurikoodit <- get_naapurikoodit(region_data = region_data,
-                                           regio_lvl = input$value_regio_level,
-                                           regio_selected = input$value_region_selected)
-
-
-        region_nms <- region_data[region_data$level %in% input$value_regio_level & region_data$region_code %in% naapurikoodit, ]$region_name
-
-
-        paste("Aikasarjakuvio tasolla",
-              input$value_regio_level,
-              ", jossa alueina näytetään ",
-              glue_collapse(region_nms, sep = ", ", last = " ja "),
-              ". Vaaka-akselilla esitetään vuodet ja pystyakselilla muuttujan",
-              input$value_variable, "arvot."
-        )
-        })
-    )
+        req(input$value_variable_class)
+        req(input$value_variable)
+        req(input$value_regio_level)
+        req(input$value_region_selected)
+        req(input$value_regio_show_mode)
+        
+        if (input$value_regio_show_mode == "kaikki tason alueet"){
+            alt_teksti <- paste("Muuttujan", input$value_variable, 
+                                "arvot aluetasolla",input$value_regio_level,
+                                "esitetään vuositason aikasarjakuviona, jossa aikasarjan esimmäinen ajankohta on 2010 - 2012 ja viimeinen 2017 - 2019",
+                                "Kuvioissa näytetään kaikki aluetason alueet ja korostettuna on",
+                                input$value_region_selected
+            )
+        } else if (input$value_regio_show_mode == "valittu alue ja sen naapurit"){
+            
+            region_data <- get_region_data()
+            naapurikoodit <- get_naapurikoodit(region_data = region_data,
+                                               regio_lvl = input$value_regio_level,
+                                               regio_selected = input$value_region_selected)
+            region_nms <- region_data[region_data$level %in% input$value_regio_level & region_data$region_code %in% naapurikoodit, ]$region_name
+            alt_teksti <-         paste("Muuttujan", input$value_variable, 
+                                        "arvot aluetasolla",input$value_regio_level,
+                                        "esitetään vuositason aikasarjakuviona, jossa aikasarjan esimmäinen ajankohta on 2010 - 2012 ja viimeinen 2017 - 2019",
+                                        "ja alueina näytetään ",
+                                        glue_collapse(region_nms, sep = ", ", last = " ja "), "korostettuna", 
+                                        input$value_region_selected
+            )
+            
+        } else if (input$value_regio_show_mode == "valitun alueen kunnat"){
+            
+            dat <- create_municipalities_within_region(varname = input$value_variable, 
+                                                       regio_level = input$value_regio_level,
+                                                       aluenimi = input$value_region_selected,
+                                                       timeseries = FALSE)
+            
+            alt_teksti <-         paste("Muuttujan ", input$value_variable, 
+                                        "arvot esitetään vuositason aikasarjakuviona, jossa aikasarjan esimmäinen ajankohta on 2010 - 2012 ja viimeinen 2017 - 2019. 
+                                        Alueet esitetään kuntatasolla käsittäen kunnat jotka kuuluvat alueeseen",
+                                        input$value_region_selected, "tasolla", input$value_regio_level,
+                                        "Kuntina näytetään",
+                                        glue_collapse(unique(dat$aluenimi), sep = ", ", last = " ja ")
+            )
+            
+        }
+        
+        
+        
+        
+        
+    }))
     
 
     
