@@ -151,7 +151,7 @@ saveRDS(region_data2, "./data/region_data.RDS")
 
 # -------------------------------------------
 ## AIKASARJA
-dd <- read_excel("./data_raw/Aikasarjadata.xlsx")
+dd <- read_excel("./data_raw/Aikasarjadata KORJATTU.xlsx")
 
 df_tmp <- dd %>%
   rename(aluekoodi = Aluekoodi,
@@ -210,7 +210,7 @@ df2 <- left_join(df,sk_names) %>%
   filter(!variable %in% c("Inhimillinen","Sosiaalinen","Taloudellinen"),
          !is.na(value)) 
 
-saveRDS(df2, here("./data/df_v20201121_aikasarja.RDS"), 
+saveRDS(df2, here("./data/df_v20210111_aikasarja.RDS"), 
         compress = FALSE)
 
 
