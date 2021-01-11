@@ -972,17 +972,19 @@ server <- function(input, output) {
     }
     
     create_gt_tbl <- function(lst_df = lista1_tbl02){
-        gt_tbl <- gt(data = lst_df,
-                     rowname_col = "aluenimi"
-        ) %>% 
-            tab_options(table.width	= "100%", 
-                        table.align = "left",
-                        # table.font.size = "80%",
-                        row_group.background.color = alpha("grey", 1/6)) %>% 
-            cols_align(
-                align = "right",
-                columns = vars(sija)
-            )
+        # gt_tbl <- gt(data = lst_df,
+        #              rowname_col = "aluenimi"
+        # ) %>% 
+        #     tab_options(table.width	= "100%", 
+        #                 table.align = "left",
+        #                 # table.font.size = "80%",
+        #                 row_group.background.color = alpha("grey", 1/6)) %>% 
+        #     cols_align(
+        #         align = "right",
+        #         columns = vars(sija)
+        #     )
+        kableExtra::kable_styling(knitr::kable(lst_df)) -> gt_tbl
+        htmltools::HTML(gt_tbl) -> gt_tbl
         return(gt_tbl)
     }
     
