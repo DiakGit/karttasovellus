@@ -43,7 +43,7 @@ server <- function(input, output) {
     })
     
     get_dat_timeseries <- reactive({
-        dat_aika <- readRDS("./data/df_v20201121_aikasarja.RDS")
+        dat_aika <- readRDS("./data/df_v20210111_aikasarja.RDS")
         return(dat_aika)
     })
     
