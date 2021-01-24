@@ -378,6 +378,45 @@ server <- function(input, output) {
     #   |___|_| |_|\__,_|_|_|\_\__,_|\__,_|\__|\__\___/|_|  |_|_|\_\\__,_| \_/ |_|\___/ \__|
     #                                                                                       
     # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+    ## indikaattorikuvioiden_datan_lataus ----
+    ## 
+    ## 
+    output$save_data_indicator <- downloadHandler(
+        
+        filename = function() {
+            file_name <- glue("data_{janitor::make_clean_names(input$value_variable)}_{tolower(input$value_regio_level)}.csv")
+            return(file_name)
+        },
+        content = function(file) {
+            
+            dat <- get_dat_timeseries()
+            region_data <- get_region_data()
+            naapurikoodit_lst <- region_data[region_data$level %in% input$value_regio_level & 
+                                                 region_data$region_name %in% input$value_region_selected,"neigbours"]
+            
+            naapurikoodit <- naapurikoodit_lst %>% 
+                unnest(cols = c(neigbours)) %>% 
+                pull(neigbours)
+            
+            
+            df <- dat[dat$variable == input$value_variable &
+                          dat$regio_level == input$value_regio_level,]
+            
+    readr::write_excel_csv2(x = df, file = file)
+        }
+    )
+    
+    output$output_save_data_indicator <- renderUI({
+        
+        req(input$value_variable)
+        tagList(
+            downloadButton("save_data_indicator", "Tallenna data csv-muodossa!", class="btn btn-dark"),
+        )
+    })
+
+    
+    
+    
     ## indikaattorikuviot ----
     
  
@@ -427,7 +466,7 @@ server <- function(input, output) {
 
         ggplot(dat, aes(x = value, y = reorder(aluenimi, -rank))
         ) + 
-            geom_col(aes(fill = fill)) +
+            geom_col(fill = "#253494") +
             theme_ipsum(base_family = "PT Sans",
                         plot_title_family = "PT Sans",
                         subtitle_family = "PT Sans",
@@ -437,7 +476,7 @@ server <- function(input, output) {
                   plot.title.position = "plot") +
             # scale_fill_ipsum() +
             # scale_fill_viridis_c(option = "viridis", direction = -1, alpha = .4, na.value="grey90") +
-            scale_fill_fermenter(palette = "YlGnBu") +
+            # scale_fill_fermenter(palette = "YlGnBu") +
             scale_color_manual(values = c("grey80","black")) + 
             geom_col(aes(color = color), fill = NA, show.legend = FALSE) -> plot
         
@@ -501,36 +540,48 @@ server <- function(input, output) {
             
             
         
-        ggplot(data = dat, aes(fill = value, color = color)) +
-            geom_sf()  +
+        # ggplot(data = dat, aes(fill = value, color = color)) +
+        ggplot(data = dat, aes(fill = value)) +
+            geom_sf(color = alpha("white", 1/3))  +
+            geom_sf(aes(color = color), fill = NA, show.legend = FALSE)  +    
             # scale_fill_viridis(option = "viridis", direction = -1, alpha = .5) +
-            scale_fill_fermenter(palette = "YlGnBu") +
+            scale_fill_fermenter(palette = "YlGnBu", type = "seq") +
             scale_color_manual(values = c(alpha("white", 1/3), "black")) +
             theme_minimal(base_family = "PT Sans", base_size = 12) -> p
         
         if (input$value_regio_show_mode == "kaikki tason alueet"){
-            p + geom_sf_label(data = dat %>% filter(aluenimi == input$value_region_selected),
+            if (input$value_regio_level != "Kunnat"){
+                p + geom_sf_label(data = dat %>% filter(!aluenimi %in% input$value_region_selected), 
+                                  aes(label = value), 
+                                  family = "PT Sans", 
+                                  color = "black", 
+                                  fill = "white", 
+                                  size = 2.5) -> p
+            }
+                p <- p + geom_sf_label(data = dat %>% filter(aluenimi == input$value_region_selected),
                               aes(label = paste(aluenimi, value)),
-                              fill = alpha("white",2/3), color = "black", family = "PT Sans") -> p
+                              fill = "white", color = "black", family = "PT Sans")
+
         } else if (input$value_regio_show_mode == "valittu alue ja sen naapurit"){
             p + geom_sf_label(data = dat,
                               aes(label = paste(aluenimi, value)),
-                              fill = alpha("white",2/3), color = "black", family = "PT Sans") -> p
+                              fill = "white", color = "black", family = "PT Sans") -> p
         } else if (input$value_regio_show_mode == "valitun alueen kunnat"){
                 p + ggrepel::geom_label_repel(data = dat %>%
                                                  sf::st_set_geometry(NULL) %>%
                                                  bind_cols(dat %>% sf::st_centroid() %>% sf::st_coordinates() %>% as_tibble()),
                                              aes(label = paste0(aluenimi,"\n", value), x = X, y = Y),
-                                             color = "black", fill = alpha("white", 1/3),
+                                             color = "black", fill = alpha("white", 2/3),
                                              family = "PT Sans", size = 3, lineheight = .8) -> p
             
         }
         p + theme(axis.text = element_blank(),
                   axis.title = element_blank(),
                   panel.grid = element_blank(),
-                  legend.position = "none",
+                  # legend.position = "left",
+                  legend.position = c(0.1, 0.5),
                   plot.title.position = "plot") +
-            labs(fill = NULL) -> p2
+            labs(fill = paste0(add_line_break2(input$value_variable, 20), "\n(suhdeluku)")) -> p2
 
         # luodaan alaotsikko
         if (input$value_regio_show_mode == "valitun alueen kunnat"){
@@ -734,7 +785,7 @@ server <- function(input, output) {
             theme_ipsum(base_family = "PT Sans",
                         plot_title_family = "PT Sans",
                         subtitle_family = "PT Sans",
-                        grid_col = "white", 
+                        axis_title_size = 12,
                         plot_title_face = "plain") +
             # scale_fill_brewer(palette = "YlGnBu") +
             # scale_color_brewer(palette = "YlGnBu") +
@@ -742,12 +793,15 @@ server <- function(input, output) {
             # scale_color_viridis_d(option = "plasma", direction = -1, begin = .1, end = .9) +
             labs(fill = NULL,
                  x = NULL,
-                 y = NULL,
+                 y = paste0(add_line_break2(input$value_variable, 50), "\n(suhdeluku)"),
                  title = glue("{input$value_variable}"),
                  subtitle = kuvan_subtitle,
                  caption = glue("Huono-osaisuus Suomessa -karttasovellus (Diak)\nData: THL (perusdata) & Diak (mediaanisuhteutus)\nTiedot haettu:{Sys.Date()}")
                  )  +
             theme(legend.position = "none",
+                  panel.grid.major.x = element_line(),
+                  panel.grid.minor.x = element_blank(),
+                  panel.grid.major.y = element_blank(),
                   plot.title.position = "plot",
                   plot.title = element_text(family = "PT Sans", size = 20),
                   plot.subtitle = element_text(family = "PT Sans", size = 16),
@@ -1415,8 +1469,11 @@ server <- function(input, output) {
                             tags$h3(glue("{aluename} ({aluetaso1})")),
                             tags$p("Analyysissä mukana naapurit: ", glue_collapse(unique(tabdat[tabdat$rooli == "naapuri",]$aluenimi), sep = ", ", last = " ja "))
             ),
-            column(width = 6,
+            column(width = 4,
                    withSpinner(uiOutput("output_save_word"), proxy.height = "100px")
+            ),
+            column(width = 2,
+                   uiOutput("output_save_data_profile")
             )
             ),
             tags$hr(),
@@ -1526,7 +1583,7 @@ server <- function(input, output) {
     #     |_|\__,_|_|_|\___|_| |_|_| |_|\__,_|___/
     #                                             
     # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
-    ## tallennus ----
+    ## wordin tallennus ----
     
     output$output_save_word <- renderUI({
         
@@ -1622,6 +1679,57 @@ server <- function(input, output) {
             # )
         }
     )
+    
+    ## datan tallennus ----
+    ## 
+    output$save_data_profile <- downloadHandler(
+        
+        filename = function() {
+            
+            aluename <- react_value_region_profile()
+            aluetaso1 <- react_value_regio_level_profile()
+    
+            file_name <- glue("alueprofiili_data_{janitor::make_clean_names(aluename)}_{tolower(aluetaso1)}.csv")
+            return(file_name)
+        },
+        content = function(file) {
+            
+            dat <- get_dat_timeseries()
+            region_data <- get_region_data()
+            
+            aluename <- react_value_region_profile()
+            aluetaso1 <- react_value_regio_level_profile()
+            
+            naapurikoodit_lst <- region_data[region_data$level %in% aluetaso1 & 
+                                                 region_data$region_name %in% aluename,"neigbours"]
+            
+            naapurikoodit <- naapurikoodit_lst %>% 
+                unnest(cols = c(neigbours)) %>% 
+                pull(neigbours)
+
+            dat[dat$regio_level %in% aluetaso1 & dat$aluenimi %in% aluename ,] %>% 
+                select(aika,aluenimi,var_class,variable,value) %>% 
+                mutate(rooli = "valinta") -> tmpdat1
+            dat[dat$regio_level %in% aluetaso1 & dat$aluekoodi %in% naapurikoodit ,] %>% 
+                filter(!aluenimi %in% aluename) %>% 
+                select(aika,aluenimi,var_class,variable,value) %>% 
+                mutate(rooli = "naapuri") -> tmpdat2
+            tmpdat <- bind_rows(tmpdat1,tmpdat2) 
+            
+            readr::write_excel_csv2(x = tmpdat, file = file)
+        }
+    )
+    
+    output$output_save_data_profile <- renderUI({
+        
+        req(input$value_variable)
+        tagList(
+            downloadButton("save_data_profile", "Tallenna data csv-muodossa!", class="btn btn-dark")
+        )
+    })
+    
+    
+    ## muuttujaluettelot ----
     
     
     get_variable_description <- reactive({
