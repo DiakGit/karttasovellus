@@ -83,4 +83,31 @@ code {
     -khtml-box-shadow: 2px 2px 3px #ccc;
 }
 
+.navbar-light .navbar-nav .nav-link {
+    color: rgba(0, 0, 0, 0.9) !important;
+}
+
+a {
+    color: #1A5699 !important;
+    text-decoration: none;
+    background-color: transparent;
+}
+
+code {
+    font-size: 87.5%;
+    color: #A52B63 !important;
+    word-wrap: break-word;
+}
+
+.btn-primary {
+    color: #fff;
+    background-color: #1A5699;
+    border-color: #1A5699;
+}
+
+.btn-dark {
+    color: #fff !important;
+    background-color: #373a3c;
+    border-color: #373a3c;
+}
 

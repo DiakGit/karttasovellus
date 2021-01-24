@@ -47,7 +47,7 @@
     <!-- Navigation -->
   <nav class="navbar navbar-expand-lg navbar-light bg-light sticky-top">
     <div class="container">
-      <a class="navbar-brand" role="banner" href="#"><img src = "https://www.diak.fi/wp-content/themes/diak/dist/images/diak-logo-1.svg" style = "height: 25px; padding-right: 5px;" alt = "Diakonia-ammattikorkeakoulun logo"><small>Huono-osaisuus Suomessa</small></a>
+      <a class="navbar-brand" role="banner" href="#"><img src = "https://www.diak.fi/wp-content/themes/diak/dist/images/diak-logo-1.svg" style = "height: 25px; padding-right: 5px;" alt = "Diakonia-ammattikorkeakoulun logo"><small style = "color: black;">Huono-osaisuus Suomessa</small></a>
       <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarResponsive" aria-controls="navbarResponsive" aria-expanded="false" aria-label="Avaa valikko">
         <span class="navbar-toggler-icon"></span>
       </button>
@@ -88,25 +88,25 @@
   
   <!--p class="lead">Näin käytät sovellusta!</p-->
   
-  <p class="lead">Sovelluksessa voit tarkastella erilaisia huono-osaisuuden osoittimia sekä luoda  profiileja alueista. Aluetasoja on kolme: <i>maakunnat, seutukunnat ja kunnat.</i></p>
+  <p class="lead">Sovelluksessa voit tarkastella erilaisia huono-osaisuuden osoittimia sekä luoda  profiileja alueista. Aluetasoja on kolme: maakunnat, seutukunnat ja kunnat.</p>
   <h2 id = "ohje">Näin käytät sovellusta</h2>
    <p><a href="#indikaattorivertailu">Muuttujien tarkasteluun</a> ja 
    <a href="#alueprofiili">alueprofiilien laatimiseen</a> ovat omat valikkonsa.</p>
    
 
    
-  <strong>Indikaattorivertailun</strong> <i>valitse muuttujaluokka</i>-valikosta voit säädellä haluatko katsoa huono-osaisuuden summatietoja vai tarkemmin kunkin huono-osaisuuden ulottuvuuden osoittimia. 
-  <i>Valitse muuttuja</i>-valikosta voit valita tarkemman osoittimen ja 
-  <i>valitse aluetaso</i>-valikosta aluetason.<br/>
+  <strong>Indikaattorivertailun</strong> valitse muuttujaluokka-valikosta voit säädellä haluatko katsoa huono-osaisuuden summatietoja vai tarkemmin kunkin huono-osaisuuden ulottuvuuden osoittimia. 
+  Valitse muuttuja-valikosta voit valita tarkemman osoittimen ja 
+  valitse aluetaso-valikosta aluetason.<br/>
   Voit myös valita, näkyykö pylväs-, kartta- ja aikasarjakuviossa: 
   <ul>
     <li>kaikki valitun tason alueet,</li> 
     <li>valittu alue ja sen naapurit, vai</li> 
     <li>valitun maakunnan/seutukunnan kunnat</li>
   </ul>  
-  <i>Pylväs- ja karttakuvio sekä aikasarjakuvio muuttuvat samanaikaisesti valinnan muuttuessa.</i>
+  Pylväs- ja karttakuvio sekä aikasarjakuvio muuttuvat samanaikaisesti valinnan muuttuessa.
   <br/><br/>
-  <strong>Alueprofiilin</strong> täytyy valita vain <i>aluetaso</i> sekä <i>alue</i>. Alueprofiili sisältää aina kaikkien osoittimien tiedot sekä valitulta alueelta että alueen 
+  <strong>Alueprofiilin</strong> täytyy valita vain aluetaso sekä alue. Alueprofiili sisältää aina kaikkien osoittimien tiedot sekä valitulta alueelta että alueen 
   rajanaapureista, sekä niiden aikasarjakuviot. Lisäksi alueprofiilissa esitetään kunkin osoittimen korkein ja matalin arvo.
   <br/><br/>
   Jos haluat viitata karttasivustoon tekstissäsi, käytä lähdeviitteenä:
@@ -121,20 +121,21 @@
 <div class="col-lg-4">
   <div style = "padding-top: 20px;"></div>
     <div class="row">
-      <div class="col-sm">
-        <img src="app_vipu.png" style="height: 62px;" alt = "Rakennerahastot.fi -verkkopalvelun logo"/>
-      </div>
     <div class="col-sm">
-      <img src="app_eu.png" style="height: 62px;" alt = "Euroopan unionin lippu, jonka alla teksti: Euroopan unioni, Euroopan aluekehitysrahasto"/>
+      <img src="app_eu.png" style="height: 160px;" alt = "Euroopan unionin lippu, jonka alla teksti: Euroopan unioni, Euroopan aluekehitysrahasto"/>
+      </div>
+      <div class="col-sm">
+
       </div>
         </div>
         <div style = "padding-top: 20px;"></div>
   <div class="row">
 
       <div class="col-sm">
+              <img src="app_vipu.png" style="height: 62px; padding-right: 5px;" alt = "Rakennerahastot.fi -verkkopalvelun logo"/>  
       <img src="app_sokra.png" style="height: 62px;" alt = "Sosiaalisen osallisuuden edistämisen koordinaatiohankeen Sokran logo"/>
-      </div>
-            <div class="col-sm">
+      <!--/div>
+            <div class="col-sm"-->
         <img src="app_diak.png" style="height: 62px;" alt = "Diakonia-ammattikorkeakoulun logo"/>
       </div>
 
@@ -164,7 +165,10 @@
     <!--div class="col-sm"-->
     <div id="output_regio_level" class="shiny-html-output"></div>
     <div id="output_regio_select" class="shiny-html-output"></div>
+    
     <!--/div>
+    
+    
     
 
   </div>
@@ -174,6 +178,7 @@
   <div class="row"-->
     
     <div id="output_regio_show_mode" class="shiny-html-output"></div>
+    <div id="output_save_data_indicator" class="shiny-html-output"></div>
 
   </div>
 </div>
