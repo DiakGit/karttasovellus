@@ -920,7 +920,8 @@ server <- function(input, output) {
                 hrbrthemes::theme_ipsum(base_family = "PT Sans", 
                                         base_size = 11, 
                                         plot_title_size = 12) +
-                scale_fill_viridis_c(option = "plasma") +
+                # scale_fill_viridis_c(option = "plasma") +
+                scale_fill_fermenter(palette = "YlGnBu") +
                 theme(axis.text.x = element_blank(),
                       axis.text.y = element_blank(),
                       axis.title.x = element_blank(),
