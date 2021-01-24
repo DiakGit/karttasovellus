@@ -991,7 +991,7 @@ server <- function(input, output) {
                      title = val_muuttuja
                 ) +
                 geom_sf_label(aes(label = paste0(region_name, "\n", round(arvo,1))), 
-                              color = "white", fill = alpha("black", 1/3), family = "PT Sans", size = 3)
+                              color = "black", fill = "white", family = "PT Sans", size = 3)
         plot
     }
     
@@ -1042,8 +1042,8 @@ server <- function(input, output) {
                       plot.title.position = "plot",
                       plot.title = element_text(face = "plain"),
                       axis.text.x = element_text(size = 9)) +
-                scale_fill_viridis_d(option = "viridis", direction = -1, begin = .1, end = .9) +
-                scale_color_viridis_d(option = "viridis", direction = -1, begin = .1, end = .9) +
+                # scale_fill_viridis_d(option = "viridis", direction = -1, begin = .1, end = .9) +
+                # scale_color_viridis_d(option = "viridis", direction = -1, begin = .1, end = .9) +
                 labs(y = NULL, x = NULL,
                      title = val_muuttuja1
                      )

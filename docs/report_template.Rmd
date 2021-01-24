@@ -133,7 +133,7 @@ theme(axis.text = element_blank(),
                                     sf::st_coordinates() %>% as_tibble()),
                      aes(label = paste0(aluenimi, "\n",
                                         round(value,1)), x = X, y = Y),
-                     color = "white", fill = alpha("black", 1/3), family = "PT Sans")
+                     color = "black", fill = "white", family = "PT Sans")
 
     
     gg_x[[i]] <- p
