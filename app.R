@@ -433,12 +433,13 @@ server <- function(input, output) {
                         subtitle_family = "PT Sans",
                         grid_col = "white") +
             xlim(c(0,max(dat$value, na.rm = TRUE)*1.2)) +
-            theme(legend.position = "none",
+            theme(legend.position = "right",
                   plot.title.position = "plot") +
             # scale_fill_ipsum() +
-            scale_fill_viridis_c(option = "viridis", direction = -1, alpha = .4, na.value="grey90") +
-            scale_color_manual(values = c("white","black")) + 
-            geom_col(aes(color = color), fill = NA) -> plot
+            # scale_fill_viridis_c(option = "viridis", direction = -1, alpha = .4, na.value="grey90") +
+            scale_fill_fermenter(palette = "YlGnBu") +
+            scale_color_manual(values = c("grey80","black")) + 
+            geom_col(aes(color = color), fill = NA, show.legend = FALSE) -> plot
         
         # Tolppakuvion eri aluetasoilla erityyppiset tolppakuviot
         if (input$value_regio_level == "Seutukunnat"){
@@ -465,7 +466,7 @@ server <- function(input, output) {
                                      family = "PT Sans")
         }
         plot + scale_y_discrete(expand = expansion(add = 2)) +
-            labs(x = NULL, y = NULL) -> p1
+            labs(x = NULL, y = NULL, fill = NULL) -> p1
         
         
         ## kartta ----
@@ -502,7 +503,8 @@ server <- function(input, output) {
         
         ggplot(data = dat, aes(fill = value, color = color)) +
             geom_sf()  +
-            scale_fill_viridis(option = "viridis", direction = -1, alpha = .5) +
+            # scale_fill_viridis(option = "viridis", direction = -1, alpha = .5) +
+            scale_fill_fermenter(palette = "YlGnBu") +
             scale_color_manual(values = c(alpha("white", 1/3), "black")) +
             theme_minimal(base_family = "PT Sans", base_size = 12) -> p
         
@@ -621,14 +623,17 @@ server <- function(input, output) {
         naapurikoodit_lst <- region_data[region_data$level %in% input$value_regio_level & 
                                              region_data$region_name %in% input$value_region_selected,"neigbours"]
         
-        naapurikoodit <- naapurikoodit_lst %>% unnest(cols = c(neigbours)) %>% pull(neigbours)
+        naapurikoodit <- naapurikoodit_lst %>% 
+            unnest(cols = c(neigbours)) %>% 
+                pull(neigbours)
         
         
         df <- dat[dat$variable == input$value_variable &
                       dat$regio_level == input$value_regio_level,] #%>% 
             # mutate(color = ifelse(aluenimi %in% input$value_region_selected, TRUE, FALSE))
         
-        df2 <- df[df$aluekoodi %in% naapurikoodit,]
+        df2 <- df[df$aluekoodi %in% naapurikoodit,] %>% 
+            filter(!aluenimi %in% input$value_region_selected)
         
         
         aika1 <- sort(unique(df$aika)) - 1
@@ -637,16 +642,32 @@ server <- function(input, output) {
         
         ggplot() -> plot0
         
+        df_selected_cs <- df %>% 
+            filter(aika == max(aika, na.rm = TRUE),
+                   aluenimi == input$value_region_selected)
+        
+        df_selected_ts <- df %>% 
+            filter(aluenimi == input$value_region_selected)
         
         if (input$value_regio_show_mode == "kaikki tason alueet"){
-            
-        plot0 <- plot0 + geom_line(data = df,aes(x = aika, y = value, color= aluenimi, fill= aluenimi), show.legend = FALSE) +
-            geom_point(shape = 21, color = "white", stroke = 1, size = 2.5) +
+        
+        plot0 <- plot0 + 
+            geom_line(data = df, aes(x = aika, y = value, color= aluenimi, fill= aluenimi), show.legend = FALSE) +
+            geom_line(data = df_selected_ts, aes(x = aika, y = value), color = "black") +
+            geom_point(data = df_selected_ts, aes(x = aika, y = value),
+                      fill = "black", 
+                      color = "white", shape = 21, size = 2.5, stroke = 1) +
+            # geom_point(shape = 21, color = "white", stroke = 1, size = 2.5) +
             # ggrepel::geom_text_repel(data = df %>% filter(color, aika == max(aika, na.rm = TRUE)),
             #                          aes(x = aika, y = value, color= aluenimi, label = round(value,1)), family = "PT Sans") +
-            geom_text(data = df %>% filter(aika == max(aika, na.rm = TRUE),
-                                                          aluenimi == input$value_region_selected),
-                                     aes(x = aika, y = value, color= aluenimi, label = paste(aluenimi, round(value,1))),color = "black", family = "PT Sans", nudge_x = .2)
+            geom_text(data = df_selected_cs,
+                                     aes(x = aika, 
+                                         y = value, 
+                                         color= aluenimi, 
+                                         label = paste(aluenimi, round(value,1))),
+                      color = "black", 
+                      family = "PT Sans", 
+                      nudge_x = .3)
             
         } else if (input$value_regio_show_mode == "valittu alue ja sen naapurit"){
             
@@ -657,11 +678,27 @@ server <- function(input, output) {
                 geom_line(data = df,
                           aes(x = aika, y = value, group = aluenimi),
                           color = "dim grey", alpha = .1) +
-                geom_point(shape = 21, color = "white", stroke = 1, size = 2.5) +
+                geom_point(data = df2, 
+                           aes(x = aika, y = value,fill= aluenimi), shape = 21, color = "white", stroke = 1, size = 2.5) +
                 ggrepel::geom_text_repel(data = df2 %>% filter(aika == max(aika, na.rm = TRUE)),
-                                         aes(x = aika, y = value, color= aluenimi, label = round(value,1)), family = "PT Sans") +
-                ggrepel::geom_text_repel(data = df2 %>% filter(aika == max(aika, na.rm = TRUE)-1),
-                                         aes(x = aika, y = value, color= aluenimi, label = aluenimi), family = "PT Sans")
+                                         aes(x = aika, y = value, color= aluenimi, 
+                                             label = paste(aluenimi, round(value,1))), 
+                                         family = "PT Sans", nudge_x = .3) +
+                geom_line(data = df_selected_ts, aes(x = aika, y = value), color = "black") +
+                geom_point(data = df_selected_ts, aes(x = aika, y = value),
+                           fill = "black", 
+                           color = "white", shape = 21, size = 2.5, stroke = 1) +
+                geom_text(data = df_selected_cs,
+                          aes(x = aika, 
+                              y = value, 
+                              color= aluenimi, 
+                              label = paste(aluenimi, round(value,1))),
+                          color = "black", 
+                          family = "PT Sans", 
+                          nudge_x = .3)
+                # ggrepel::geom_text_repel(data = df2 %>% filter(aika == max(aika, na.rm = TRUE)-1),
+                #                          aes(x = aika, y = value, color= aluenimi, label = aluenimi), 
+                #                          family = "PT Sans")
             
             
         } else if (input$value_regio_show_mode == "valitun alueen kunnat"){
@@ -699,8 +736,10 @@ server <- function(input, output) {
                         subtitle_family = "PT Sans",
                         grid_col = "white", 
                         plot_title_face = "plain") +
-            scale_fill_viridis_d(option = "plasma", direction = -1, begin = .1, end = .9) +
-            scale_color_viridis_d(option = "plasma", direction = -1, begin = .1, end = .9) +
+            # scale_fill_brewer(palette = "YlGnBu") +
+            # scale_color_brewer(palette = "YlGnBu") +
+            # scale_fill_viridis_d(option = "plasma", direction = -1, begin = .1, end = .9) +
+            # scale_color_viridis_d(option = "plasma", direction = -1, begin = .1, end = .9) +
             labs(fill = NULL,
                  x = NULL,
                  y = NULL,
