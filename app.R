@@ -947,7 +947,7 @@ server <- function(input, output) {
         return(tabdat)
     }
     
-    
+    ### alueprofiilin kartta ----
     alueprofiilikartta_html <- function(val_aluetaso1 = aluetaso1, 
                                         val_aluename = aluename, 
                                         val_region_data = region_data, 
@@ -995,7 +995,7 @@ server <- function(input, output) {
         plot
     }
     
-    
+    ### alueprofiilin aikasarja ----
     alueprofiiliaikasarja_html <- function(val_aluetaso1 = aluetaso1, 
                                            val_aluename = aluename, 
                                            val_region_data = region_data, 
@@ -1027,19 +1027,23 @@ server <- function(input, output) {
                 geom_line(show.legend = FALSE) +
                 geom_point(shape = 21, color = "white", stroke = 1, size = 2.5) +
                 ggrepel::geom_text_repel(data = plotdata_tmp %>% filter(aika == max(aika, na.rm = TRUE)),
-                                         aes(label = round(value,1)), family = "PT Sans") +
-                ggrepel::geom_text_repel(data = plotdata_tmp %>% filter(aika == max(aika, na.rm = TRUE)-1),
-                                         aes(label = aluenimi), family = "PT Sans", nudge_x = -1) +
+                                         aes(label = paste(aluenimi, round(value,1))), family = "PT Sans") +
+                # ggrepel::geom_text_repel(data = plotdata_tmp %>% filter(aika == max(aika, na.rm = TRUE)-1),
+                #                          aes(label = aluenimi), family = "PT Sans", nudge_x = -1) +
                 
                 scale_x_continuous(breaks = sort(unique(plotdata_tmp$aika)), labels = labels) +
                 theme_ipsum(base_family = "PT Sans", 
                             base_size = 11, 
                             plot_title_size = 12,
                             plot_title_family = "PT Sans",
-                            subtitle_family = "PT Sans",
-                            grid_col = "white") +
+                            subtitle_family = "PT Sans"#,
+                            # grid_col = "white"
+                            ) +
                 theme(legend.position = "none",
                       plot.title.position = "plot",
+                      panel.grid.major.x = element_line(),
+                      panel.grid.minor.x = element_blank(),
+                      panel.grid.major.y = element_blank(),
                       plot.title = element_text(face = "plain"),
                       axis.text.x = element_text(size = 9)) +
                 # scale_fill_viridis_d(option = "viridis", direction = -1, begin = .1, end = .9) +
