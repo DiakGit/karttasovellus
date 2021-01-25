@@ -175,7 +175,7 @@ for (i in 1:length(vars)){
             geom_line(show.legend = FALSE) +
             geom_point(shape = 21, color = "white", stroke = 1, size = 2.5) +
             ggrepel::geom_text_repel(data = plotdata_tmp %>% filter(aika == max(aika, na.rm = TRUE)),
-                                     aes(label = paste0(aluenimi, "\n",round(value,1))), family = "PT Sans") +
+                                     aes(label = paste0(aluenimi, " ",round(value,1))), family = "PT Sans") +
             # ggrepel::geom_text_repel(data = plotdata_tmp %>% filter(aika == max(aika, na.rm = TRUE)-1),
             #                          aes(label = aluenimi), family = "PT Sans", nudge_x = -1) +
             scale_x_continuous(breaks = sort(unique(plotdata_tmp$aika)), labels = labels) +
