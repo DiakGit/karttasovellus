@@ -1,18 +1,11 @@
-# devtools::install_github("RinteRface/bs4Dash")
-
 library(shiny)
-library(shinyWidgets)
 library(shinycssloaders)
 library(dplyr)
-library(readxl)
 library(geofi)
 library(ggplot2)
 library(tidyr)
 library(sf)
 library(ggrepel)
-library(gt)
-library(leaflet)
-library(DT)
 library(glue)
 library(knitr)
 library(patchwork)
@@ -24,7 +17,8 @@ library(viridis)
 library(purrr)
 library(janitor)
 library(hrbrthemes)
-# library(waiter)
+
+
 
 add_line_break <- function(x = "very many many characters and words and sentences",
                            n = 20){

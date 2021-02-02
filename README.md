@@ -11,3 +11,4 @@ Sovelluksen pystyttäminen
 
 ***
 
+(C) 2020-2021 DIAK [MIT](LICENCE)-lisenssi
