@@ -17,7 +17,7 @@ library(viridis)
 library(purrr)
 library(janitor)
 library(hrbrthemes)
-
+library(gt)
 
 
 add_line_break <- function(x = "very many many characters and words and sentences",
