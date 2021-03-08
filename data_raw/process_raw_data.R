@@ -13,7 +13,7 @@ dir_create(here("./data"))
 ## POIKKILEIKKAUSDATA
 
 # dir_ls(here("./data_raw/"), glob = "*.xlsx") -> flies
-dd <- read_excel("./data_raw/Kopio_Huono-osaisuuden mittarit - KAIKKI.xlsx")
+# dd <- read_excel("./data_raw/Kopio_Huono-osaisuuden mittarit - KAIKKI.xlsx")
 dd <- read_excel("./data_raw/Huono-osaisuusindikaattorit - uusimmat.xlsx")
 
 df_tmp <- dd %>%
