@@ -8,6 +8,7 @@ Sovelluksen pystyttäminen
 3. Kopioi kansioon `data_raw` seuraavat excel-tiedostot:
     - `Aikasarjadata KORJATTU.xlsx`
     - `Huono-osaisuusindikaattorit - uusimmat.xlsx`
+4. Kopioi excel-tiedosto `Muuttujakuvaukset_20201102.xlsx` kansioon `./data/`
 4. Aja komento `source("./data_raw/process_raw_data.R")`
 5. Käynnistä sovellus komenolla `shiny::runApp()`
 
