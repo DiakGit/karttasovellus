@@ -1,6 +1,9 @@
 Diak karttasovellus: sovelluksen kehittäminen rstudio.cloud -ympäristössä
 =========================================================
 
+
+- ympäristön luomisen prosessi [50s videona](http://software.markuskainu.fi/diak/kartat2020/diak_rstudiocloud_20210315.mp4)
+
 ## rstudio.cloud
 
 1. Mene osoitteeseen: [rstudio.cloud](https://rstudio.cloud) (RStudio) ja luo uusi tili joko Googlen tai Githubin tunnuksilla tai luomalla uusi tunnus palveluun. Kirjaudu palveluun tunnuksellasi.
