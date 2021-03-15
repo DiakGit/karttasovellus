@@ -214,6 +214,15 @@ saveRDS(df2, here("./data/df_v20210111_aikasarja.RDS"),
         compress = FALSE)
 
 
+# Muuttujakuvaukset
+dat <- readxl::read_excel("./data_raw/Muuttujakuvaukset_20201102.xlsx") %>% 
+  setNames(c("Muuttujaluokka","Muuttuja","Aluetasot","Kuvaus")) %>% 
+  mutate(Muuttujaluokka = factor(Muuttujaluokka, levels = c("Summamuuttujat",
+                                                            "Inhimillinen huono-osaisuus",
+                                                            "Huono-osaisuuden taloudelliset seuraukset", 
+                                                            "Huono-osaisuuden sosiaaliset seuraukset"))) %>% 
+  arrange(Muuttujaluokka)
+saveRDS(object = dat, file = "./data/muuttujakuvaukset.RDS")
 
 
 if (F){
@@ -229,3 +238,5 @@ readRDS("./data/df_v20201102.RDS") %>%
 writexl::write_xlsx(x = dada, path = "./data/muuttujakuvaukset.xlsx")
 
 }
+
+

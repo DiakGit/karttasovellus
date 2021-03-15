@@ -1737,13 +1737,7 @@ server <- function(input, output) {
     
     
     get_variable_description <- reactive({
-        dat <- readxl::read_excel("./data_raw/Muuttujakuvaukset_20201102.xlsx") %>% 
-            setNames(c("Muuttujaluokka","Muuttuja","Aluetasot","Kuvaus")) %>% 
-            mutate(Muuttujaluokka = factor(Muuttujaluokka, levels = c("Summamuuttujat",
-                                                                      "Inhimillinen huono-osaisuus",
-                                                                      "Huono-osaisuuden taloudelliset seuraukset", 
-                                                                      "Huono-osaisuuden sosiaaliset seuraukset"))) %>% 
-            arrange(Muuttujaluokka)
+        dat <- readRDS("./data/muuttujakuvaukset.RDS")
         return(dat)
     })
     
