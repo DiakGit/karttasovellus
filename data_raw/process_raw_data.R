@@ -9,8 +9,7 @@ library(here)
 dir_create(here("./data"))
 
 
-# ------------------------------------
-## POIKKILEIKKAUSDATA
+## POIKKILEIKKAUSDATA ----
 
 # dir_ls(here("./data_raw/"), glob = "*.xlsx") -> flies
 # dd <- read_excel("./data_raw/Kopio_Huono-osaisuuden mittarit - KAIKKI.xlsx")
@@ -100,8 +99,7 @@ saveRDS(regio_Kunnat,
 
 
 
-# -------------------------------------------
-## NAAPURIDATA
+## NAAPURIDATA ----
 
 # tehdään aluekoodi/aluenimi -data vielä
 muni <- get_municipalities(year = 2019) %>%
@@ -149,8 +147,7 @@ region_data2 <- left_join(region_data,neigbour_data)
 saveRDS(region_data2, "./data/region_data.RDS")
 
 
-# -------------------------------------------
-## AIKASARJA
+## AIKASARJADATA ----
 dd <- read_excel("./data_raw/Aikasarjadata KORJATTU.xlsx")
 
 df_tmp <- dd %>%
@@ -214,7 +211,7 @@ saveRDS(df2, here("./data/df_v20210111_aikasarja.RDS"),
         compress = FALSE)
 
 
-# Muuttujakuvaukset
+# Muuttujakuvaukset ----
 dat <- readxl::read_excel("./data_raw/Muuttujakuvaukset_20201102.xlsx") %>% 
   setNames(c("Muuttujaluokka","Muuttuja","Aluetasot","Kuvaus")) %>% 
   mutate(Muuttujaluokka = factor(Muuttujaluokka, levels = c("Summamuuttujat",
