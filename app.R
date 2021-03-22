@@ -104,6 +104,15 @@ server <- function(input, output) {
         opt_indicator <- indicator_df[indicator_df$var_class %in% input$value_variable_class,]$variable
         opt_indicator2 <- names(sort(table(opt_indicator), decreasing = TRUE))
         
+        if (input$value_variable_class == "Summamuuttujat"){
+            opt_indicator2 <- factor(opt_indicator2, levels = c("Huono-osaisuus yhteensä",
+                                                                "Huono-osaisuuden sosiaaliset seuraukset", 
+                                                                "Huono-osaisuuden taloudelliset yhteydet", 
+                                                                "Inhimillinen huono-osaisuus"))
+        } else {
+            opt_indicator2 <- factor(opt_indicator2)
+        }
+
         # if (input$sidebar_menu == "info"){
         #     tagList()
         # } else {
@@ -111,7 +120,7 @@ server <- function(input, output) {
             selectInput(inputId = "value_variable", 
                         label = "Valitse muuttuja", 
                         choices = opt_indicator2
-                        ,selected = opt_indicator2[1],
+                        ,selected = levels(opt_indicator2)[1],
                         # option= pickerOptions(
                         #     actionsBox = TRUE,
                         #     liveSearch = TRUE,
