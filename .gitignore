@@ -4,8 +4,8 @@
 .Ruserdata
 run.R
 rsconnect
-diak_app.Rproj
 data
 odt_test.Rmd
 odt_test.docx
 odt_test.odt
+*.Rproj
