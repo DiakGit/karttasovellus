@@ -1,6 +1,5 @@
 source("./global.R")
 
-
 ui <- fluidPage(
     # use_waitress(),
     uiOutput("output_indicator_class"),
