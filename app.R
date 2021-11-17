@@ -1,34 +1,239 @@
 source("./global.R")
 
 
-ui <- fluidPage(
-    # use_waitress(),
-    uiOutput("output_indicator_class"),
-    uiOutput("output_indicator"),
-    uiOutput("output_regio_level"),
-    uiOutput("output_regio_select"),
-    uiOutput("output_regio_show_mode"),
-    shinycssloaders::withSpinner(plotOutput("timeseries_plot")),
-    shinycssloaders::withSpinner(plotOutput("map_rank_plot"))#,
-    
-    # uiOutput("output_regio_level_profile"),
-    # uiOutput("output_region_profile"),
-    # uiOutput("output_button_profile"),
-    # textOutput("aputeksti"),
-    # # uiOutput("output_save_word"),
-    # shinycssloaders::withSpinner(uiOutput("region_profile_html")),
-    # tags$hr(),
-    # plotOutput("profiilikartta01", width = "90%", height = "500px"),
-    
-    # uiOutput("output_save_map"),
-    # leaflet::leafletOutput("map1", width = "100%", height = "285px"),
-    # DT::dataTableOutput("rank_tbl"),
-    # verbatimTextOutput("value"),
-    # uiOutput("output_regio_level_profile"),
-    # uiOutput("output_region_profile"),
-    # uiOutput("region_profile_html"),
-    # DT::dataTableOutput("variable_desctiption")
-    # gt::gt_output("variable_desctiption_gt")
+ui <- fluidPage(lang = "fi",
+                title = "Tilastot kartalle",
+                tags$head(tags$link(rel="shortcut icon", href="favicon.ico")),
+                meta() %>% 
+                    meta_description(description = "Tilastot kartalle") %>% 
+                    meta_social(
+                        title = "Tilastot kartalle",
+                        description = "Tilastot kartalle: tarkastele geofi R-paketilla saatavia datoja selaimessa",
+                        url = "",
+                        image = "geofi_selain,png",
+                        image_alt = "An image for social media cards",
+                        twitter_creator = "@muuankarski",
+                        twitter_card_type = "summary_large_image",
+                        twitter_site = "@muuankarski"
+                    ),
+                theme = bslib::bs_theme(bootswatch = "cosmo",
+                                        # bg = "#0b3d91", fg = "white", primary = "#FCC780",
+                                        base_font = font_google("PT Sans"),
+                                        code_font = font_google("Space Mono")),
+                tags$html(HTML('<a class="sr-only sr-only-focusable" href="#maincontent">Skip to main</a>')),
+                tags$style(HTML("
+      .navbar-xyz {
+        background-color: rgb(255, 255, 255, .9);
+        border-bottom: 1px solid rgb(55, 55, 55, .4);
+      }
+      .leaflet-container {
+    background: #FFF;
+    }
+      .grey-background {
+      background-color: rgb(245, 245, 245, .9);
+      padding-top: 10px;
+      padding-right: 10px;
+      padding-bottom: 10px;
+      padding-left: 10px;
+      }
+      #map {
+    margin: auto;
+  }")),
+                tags$html(HTML('
+    <nav class="navbar navbar-light sticky-top navbar-xyz">
+      <a class="navbar-brand" role="brand" href = "#"><img src = "logo.svg" style = "height: 40px; padding-right: 0px;" alt = "logo"></a>
+      <div class = "lead">Tilastot kartalle</div>
+      <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarResponsive" aria-controls="navbarResponsive" aria-expanded="false" aria-label="Avaa valikko">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div role = "navigation" class="collapse navbar-collapse justify-content-between" id="navbarResponsive">
+        <ul class="navbar-nav ml-auto">
+          <!--li class="nav-item">
+            <a class="nav-link" href="https://github.com/rOpenGov/tilastot_kartalle"><code>&lt;sovelluksen lahdekoodi/&gt;&gt;</code></a>
+          </li-->
+          <li class="nav-item">
+            <a class="nav-link" href="#alku">Valikot</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="#kuviot">Kuviot</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="#ohjeet">Ohjeita</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="#footer">Tekijät</a>
+          </li>
+          <!--li class="nav-item">
+            <a class="nav-link" href="https://ropengov.github.io/pxweb/"><code>pxweb</code>-paketti</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="https://github.com/sotkanet/"><code>sotkanet</code>-paketti</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="https://ropengov.github.io/geofi/"><code>geofi</code>-paketti</a>
+          </li>
+                    <li class="nav-item">
+            <a class="nav-link" href="https://ropengov.org/"><img src = "https://ropengov.org/images/logo2020_black_orange.svg" style = "height: 20px; padding-right: 0px;" alt = "ropengov-logo"></a>
+          </li-->
+
+        </ul>
+      </div>
+  </nav>')),
+                tags$html(HTML('<main id="maincontent">')),
+                tags$h2("", id = "alku"),
+                
+                
+                fluidRow(column(9,
+                                tags$div(class = "grey-background",
+                                         fluidRow(column(4,
+                                                         # tags$h2("Etsitkö datamenestyjää?"),
+                                                         # tags$h2("Tilastot kartalle"),
+                                                         tags$p("Sovelluksen avulla luot karttoja ja tolppakuvioita Tilastokeskuksen, THL:n, 
+         Kelan ja muiden viranomaisten tilastoista eri aluetasoilla."),
+                                                         
+                                                         tags$p("Kuvien ohella sovellus koodaa sinulle",
+                                                                tags$a(href = "https://www.r-project.org/", "avoimella R-kielellä "),
+                                                                " lähdekoodin, jota muokkaamalla voit räätälöidä analyysia R:ssä. ", 
+                                                                tags$a(href = "#ohjeet", "Lue lisää ohjeista!")),
+                                                         tags$p("Voit tallentaa aineistoja", 
+                                                                tags$code("GeoPackage, Shapefile, .csv, .svg, .pdf tai .png"),"-muotoihin."),
+                                                         tags$p("Sovellus toimii parhaiten tietokoneen näytöllä.")),
+                                                  column(4,
+                                                         tags$h4("1. Määrittele tilasto"),
+                                                         uiOutput("ui_data_spatial"),
+                                                         uiOutput("ui_stat_data_01"),
+                                                         uiOutput("ui_stat_data_02"),
+                                                         uiOutput("ui_stat_data_03"),
+                                                         uiOutput("ui_year")),
+                                                  column(4,
+                                                         tags$h4("2. Aggregoi"),
+                                                         uiOutput("ui_aggregate_var"),
+                                                         uiOutput("ui_aggregate_method"),
+                                                         tags$h4("3. Lataa kartta-aineisto"),
+                                                         radioButtons("file_type", "Valitse tiedostomuoto",
+                                                                      choiceNames = list("GeoPackage (.gpkg)", "Shapefile (.shp)", 
+                                                                                         "teksti (.csv)",
+                                                                                         "Vektorikuva (.svg)", "Vektorikuva (.pdf)",
+                                                                                         "Bittimappikuva (.png)"),
+                                                                      # NOTE: the first value is ".zip", not ".shp", as shapefile
+                                                                      # must be zipped. Shiny can only output one file and each
+                                                                      # shapefile constitutes of several files.
+                                                                      choiceValues = list(".gpkg", ".zip", ".csv",
+                                                                                          ".svg",
+                                                                                          ".pdf",
+                                                                                          ".png"),
+                                                                      inline = FALSE),
+                                                         downloadButton("download_data", "Lataa aineisto")))),
+                                tags$h2("", id = "kuviot"),
+                                tags$h4("Indikaattorin metatiedot"),
+                                uiOutput("ui_meta_text"),
+                                tags$div(style = "padding-top: 100px;"),
+                                fluidRow(
+                                    column(5, 
+                                           # shinycssloaders::withSpinner(plotOutput("plot_shape", width = "100%", height = "850px"))
+                                           shinycssloaders::withSpinner(leafletOutput("map", width = "100%", height = "850px"))
+                                    ),
+                                    column(1),
+                                    column(6, 
+                                           uiOutput("ui_plot_bar"))
+                                )
+                ),
+                column(3,
+                       tags$h4("R-koodi kuvioiden piirtämiseen")
+                       ,downloadButton("download_code", "Lataa R-koodi"),
+                       shinycssloaders::withSpinner(verbatimTextOutput("output_code")))),
+                tags$h2("Ohjeet", id = "ohjeet"),
+                fluidRow(column(8, 
+                                tags$h3("Yleistä sovelluksesta"),
+                                tags$p("Tilastotietoa visualisoivien graafisten verkkosovellusten perusongelma on räätälöintimahdollisuuksien niukkuus. 
+                             Eri käyttäjät hakevat sovelluksista vastauksia eri kysymyksiin, eikä yksi sovellus riitä yleensä vastaamaan kunnolla niistä yhteenkään."),
+                                tags$p("Tämän sovellus ratkaisee ongelmaa tarjoamalla yksinkertaisen graafisen käyttöliittymän kuntatason avoimeen tilastotietoon
+                             sekä luomalla sen rinnalle saman näkymän tuottavan lähdekoodin", tags$a(href = "https://www.r-project.org/", "avoimella R-kielellä."), 
+                                       "Lähdekoodin pohjalta analyytikko/tutkija/opiskelija pääsee nopeasti liikkeelle räätälöidymmän analyysin teossa."),
+                                tags$p("Sovelluksen ensimmäinen versio on kehitetty kesällä 2021 kilpailutyönä", 
+                                       tags$a(href = "https://www.stat.fi/tup/datamenestyjat/index.html", "Tilastokeskuksen Datamenestyjät"), 
+                                       "-kilpailuun, mutta vastaavan sovelluksen tarpeellisuus on pantu merkille paljon aiemmin."),
+                                tags$p("Sovellus on tehty R:n",
+                                       tags$a(href = "https://shiny.rstudio.com/", "Shiny"), ":lla")
+                )),
+                fluidRow(column(4, 
+                                tags$h4("Tilastot ja aggregointi"),
+                                tags$p("Käytettävissä ovat sekä Tilastokeskuksen 'Kuntien avainluvut' -tilastot että koko THL:n Sotkanetin sisältö."),
+                                tags$p("Voit aggregoida kuntatason tilastoja ylemmille aluetasoille (maakunnat, seutukunnat jne.) eri metodeilla."),
+                                tags$p("Uusia datalähteitä voi ehdottaa sähköpostilla:", 
+                                       tags$a(href = "mailto:muuankarski@kapsi.fi?subject=Tilastot kartalle", "markus.kainu@kapsi.fi"))
+                ),
+                column(4, 
+                       tags$h4("R-koodin hyödyntäminen"),
+                       tags$p("Sovellus luo kartan ja tolppakuvion käyttäjän tekemien valintojen pohjalta. 
+                             Näiden lisäksi sovellus luo lähdekoodin saman näkymän tuottamiseksi R-kielellä. Saat siis vastaavat kuviot suorittamalla lähdekoodin R-ympäristössä."),
+                       tags$p("Lähdekoodin suorittaminen edellyttää lähdekoodin alussa olevien ohjelmistokirjastojen asentamisesta sekä internet-yhteyttä. 
+                             Lähdekoodin pohjalta on nopeampaa päästä alkuun räätälöityjen analyysien teossa.")
+                ),
+                column(4, 
+                       tags$h4("Aineistojen lataaminen"),
+                       tags$p("Aineistot on mahdollista ladata useassa eri muodossa. Pelkät kuvat voi ladata sekä vektorikuvina .svg ja .pdf -muodoissa, joita voi käsitellä edelleen esimerkiksi", tags$a(href = "https://inkscape.org", "Inkscape-ohjelmassa."), "Kuvat saa myös bittimappigrafiikkana .png-muodossa. Tilaston ilman paikkatietoa voi ladata .csv-muodossa."),
+                       tags$p("Tilastoaineiston yhdessä paikkatiedon kanssa voi ladata GeoPackage tai Shapefile -muodoissa, joita voi edelleen muokata esimerkiksi", tags$a(href = "https://www.qgis.org/en/site/", "QGIS-paikkatietohjelmalla."))
+                )),
+                tags$html(HTML('
+                     
+    <footer class="bd-footer py-5 mt-5 bg-light">
+    <h2 id = "footer"></h2>
+  <div class="container py-5">
+    <div class="row">
+      <div class="col-lg-3 mb-3">
+        <a class="d-inline-flex align-items-center mb-2 link-dark text-decoration-none" href="https://ropengov.org/" aria-label="Bootstrap">
+          <img src = "https://ropengov.org/images/logo2020_black_orange.svg" height = "35px"/>
+        </a>
+        <ul class="list-unstyled small text-muted">
+          <li class="mb-2">Sovellus ja osa sen käyttämistä ohjelmistokirjastoista on kehitetty <a href="https://ropengov.org/">rOpenGov</a>-projektissa vuosina 2012-2021 meidän <a href="https://ropengov.org/community/">vapaaehtoisten toimesta</a>.</li>
+          <li class="mb-2">Päävastuussa Tilastot kartalle -sovelluksen kehittämisestä on ollut <a href = "https://markuskainu.fi">Markus Kainu</a> (<code>markus.kainu@kapsi.fi</code>)</li>
+          <!--li class="mb-2">Code licensed <a href="https://github.com/twbs/bootstrap/blob/main/LICENSE" target="_blank" rel="license noopener">MIT</a>, docs <a href="https://creativecommons.org/licenses/by/3.0/" target="_blank" rel="license noopener">CC BY 3.0</a>.</li-->
+          <!--li class="mb-2">Currently v5.1.0.</li-->
+        </ul>
+      </div>
+      <div class="col-6 col-lg-2 offset-lg-1 mb-3">
+        <h5><code>pxweb</code></h5>
+        <ul class="list-unstyled">
+          <li class="mb-2"><a href="https://ropengov.github.io/pxweb/">Kotisivu</a></li>
+          <li class="mb-2"><a href="https://github.com/rOpenGov/pxweb/">Lähdekoodi</a></li>
+          <li class="mb-2"><a href="https://ropengov.github.io/pxweb/articles/pxweb.html#usage">Esimerkit</a></li>
+        </ul>
+      </div>
+      <div class="col-6 col-lg-2 mb-3">
+        <h5><code>sotkanet</code></h5>
+        <ul class="list-unstyled">
+          <li class="mb-2"><a href="https://ropengov.github.io/sotkanet/">Kotisivu</a></li>
+          <li class="mb-2"><a href="https://github.com/rOpenGov/sotkanet/">Lähdekoodi</a></li>
+          <li class="mb-2"><a href="https://ropengov.github.io/sotkanet/articles/tutorial.html">Esimerkit</a></li>
+        </ul>
+      </div>
+      <div class="col-6 col-lg-2 mb-3">
+        <h5><code>geofi</code></h5>
+        <ul class="list-unstyled">
+          <li class="mb-2"><a href="https://ropengov.github.io/geofi/">Kotisivu</a></li>
+          <li class="mb-2"><a href="https://github.com/rOpenGov/geofi/">Lähdekoodi</a></li>
+          <li class="mb-2"><a href="https://ropengov.github.io/geofi/articles/geofi_datasets.html">Esimerkit</a></li>
+        </ul>
+      </div>
+      <div class="col-6 col-lg-2 mb-3">
+        <!--h5>Community</h5>
+        <ul class="list-unstyled">
+          <li class="mb-2"><a href="https://github.com/twbs/bootstrap/issues">Issues</a></li>
+          <li class="mb-2"><a href="https://github.com/twbs/bootstrap/discussions">Discussions</a></li>
+          <li class="mb-2"><a href="https://github.com/sponsors/twbs">Corporate sponsors</a></li>
+          <li class="mb-2"><a href="https://opencollective.com/bootstrap">Open Collective</a></li>
+          <li class="mb-2"><a href="https://bootstrap-slack.herokuapp.com/">Slack</a></li>
+          <li class="mb-2"><a href="https://stackoverflow.com/questions/tagged/bootstrap-5">Stack Overflow</a></li>
+        </ul-->
+      </div>
+    </div>
+  </div>
+</footer>
+
+                     ')),
+                # tags$div(style = "padding-top: 300px;"),
+                tags$html(HTML('</main>'))
 )
 
 
