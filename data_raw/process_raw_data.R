@@ -15,25 +15,35 @@ dir_create(here("./data"))
 # dir_ls(here("./data_raw/"), glob = "*.xlsx") -> flies
 # dd <- read_excel("./data_raw/Kopio_Huono-osaisuuden mittarit - KAIKKI.xlsx")
 dd <- read_excel("./data_raw/Huono-osaisuusindikaattorit - uusimmat.xlsx")
+fs::file_copy("../data_storage/v20211104/huono_osaisuusindikaattorit_20211104.xlsx", "./data_raw/")
+dd <- read_excel("./data_raw/huono_osaisuusindikaattorit_20211104.xlsx") %>% 
+  select(1:31) %>% 
+  filter(!is.na(Aika)) %>% 
+  select(-Aika)
 
 df_tmp <- dd %>%
   rename(aluekoodi = Aluekoodi,
          aluenimi = Aluenimi,
          regio_level = Aluetaso) %>% 
-  mutate(aluekoodi = as.integer(ifelse(regio_level == "Maakunnat", sub("^MK", "", aluekoodi),
-                                       ifelse(regio_level == "Seutukunnat", sub("^SK", "", aluekoodi), aluekoodi)))) %>% 
-  select(regio_level,everything())
+  mutate(aluekoodi = as.integer(ifelse(regio_level == "Seutukunnat", sub("^SK", "", aluekoodi), aluekoodi))) %>% 
+  select(regio_level,everything()) %>% 
+  # maakunnat veks
+  filter(regio_level != "Maakunnat") %>% 
+  # hyvinvointialue -> hyvinvointialueet
+  mutate(regio_level = ifelse(regio_level == "Hyvinvointialue", "Hyvinvointialueet", regio_level)) %>% 
+  mutate(aluenimi = ifelse(aluenimi == "Helsinki (sosiaali- ja terveydenhuolto, sekä pelastustoimi)", 
+                           "Helsingin kaupunki", aluenimi))
 
 # Uusi data, jossa sarakenimet ei korjattu
 tibble(name1 = names(df_tmp)) %>% 
   mutate(osoitin = ifelse(grepl("^[A-z] - ", name1), TRUE, FALSE),
          summa = ifelse(grepl("^[A-Z][a-z]", name1), TRUE, FALSE)) %>%
   mutate(name2 = ifelse(summa, toupper(name1), sub("^[A-z] - ", "", name1)
-                        )) %>% 
+  )) %>% 
   pull(name2) -> new_names
 names(df_tmp) <- new_names
-  
-  
+
+
 ekaiso <- function(x) {
   substr(x, 1, 1) <- toupper(substr(x, 1, 1))
   x
@@ -57,7 +67,7 @@ df <- df_tmp %>%
   mutate(variable = ifelse(all_upper, ekaiso(tolower(variable)), variable))
 
 # Otetaan seutukuntanimiksi Tilastokeskuksen lyhyemmät
-geofi::municipality_key_2018 %>% 
+geofi::municipality_key_2021 %>% 
   count(seutukunta_name_fi,seutukunta_code) %>% 
   rename(aluekoodi = seutukunta_code,
          aluename = seutukunta_name_fi) %>% 
@@ -69,18 +79,18 @@ df2 <- left_join(df,sk_names) %>%
   filter(!variable %in% c("Inhimillinen","Sosiaalinen","Taloudellinen"),
          !is.na(value)) 
 
-saveRDS(df2, here("./data/df_v20201102.RDS"), 
+saveRDS(df2, here("./data/df_v20211104.RDS"), 
         compress = FALSE)
 
 # Apudata karttojen tekoon
-muni <- geofi::get_municipalities(year = 2017) %>%
+muni <- geofi::get_municipalities(year = 2021) %>%
   filter(maakunta_name_fi != "Ahvenanmaa")
 regio_Seutukunnat <- muni %>% 
   group_by(seutukunta_code) %>% 
   summarise() %>% rename(aluekoodi = seutukunta_code) 
-regio_Maakunnat <- muni %>% 
-  group_by(maakunta_code) %>% 
-  summarise() %>% rename(aluekoodi = maakunta_code)
+regio_Hyvinvointialueet <- muni %>% 
+  group_by(hyvinvointialue_code) %>% 
+  summarise() %>% rename(aluekoodi = hyvinvointialue_code)
 regio_Kunnat <- muni %>% 
   select(municipality_code) %>% 
   rename(aluekoodi = municipality_code)
@@ -91,8 +101,8 @@ regio_Suomi <- muni %>%
 
 saveRDS(regio_Suomi, 
         here("data/regio_Suomi.RDS"))
-saveRDS(regio_Maakunnat, 
-        here("data/regio_Maakunnat.RDS"))
+saveRDS(regio_Hyvinvointialueet, 
+        here("data/regio_Hyvinvointialueet.RDS"))
 saveRDS(regio_Seutukunnat, 
         here("data/regio_Seutukunnat.RDS"))
 saveRDS(regio_Kunnat, 
@@ -103,7 +113,7 @@ saveRDS(regio_Kunnat,
 ## NAAPURIDATA ----
 
 # tehdään aluekoodi/aluenimi -data vielä
-muni <- get_municipalities(year = 2019) %>%
+muni <- get_municipalities(year = 2021) %>%
   filter(maakunta_name_fi != "Ahvenanmaa")
 bind_rows(
   muni %>% 
@@ -112,10 +122,10 @@ bind_rows(
                            region_name = seutukunta_name_fi) %>% 
     mutate(level = "Seutukunnat"),
   muni %>% 
-    group_by(maakunta_code,maakunta_name_fi) %>% 
-    summarise() %>% rename(region_code = maakunta_code,
-                           region_name = maakunta_name_fi) %>% 
-    mutate(level = "Maakunnat"),
+    group_by(hyvinvointialue_code,hyvinvointialue_name_fi) %>% 
+    summarise() %>% rename(region_code = hyvinvointialue_code,
+                           region_name = hyvinvointialue_name_fi) %>% 
+    mutate(level = "Hyvinvointialueet"),
   muni %>% 
     group_by(municipality_code,municipality_name_fi) %>% 
     summarise() %>% rename(region_code = municipality_code,
@@ -150,18 +160,26 @@ saveRDS(region_data2, "./data/region_data.RDS")
 
 ## AIKASARJADATA ----
 dd <- read_excel("./data_raw/Aikasarjadata KORJATTU.xlsx")
+fs::file_copy("../data_storage/v20211104/aikasarjadata_20211104.xlsx", 
+              "./data_raw/")
+dd <- read_excel("./data_raw/aikasarjadata_20211104.xlsx")
 
 df_tmp <- dd %>%
   rename(aluekoodi = Aluekoodi,
          aluenimi = Aluenimi,
          regio_level = Aluetaso) %>% 
-  mutate(aluekoodi = as.integer(ifelse(regio_level == "Maakunnat", sub("^MK", "", aluekoodi),
-                                       ifelse(regio_level == "Seutukunnat", sub("^SK", "", aluekoodi), aluekoodi)))) %>% 
+  mutate(aluekoodi = as.integer(ifelse(regio_level == "Seutukunnat", sub("^SK", "", aluekoodi), aluekoodi))) %>% 
   select(regio_level,everything()) %>% 
   rename(aika = Aika) %>% 
   # aika muotoa 2017-2019 - otetaan eka vuosi ja lisätään siihen 1
   ## 2017-2019 ->> 2018
-  mutate(aika = as.integer(substr(aika, start = 1, stop = 4))+1)
+  mutate(aika = as.integer(substr(aika, start = 1, stop = 4))+1) %>% 
+  # # maakunnat veks
+  # filter(regio_level != "Maakunnat") %>% 
+  # # hyvinvointialue -> hyvinvointialueet
+  mutate(regio_level = ifelse(regio_level == "Hyvinvointialue", "Hyvinvointialueet", regio_level)) %>% 
+mutate(aluenimi = ifelse(aluenimi == "Helsinki (sosiaali- ja terveydenhuolto, sekä pelastustoimi)", 
+                         "Helsingin kaupunki", aluenimi))
 
 # Uusi data, jossa sarakenimet ei korjattu
 tibble(name1 = names(df_tmp)) %>% 
@@ -196,7 +214,7 @@ df <- df_tmp %>%
   mutate(variable = ifelse(all_upper, ekaiso(tolower(variable)), variable))
 
 # Otetaan seutukuntanimiksi Tilastokeskuksen lyhyemmät
-geofi::municipality_key_2018 %>% 
+geofi::municipality_key_2021 %>% 
   count(seutukunta_name_fi,seutukunta_code) %>% 
   rename(aluekoodi = seutukunta_code,
          aluename = seutukunta_name_fi) %>% 
@@ -208,7 +226,7 @@ df2 <- left_join(df,sk_names) %>%
   filter(!variable %in% c("Inhimillinen","Sosiaalinen","Taloudellinen"),
          !is.na(value)) 
 
-saveRDS(df2, here("./data/df_v20210111_aikasarja.RDS"), 
+saveRDS(df2, here("./data/df_v20211104_aikasarja.RDS"), 
         compress = FALSE)
 
 
@@ -224,17 +242,17 @@ saveRDS(object = dat, file = "./data/muuttujakuvaukset.RDS")
 
 
 if (F){
-
-# Luodaan raaka muuttujakuvaus
-readRDS("./data/df_v20201102.RDS") %>% 
-  distinct(var_class,variable,regio_level) %>% 
-  group_by(var_class,variable) %>% 
-  summarise(aluetasot = paste(regio_level, collapse = ", ")) %>% 
-  ungroup() %>% 
-  mutate(kuvaus = "Mauris molestie sagittis risus, cursus posuere magna dapibus sed. Sed sed mauris enim. Proin consequat bibendum facilisis. Morbi eget rhoncus odio. Proin pretium, tellus id ornare pulvinar, magna eros sollicitudin magna, nec fringilla enim dui at erat. Sed vulputate neque odio, vel aliquet enim accumsan nec. Pellentesque dictum, justo ut ullamcorper dictum, massa nisl facilisis lacus, quis malesuada odio metus at quam. Integer vel imperdiet turpis.") -> dada
-
-writexl::write_xlsx(x = dada, path = "./data/muuttujakuvaukset.xlsx")
-
+  
+  # Luodaan raaka muuttujakuvaus
+  readRDS("./data/df_v20201102.RDS") %>% 
+    distinct(var_class,variable,regio_level) %>% 
+    group_by(var_class,variable) %>% 
+    summarise(aluetasot = paste(regio_level, collapse = ", ")) %>% 
+    ungroup() %>% 
+    mutate(kuvaus = "Mauris molestie sagittis risus, cursus posuere magna dapibus sed. Sed sed mauris enim. Proin consequat bibendum facilisis. Morbi eget rhoncus odio. Proin pretium, tellus id ornare pulvinar, magna eros sollicitudin magna, nec fringilla enim dui at erat. Sed vulputate neque odio, vel aliquet enim accumsan nec. Pellentesque dictum, justo ut ullamcorper dictum, massa nisl facilisis lacus, quis malesuada odio metus at quam. Integer vel imperdiet turpis.") -> dada
+  
+  writexl::write_xlsx(x = dada, path = "./data/muuttujakuvaukset.xlsx")
+  
 }
 
 

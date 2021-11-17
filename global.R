@@ -35,3 +35,4 @@ add_line_break2 <- function(x = "very many many characters and words and sentenc
 } 
 
 options(scipen = 999)
+options(shiny.useragg = TRUE)
