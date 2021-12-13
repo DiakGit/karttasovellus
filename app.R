@@ -5,12 +5,12 @@ ui <- fluidPage(lang = "fi",
                 title = "Tilastot kartalle",
                 tags$head(tags$link(rel="shortcut icon", href="favicon.ico")),
                 meta() %>% 
-                    meta_description(description = "Tilastot kartalle") %>% 
+                    meta_description(description = "DIAK: Huono-osaisuus Suomessa -verkkosovellus") %>% 
                     meta_social(
-                        title = "Tilastot kartalle",
-                        description = "Tilastot kartalle: tarkastele geofi R-paketilla saatavia datoja selaimessa",
+                        title = "DIAK: Huono-osaisuus Suomessa -verkkosovellus",
+                        description = "Sovelluksessa voit tarkastella erilaisia huono-osaisuuden osoittimia sekä luoda profiileja alueista",
                         url = "",
-                        image = "geofi_selain,png",
+                        image = "logo_650x650.jpg",
                         image_alt = "An image for social media cards",
                         twitter_creator = "@muuankarski",
                         twitter_card_type = "summary_large_image",
@@ -36,148 +36,292 @@ ui <- fluidPage(lang = "fi",
       padding-bottom: 10px;
       padding-left: 10px;
       }
+      .container_1280 {
+        max-width: 1280px; 
+        margin: auto;
+}
       #map {
     margin: auto;
   }")),
                 tags$html(HTML('
-    <nav class="navbar navbar-light sticky-top navbar-xyz">
-      <a class="navbar-brand" role="brand" href = "#"><img src = "logo.svg" style = "height: 40px; padding-right: 0px;" alt = "logo"></a>
-      <div class = "lead">Tilastot kartalle</div>
+    <nav class="navbar navbar-light sticky-top bg-light">
+      <a class="navbar-brand" role="brand" href = "#"><img src = "https://www.diak.fi/wp-content/themes/diak/dist/images/diak-logo-1.svg" style = "height: 40px; padding-right: 0px;" alt = "logo"></a>
+      <div class = "lead">Huono-osaisuus Suomessa</div>
       <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarResponsive" aria-controls="navbarResponsive" aria-expanded="false" aria-label="Avaa valikko">
         <span class="navbar-toggler-icon"></span>
       </button>
       <div role = "navigation" class="collapse navbar-collapse justify-content-between" id="navbarResponsive">
         <ul class="navbar-nav ml-auto">
-          <!--li class="nav-item">
-            <a class="nav-link" href="https://github.com/rOpenGov/tilastot_kartalle"><code>&lt;sovelluksen lahdekoodi/&gt;&gt;</code></a>
-          </li-->
           <li class="nav-item">
-            <a class="nav-link" href="#alku">Valikot</a>
+            <a class="nav-link" href="#ohje">Ohje</a>
           </li>
           <li class="nav-item">
-            <a class="nav-link" href="#kuviot">Kuviot</a>
+            <a class="nav-link" href="#indikaattorivertailu">Indikaattorivertailu</a>
           </li>
           <li class="nav-item">
-            <a class="nav-link" href="#ohjeet">Ohjeita</a>
+            <a class="nav-link" href="#alueprofiili">Luo alueprofiili</a>
           </li>
           <li class="nav-item">
-            <a class="nav-link" href="#footer">Tekijät</a>
-          </li>
-          <!--li class="nav-item">
-            <a class="nav-link" href="https://ropengov.github.io/pxweb/"><code>pxweb</code>-paketti</a>
+            <a class="nav-link" href="#info">Lisätietoja</a>
           </li>
           <li class="nav-item">
-            <a class="nav-link" href="https://github.com/sotkanet/"><code>sotkanet</code>-paketti</a>
+            <a class="nav-link" href="#saavutettavuus">Saavutettavuusseloste</a>
           </li>
-          <li class="nav-item">
-            <a class="nav-link" href="https://ropengov.github.io/geofi/"><code>geofi</code>-paketti</a>
-          </li>
-                    <li class="nav-item">
-            <a class="nav-link" href="https://ropengov.org/"><img src = "https://ropengov.org/images/logo2020_black_orange.svg" style = "height: 20px; padding-right: 0px;" alt = "ropengov-logo"></a>
-          </li-->
-
         </ul>
       </div>
   </nav>')),
                 tags$html(HTML('<main id="maincontent">')),
                 tags$h2("", id = "alku"),
-                
-                
-                fluidRow(column(9,
-                                tags$div(class = "grey-background",
-                                         fluidRow(column(4,
-                                                         # tags$h2("Etsitkö datamenestyjää?"),
-                                                         # tags$h2("Tilastot kartalle"),
-                                                         tags$p("Sovelluksen avulla luot karttoja ja tolppakuvioita Tilastokeskuksen, THL:n, 
-         Kelan ja muiden viranomaisten tilastoista eri aluetasoilla."),
-                                                         
-                                                         tags$p("Kuvien ohella sovellus koodaa sinulle",
-                                                                tags$a(href = "https://www.r-project.org/", "avoimella R-kielellä "),
-                                                                " lähdekoodin, jota muokkaamalla voit räätälöidä analyysia R:ssä. ", 
-                                                                tags$a(href = "#ohjeet", "Lue lisää ohjeista!")),
-                                                         tags$p("Voit tallentaa aineistoja", 
-                                                                tags$code("GeoPackage, Shapefile, .csv, .svg, .pdf tai .png"),"-muotoihin."),
-                                                         tags$p("Sovellus toimii parhaiten tietokoneen näytöllä.")),
-                                                  column(4,
-                                                         tags$h4("1. Määrittele tilasto"),
-                                                         uiOutput("ui_data_spatial"),
-                                                         uiOutput("ui_stat_data_01"),
-                                                         uiOutput("ui_stat_data_02"),
-                                                         uiOutput("ui_stat_data_03"),
-                                                         uiOutput("ui_year")),
-                                                  column(4,
-                                                         tags$h4("2. Aggregoi"),
-                                                         uiOutput("ui_aggregate_var"),
-                                                         uiOutput("ui_aggregate_method"),
-                                                         tags$h4("3. Lataa kartta-aineisto"),
-                                                         radioButtons("file_type", "Valitse tiedostomuoto",
-                                                                      choiceNames = list("GeoPackage (.gpkg)", "Shapefile (.shp)", 
-                                                                                         "teksti (.csv)",
-                                                                                         "Vektorikuva (.svg)", "Vektorikuva (.pdf)",
-                                                                                         "Bittimappikuva (.png)"),
-                                                                      # NOTE: the first value is ".zip", not ".shp", as shapefile
-                                                                      # must be zipped. Shiny can only output one file and each
-                                                                      # shapefile constitutes of several files.
-                                                                      choiceValues = list(".gpkg", ".zip", ".csv",
-                                                                                          ".svg",
-                                                                                          ".pdf",
-                                                                                          ".png"),
-                                                                      inline = FALSE),
-                                                         downloadButton("download_data", "Lataa aineisto")))),
-                                tags$h2("", id = "kuviot"),
-                                tags$h4("Indikaattorin metatiedot"),
-                                uiOutput("ui_meta_text"),
-                                tags$div(style = "padding-top: 100px;"),
-                                fluidRow(
-                                    column(5, 
-                                           # shinycssloaders::withSpinner(plotOutput("plot_shape", width = "100%", height = "850px"))
-                                           shinycssloaders::withSpinner(leafletOutput("map", width = "100%", height = "850px"))
-                                    ),
-                                    column(1),
-                                    column(6, 
-                                           uiOutput("ui_plot_bar"))
-                                )
-                ),
-                column(3,
-                       tags$h4("R-koodi kuvioiden piirtämiseen")
-                       ,downloadButton("download_code", "Lataa R-koodi"),
-                       shinycssloaders::withSpinner(verbatimTextOutput("output_code")))),
-                tags$h2("Ohjeet", id = "ohjeet"),
-                fluidRow(column(8, 
-                                tags$h3("Yleistä sovelluksesta"),
-                                tags$p("Tilastotietoa visualisoivien graafisten verkkosovellusten perusongelma on räätälöintimahdollisuuksien niukkuus. 
-                             Eri käyttäjät hakevat sovelluksista vastauksia eri kysymyksiin, eikä yksi sovellus riitä yleensä vastaamaan kunnolla niistä yhteenkään."),
-                                tags$p("Tämän sovellus ratkaisee ongelmaa tarjoamalla yksinkertaisen graafisen käyttöliittymän kuntatason avoimeen tilastotietoon
-                             sekä luomalla sen rinnalle saman näkymän tuottavan lähdekoodin", tags$a(href = "https://www.r-project.org/", "avoimella R-kielellä."), 
-                                       "Lähdekoodin pohjalta analyytikko/tutkija/opiskelija pääsee nopeasti liikkeelle räätälöidymmän analyysin teossa."),
-                                tags$p("Sovelluksen ensimmäinen versio on kehitetty kesällä 2021 kilpailutyönä", 
-                                       tags$a(href = "https://www.stat.fi/tup/datamenestyjat/index.html", "Tilastokeskuksen Datamenestyjät"), 
-                                       "-kilpailuun, mutta vastaavan sovelluksen tarpeellisuus on pantu merkille paljon aiemmin."),
-                                tags$p("Sovellus on tehty R:n",
-                                       tags$a(href = "https://shiny.rstudio.com/", "Shiny"), ":lla")
-                )),
-                fluidRow(column(4, 
-                                tags$h4("Tilastot ja aggregointi"),
-                                tags$p("Käytettävissä ovat sekä Tilastokeskuksen 'Kuntien avainluvut' -tilastot että koko THL:n Sotkanetin sisältö."),
-                                tags$p("Voit aggregoida kuntatason tilastoja ylemmille aluetasoille (maakunnat, seutukunnat jne.) eri metodeilla."),
-                                tags$p("Uusia datalähteitä voi ehdottaa sähköpostilla:", 
-                                       tags$a(href = "mailto:muuankarski@kapsi.fi?subject=Tilastot kartalle", "markus.kainu@kapsi.fi"))
-                ),
-                column(4, 
-                       tags$h4("R-koodin hyödyntäminen"),
-                       tags$p("Sovellus luo kartan ja tolppakuvion käyttäjän tekemien valintojen pohjalta. 
-                             Näiden lisäksi sovellus luo lähdekoodin saman näkymän tuottamiseksi R-kielellä. Saat siis vastaavat kuviot suorittamalla lähdekoodin R-ympäristössä."),
-                       tags$p("Lähdekoodin suorittaminen edellyttää lähdekoodin alussa olevien ohjelmistokirjastojen asentamisesta sekä internet-yhteyttä. 
-                             Lähdekoodin pohjalta on nopeampaa päästä alkuun räätälöityjen analyysien teossa.")
-                ),
-                column(4, 
-                       tags$h4("Aineistojen lataaminen"),
-                       tags$p("Aineistot on mahdollista ladata useassa eri muodossa. Pelkät kuvat voi ladata sekä vektorikuvina .svg ja .pdf -muodoissa, joita voi käsitellä edelleen esimerkiksi", tags$a(href = "https://inkscape.org", "Inkscape-ohjelmassa."), "Kuvat saa myös bittimappigrafiikkana .png-muodossa. Tilaston ilman paikkatietoa voi ladata .csv-muodossa."),
-                       tags$p("Tilastoaineiston yhdessä paikkatiedon kanssa voi ladata GeoPackage tai Shapefile -muodoissa, joita voi edelleen muokata esimerkiksi", tags$a(href = "https://www.qgis.org/en/site/", "QGIS-paikkatietohjelmalla."))
-                )),
+                fluidRow(column(width = 12,
                 tags$html(HTML('
-                     
-    <footer class="bd-footer py-5 mt-5 bg-light">
+  <div class="container_1280">
+    <div class="row">
+      <div class="col-lg-8">
+
+  <h1 id = "content">Huono-osaisuus Suomessa</h1>                
+                
+  <p class="lead">Sovelluksessa voit tarkastella erilaisia huono-osaisuuden osoittimia sekä luoda  profiileja alueista. Aluetasoja on kolme: maakunnat, seutukunnat ja kunnat.</p>
+  <h2 id = "ohje">Näin käytät sovellusta</h2>
+  
+   <p><a href="#indikaattorivertailu">Muuttujien tarkasteluun</a> ja 
+   <a href="#alueprofiili">alueprofiilien laatimiseen</a> ovat omat valikkonsa.</p>
+   
+  <strong>Indikaattorivertailun</strong> valitse muuttujaluokka-valikosta voit säädellä haluatko katsoa huono-osaisuuden summatietoja vai tarkemmin kunkin huono-osaisuuden ulottuvuuden osoittimia. 
+  Valitse muuttuja-valikosta voit valita tarkemman osoittimen ja 
+  valitse aluetaso-valikosta aluetason.<br/>
+  Voit myös valita, näkyykö pylväs-, kartta- ja aikasarjakuviossa: 
+  <ul>
+    <li>kaikki valitun tason alueet,</li> 
+    <li>valittu alue ja sen naapurit, vai</li> 
+    <li>valitun maakunnan/seutukunnan kunnat</li>
+  </ul> 
+  <br/> 
+  Pylväs- ja karttakuvio sekä aikasarjakuvio muuttuvat samanaikaisesti valinnan muuttuessa.
+  <br/>
+  <strong>Alueprofiilin</strong> täytyy valita vain aluetaso sekä alue. Alueprofiili sisältää aina kaikkien osoittimien tiedot sekä valitulta alueelta että alueen 
+  rajanaapureista, sekä niiden aikasarjakuviot. Lisäksi alueprofiilissa esitetään kunkin osoittimen korkein ja matalin arvo.
+    <br/>
+    <p><a href= "https://www.youtube.com/playlist?list=PLX8L6VZCYbFIzAqc4InxFEbP0SmfOrDzL">Katso opastusvideot sivuston käytöstä!</a></p>
+  Jos haluat viitata karttasivustoon tekstissäsi, käytä lähdeviitteenä:
+    <em>Diakonia-ammattikorkeakoulu (i.a.)</em> ja lähdeluettelossa: <em>Diakonia-ammattikorkeakoulu (i.a.) Huono-osaisuus Suomessa –karttasivusto. Saatavilla pp.kk.vuosi www.diak.fi/eriarvoisuus</em>
+  <br/>
+
+  <p>Indikaattorit ja muuttujat on muodostettu vuosien 2017-2019 tilastojen keskiarvosta vuosivaihtelun minimoimiseksi, ja suhteuttamalla arvo keskimmäiseen eli mediaanimaakuntaan/-seutukuntaan/-kuntaan vertailun helpottamiseksi. Aikasarjoissa lukemat vuodesta 2010 alkaen kolmen vuoden liukuvina keskiarvoina.
+    <a href="https://www.diak.fi/kumppanille-ja-kehittajalle/kehittamistyokalut/huono-osaisuus-suomessa-karttasivusto/#73053a2b">Lue lisää Diakin sivuilta!</a>
+    </p>
+  </div>                            
+                               
+<div class="col-lg-4">
+  <div style = "padding-top: 20px;"></div>
+    <div class="row">
+    <div class="col-sm">
+      <a href = "https://ec.europa.eu/regional_policy/fi/funding/erdf/"><img src="app_eu.png" style="height: 160px;" alt = "Euroopan unionin lippu, jonka alla teksti: Euroopan unioni, Euroopan aluekehitysrahasto"/></a>
+      </div>
+      <div class="col-sm">
+      </div>
+        </div>
+        <div style = "padding-top: 20px;"></div>
+  <div class="row">
+      <div class="col-sm">
+              <a href = "https://www.rakennerahastot.fi"><img src="app_vipu.png" style="height: 62px; padding-right: 5px;" alt = "Rakennerahastot.fi -verkkopalvelun logo"/></a>  
+              <a href = "https://thl.fi/fi/web/hyvinvoinnin-ja-terveyden-edistamisen-johtaminen/osallisuuden-edistaminen/heikoimmassa-asemassa-olevien-osallisuus"><img src="app_sokra.png" style="height: 62px;" alt = "Sosiaalisen osallisuuden edistämisen koordinaatiohankeen Sokran logo"/></a>
+      <!--/div>
+            <div class="col-sm"-->
+        <a href = "https://www.diak.fi"><img src="app_diak.png" style="height: 62px;" alt = "Diakonia-ammattikorkeakoulun logo"/></a>
+      </div>
+      </div>
+      <div style = "padding-bottom: 20px;"></div>
+       <a href = "https://tutkittutieto.fi"><img src="app_teema.jpg" style="height: 100px;" alt = "Tutkitun tiedon teemavuoden logo"/></a>
+      </div>
+</div>
+</div>')))),
+tags$div(class = "container_1280 grey-background",
+         tags$div(class = "row",
+                  tags$div(class = "col-lg-3",
+                                    tags$h2(id = "indikaattorivertailu", "Indikaattorivertailu"),
+                                    uiOutput("output_indicator_class"),
+                                    uiOutput("output_indicator"),
+                                    uiOutput("output_regio_level"),
+                                    uiOutput("output_regio_select"),
+                                    uiOutput("output_regio_show_mode"),
+                                    uiOutput("output_save_data_indicator")
+                                    ),
+                  tags$div(class = "col-lg-9",
+                                    plotOutput("map_rank_plot", width = "100%", height = "800px")
+                           )
+                  ),
+tags$div(class = "row",
+         tags$div(class = "col-lg-12",
+                  plotOutput("timeseries_plot", width = "100%", height = "550px")
+         )
+)),
+tags$div(style="padding-top: 40px"),
+
+tags$div(class = "container_1280 bg-light border",
+         tags$div(class = "row",
+                  tags$div(class = "col-lg-12",
+                           tags$div(style="padding-top: 40px"),
+                           tags$h2(id = "alueprofiili", "Alueprofiili"),
+                           tags$p("Alueprofiilissa näet kaikki aineiston osoittimet luokan mukaan ryhmiteltynä. Kustakin osoittimesta näytetään valitun alueen lisäksi sen rajanaapurit sekä  osoittimen korkeimman ja matalimman arvon alueet. Alueet on järjestetty kunkin osoittimen kohdalla sijan mukaan."),
+                           tags$p("Valitse ensin aluetaso, sitten alue ja paina lopuksi <i>Luo alueprofiili</i> -painiketta. Alueprofiilin luominen kestää noin 30 sekuntia. Voit tallentaa profiilin laitteellesi")
+                  )),
+         tags$div(class = "row",
+                  tags$div(class = "col-lg-6",
+                           uiOutput("output_regio_level_profile")
+                           ),
+                  tags$div(class = "col-lg-6",
+                           uiOutput("output_region_profile")
+                  )
+                  ),
+tags$div(class = "row",
+         tags$div(class = "col-lg-12",
+                  uiOutput("output_button_profile")
+                  )
+         ),
+tags$div(class = "row",
+         tags$div(class = "col-lg-12",
+                  uiOutput("region_profile_html")
+         )
+)),
+tags$div(class="container_1280",
+         tags$div(class="row",
+                  tags$div(class = "col-lg-12",
+                           tags$h2(id = "info", "Lisätietoja"),
+                           tags$h3("Aineisto"),
+                           tags$h4("Summamuttujat"),
+                           gt_output("variable_desctiption_gt1"),
+                           tags$h4("Inhimillinen huono-osaisuus"),
+                           gt_output("variable_desctiption_gt2"),
+                           tags$h4("Huono-osaisuuden taloudelliset seuraukset"),
+                           gt_output("variable_desctiption_gt3"),
+                           tags$h4("Huono-osaisuuden sosiaaliset seuraukset"),
+                           gt_output("variable_desctiption_gt4")
+                           )          
+          )),
+
+                tags$html(HTML('
+  <div class="container_1280 bg-light">
+    <div class="row">
+      <div class="col-lg-8">
+    
+    <h3>Sovellus</h3>
+    
+    <strong>Huono-osaisuus Suomessa -verkkosovellus</strong>
+    <p>Sovellusversio
+    <code>0.3.0</code><br/>
+    Aineistoversio
+    <code>0.2.0</code>
+    </p>
+    <p>Tämä verkkosovellus on tehty
+    <a href="https://www.r-project.org/">R</a>-kielellä
+    <a href="https://shiny.rstudio.com">Shiny</a>-kirjaston avulla. 
+    Sovelluksen lähdekoodi on avoimesti lisensöity ja saatavilla 
+    <a href="https://github.com/DiakGit/karttasovellus">Github</a>-palvelusta.</p>
+    
+    <p>Mikäli löysit sovelluksesta bugin tai sinulla on idea tai toteutus uudesta ominaisuudesta voit:</p>
+    <ul>
+    <li>
+    toteuttaa ominaisuuden/korjauksen ja jättää
+    <a href="https://github.com/DiakGit/karttasovellus/pulls">pull requestin</a>Github-palvelussa,
+    </li>
+    <li>
+    avata uuden <a href="https://github.com/DiakGit/karttasovellus/issues">issuen</a> Github-palvelussa 
+    ja kuvata bugin/ominaisuuden siinä tai
+    </li>
+    <li>
+    laittaa meiliä osoitteeseen 
+    <a href="mailto:sakari.kainulainen@diak.fi"><code>sakari.kainulainen@diak.fi</code></a> tai
+    </li>
+    <li>
+      laittaa palautetta lomakkeella <a href = "https://www.diak.fi/kumppanille-ja-kehittajalle/kehittamistyokalut/huono-osaisuus-suomessa-karttasivusto/#73053a2b">Diakin sivuilta</a>
+    </li>
+    </ul>
+    
+    </div>  
+</div>      
+    </div>      
+
+
+  <div class="container_1280 bg-light">
+    <div class="row">
+      <div class="col-lg-8">
+
+    <h2 id = "saavutettavuus">Saavutettavuusseloste</h2>
+    
+    <p>
+    <i>Saavutettavuudella</i> tarkoitetaan, että verkkosivut ja mobiilisovellukset sekä niiden sisällöt ovat sellaisia,
+    että kuka tahansa voisi niitä käyttää ja ymmärtää mitä niissä sanotaan.
+    </p>
+    <p>Diakin verkkosivuja koskee laki digitaalisten palvelujen tarjoamisesta, joka pohjautuu  EU:n saavutettavuusdirektiiviin. 
+    Lain mukaan kaikilla tulee olla tasavertaiset mahdollisuudet käyttää digitaalisia palveluita.</p>
+    <p>Tämä saavutettavuusseloste koskee <a href="https://www.thl.fi/sokra">Sokra-hankkeessa</a>
+    toteutettu <a href="https://diak.shinyapps.io/karttasovellus/">karttasivusto</a> on julkaistu 23.4.2020,
+    joka tarkoittaa sitä, että sivuston tulee noudattaa WCAG 2.1 –kriteeristön AA-tasoa 23.9.2020 mennessä.
+    </p>
+    <h3>Digipalvelun saavutettavuuden tila</h3>
+
+    <p> <a href ="https://diak.shinyapps.io/karttasovellus/">Karttasivusto</a> 
+    täyttää pääosin WCAG 2.1 -kriteeristön A & AA -saavutettavuusvaatimukset.</p>
+    <p>
+      
+    <h3>Saavutettavuusselosteen laatiminen</h3>
+    <p>Karttasivustoa koskeva seloste on laadittu 19.9.2020 ja sitä on päivitetty 3.11.2020. 
+    Seloste perustuu itsearvioon, Poutapilvi Oy:n tekemään auditointiraporttiin sekä 
+    seuraavilla testausohjelmistoilla suoritettuun tarkastukseen.</p>
+    
+    <strong>Ruudunlukijat</strong>
+    <ul>
+      <li><a href="https://www.nvaccess.org/">NVDA</a></li>
+      <li><a href="https://wiki.gnome.org/Projects/Orca">Orca</a></li>
+      <li><a href="https://www.chromevox.com/">ChromeVox</a></li>
+
+    </ul>
+        <strong>Saavutettavuuden tarkastuohjelmat</strong>
+    <ul>
+      <li><a href="https://ainspector.github.io/">AInspector</a></li>
+      <li> <a href="https://thepaciellogroup.github.io/WAI-ARIA-Usage/WAI-ARIA_usage.html">WAI-ARIA Usage</a></li>
+      <li><a href="https://validator.w3.org/nu/">Nu Html Checker</a></li>
+      <li><a href="https://developer.paciellogroup.com/resources/contrastanalyser/">Colour Contrast Analyser</a></li>
+      <li><a href="https://wave.webaim.org/">WAVE Web Accessibility Evaluation Tool</a></li>
+      
+      
+
+    </ul>
+    
+    <p>Näiden arvioiden ja ulkopuolisen raportin perusteella karttasivuston ensimmäiseen versioon 
+    tehtiin lukuisia saavutettavuutta parantavia korjauksia.</p>
+    
+    <h3>Palautetta saavutettavuudesta?</h3>
+    <p>Huomasitko saavutettavuuspuutteen digipalvelussamme? Kerro se meille ja eemme parhaamme puutteen korjaamiseksi
+    </p>
+    <p>
+    Ilmoita puute tällä <a href="https://www.diak.fi/diak/anna-palautetta/">verkkolomakkeella</a>. 
+    Valitse kohta verkkosivuston saavutettavuus. Kerro palautteessa, mitä Diakin hallinnoimaa sivustoa palaute koskee.
+    </p>
+    <p>
+      Jos huomaat sivustolla saavutettavuusongelmia, anna ensin palautetta sivuston ylläpitäjälle. 
+      Vastauksessa voi mennä 14 päivää. Jos et ole tyytyväinen saamaasi vastaukseen tai 
+      et saa vastausta lainkaan kahden viikon aikana, voit ilmoittaa asiasta valvontaviranomaiselle.
+    </p>
+    <strong>Valvontaviranomaisen yhteystiedot:</strong>
+    <p>
+      Etelä-Suomen aluehallintovirasto<br/>
+      Saavutettavuuden valvonnan yksikkö<br/>
+      www.saavutettavuusvaatimukset.fi<br/>
+      saavutettavuus(at)avi.fi<br/>
+      puhelinnumero vaihde 0295 016 000
+    </p>
+
+        </div>
+    </div>
+  </div>
+
+  </main>              
+                
+                
+')),
+
+tags$html(HTML('<footer class="bd-footer py-5 mt-5 bg-light">
     <h2 id = "footer"></h2>
   <div class="container py-5">
     <div class="row">
@@ -229,13 +373,9 @@ ui <- fluidPage(lang = "fi",
       </div>
     </div>
   </div>
-</footer>
-
-                     ')),
-                # tags$div(style = "padding-top: 300px;"),
-                tags$html(HTML('</main>'))
+</footer>')),
+tags$html(HTML('</main>'))
 )
-
 
 # Serverin logiikka ----
 server <- function(input, output) {
@@ -2072,6 +2212,6 @@ server <- function(input, output) {
     
 }
 
-# shinyApp(ui = ui, server = server)
-shinyApp(ui = htmlTemplate("www/index.html"), server = server)
+shinyApp(ui = ui, server = server)
+# shinyApp(ui = htmlTemplate("www/index.html"), server = server)
 # 
