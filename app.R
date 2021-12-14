@@ -3,7 +3,10 @@ source("./global.R")
 
 ui <- fluidPage(lang = "fi",
                 title = "Tilastot kartalle",
-                tags$head(tags$link(rel="shortcut icon", href="favicon.ico")),
+                tags$head(
+                  tags$link(rel="shortcut icon", href="favicon.ico"),
+                  tags$link(rel="stylesheet", href="custom.css")
+                  ),
                 meta() %>% 
                     meta_description(description = "DIAK: Huono-osaisuus Suomessa -verkkosovellus") %>% 
                     meta_social(
@@ -21,30 +24,8 @@ ui <- fluidPage(lang = "fi",
                                         base_font = font_google("PT Sans"),
                                         code_font = font_google("Space Mono")),
                 tags$html(HTML('<a class="sr-only sr-only-focusable" href="#maincontent">Skip to main</a>')),
-                tags$style(HTML("
-      .navbar-xyz {
-        background-color: rgb(255, 255, 255, .9);
-        border-bottom: 1px solid rgb(55, 55, 55, .4);
-      }
-      .leaflet-container {
-    background: #FFF;
-    }
-      .grey-background {
-      background-color: rgb(245, 245, 245, .9);
-      padding-top: 10px;
-      padding-right: 10px;
-      padding-bottom: 10px;
-      padding-left: 10px;
-      }
-      .container_1280 {
-        max-width: 1280px; 
-        margin: auto;
-}
-      #map {
-    margin: auto;
-  }")),
                 tags$html(HTML('
-    <nav class="navbar navbar-light sticky-top bg-light">
+    <nav class="navbar navbar-light navbar-xyz sticky-top grey-background container_1280">
       <a class="navbar-brand" role="brand" href = "#"><img src = "https://www.diak.fi/wp-content/themes/diak/dist/images/diak-logo-1.svg" style = "height: 40px; padding-right: 0px;" alt = "logo"></a>
       <div class = "lead">Huono-osaisuus Suomessa</div>
       <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarResponsive" aria-controls="navbarResponsive" aria-expanded="false" aria-label="Avaa valikko">
@@ -157,7 +138,7 @@ tags$div(class = "row",
 )),
 tags$div(style="padding-top: 40px"),
 
-tags$div(class = "container_1280 bg-light border",
+tags$div(class = "container_1280 grey-background",
          tags$div(class = "row",
                   tags$div(class = "col-lg-12",
                            tags$div(style="padding-top: 40px"),
@@ -200,7 +181,7 @@ tags$div(class="container_1280",
           )),
 
                 tags$html(HTML('
-  <div class="container_1280 bg-light">
+  <div class="container_1280">
     <div class="row">
       <div class="col-lg-8">
     
@@ -242,7 +223,7 @@ tags$div(class="container_1280",
     </div>      
 
 
-  <div class="container_1280 bg-light">
+  <div class="container_1280">
     <div class="row">
       <div class="col-lg-8">
 
@@ -321,59 +302,76 @@ tags$div(class="container_1280",
                 
 ')),
 
-tags$html(HTML('<footer class="bd-footer py-5 mt-5 bg-light">
-    <h2 id = "footer"></h2>
-  <div class="container py-5">
-    <div class="row">
-      <div class="col-lg-3 mb-3">
-        <a class="d-inline-flex align-items-center mb-2 link-dark text-decoration-none" href="https://ropengov.org/" aria-label="Bootstrap">
-          <img src = "https://ropengov.org/images/logo2020_black_orange.svg" height = "35px"/>
-        </a>
-        <ul class="list-unstyled small text-muted">
-          <li class="mb-2">Sovellus ja osa sen käyttämistä ohjelmistokirjastoista on kehitetty <a href="https://ropengov.org/">rOpenGov</a>-projektissa vuosina 2012-2021 meidän <a href="https://ropengov.org/community/">vapaaehtoisten toimesta</a>.</li>
-          <li class="mb-2">Päävastuussa Tilastot kartalle -sovelluksen kehittämisestä on ollut <a href = "https://markuskainu.fi">Markus Kainu</a> (<code>markus.kainu@kapsi.fi</code>)</li>
-          <!--li class="mb-2">Code licensed <a href="https://github.com/twbs/bootstrap/blob/main/LICENSE" target="_blank" rel="license noopener">MIT</a>, docs <a href="https://creativecommons.org/licenses/by/3.0/" target="_blank" rel="license noopener">CC BY 3.0</a>.</li-->
-          <!--li class="mb-2">Currently v5.1.0.</li-->
-        </ul>
-      </div>
-      <div class="col-6 col-lg-2 offset-lg-1 mb-3">
-        <h5><code>pxweb</code></h5>
-        <ul class="list-unstyled">
-          <li class="mb-2"><a href="https://ropengov.github.io/pxweb/">Kotisivu</a></li>
-          <li class="mb-2"><a href="https://github.com/rOpenGov/pxweb/">Lähdekoodi</a></li>
-          <li class="mb-2"><a href="https://ropengov.github.io/pxweb/articles/pxweb.html#usage">Esimerkit</a></li>
-        </ul>
-      </div>
-      <div class="col-6 col-lg-2 mb-3">
-        <h5><code>sotkanet</code></h5>
-        <ul class="list-unstyled">
-          <li class="mb-2"><a href="https://ropengov.github.io/sotkanet/">Kotisivu</a></li>
-          <li class="mb-2"><a href="https://github.com/rOpenGov/sotkanet/">Lähdekoodi</a></li>
-          <li class="mb-2"><a href="https://ropengov.github.io/sotkanet/articles/tutorial.html">Esimerkit</a></li>
-        </ul>
-      </div>
-      <div class="col-6 col-lg-2 mb-3">
-        <h5><code>geofi</code></h5>
-        <ul class="list-unstyled">
-          <li class="mb-2"><a href="https://ropengov.github.io/geofi/">Kotisivu</a></li>
-          <li class="mb-2"><a href="https://github.com/rOpenGov/geofi/">Lähdekoodi</a></li>
-          <li class="mb-2"><a href="https://ropengov.github.io/geofi/articles/geofi_datasets.html">Esimerkit</a></li>
-        </ul>
-      </div>
-      <div class="col-6 col-lg-2 mb-3">
-        <!--h5>Community</h5>
-        <ul class="list-unstyled">
-          <li class="mb-2"><a href="https://github.com/twbs/bootstrap/issues">Issues</a></li>
-          <li class="mb-2"><a href="https://github.com/twbs/bootstrap/discussions">Discussions</a></li>
-          <li class="mb-2"><a href="https://github.com/sponsors/twbs">Corporate sponsors</a></li>
-          <li class="mb-2"><a href="https://opencollective.com/bootstrap">Open Collective</a></li>
-          <li class="mb-2"><a href="https://bootstrap-slack.herokuapp.com/">Slack</a></li>
-          <li class="mb-2"><a href="https://stackoverflow.com/questions/tagged/bootstrap-5">Stack Overflow</a></li>
-        </ul-->
-      </div>
-    </div>
-  </div>
-</footer>')),
+
+tags$html(HTML('
+               <footer class="bd-footer py-5 mt-5 bg-dark-diak container_1280">
+	<div class="tp-bg-2 padding-top--medium text--small content--hyphenate tp-links-1 cf">
+		<div class="container-fluid">
+			<div class="row">
+				<div class="col-sm-6 col-md-3 footer-content margin-bottom--medium" aria-hidden="true">
+					<img src="https://www.diak.fi/wp-content/themes/diak/dist/images/diak-logo-2.svg" width="250" height="77" loading="lazy" alt="" class="image--block" />
+				</div>
+															<div class="col-sm-6 col-md-3 footer-content margin-bottom--medium">
+							<p><strong>Diakonia-ammattikorkeakoulu</strong><br />
+PL 12, 00511 Helsinki<br />
+<a class = "footer-content" href="https://www.diak.fi/diak/kampukset/">Kampusten postiosoitteet</a></p>
+<p>Vaihde: 029 469 6000<br />
+<a class = "footer-content" href="mailto:kirjaamo@diak.fi">kirjaamo@diak.fi</a><br />
+<a class = "footer-content" href="mailto:etunimi.sukunimi@diak.fi">etunimi.sukunimi@diak.fi</a><br />
+<a class = "footer-content" href="https://www.diak.fi/diak/yhteystiedot/">Yhteystiedot</a><br />
+<a class = "footer-content" href="https://www.diak.fi/diak/yhteystiedot/henkilohaku/" target="_blank" rel="noopener">Henkilöhaku</a></p>
+<p><a class = "footer-content" href="https://www.diak.fi/diak/organisaatio/saavutettavuusseloste/" rel="noopener">Saavutettavuus</a><br />
+<a class = "footer-content" href="https://www.diak.fi/diak/organisaatio/tietosuoja/">Tietosuoja</a><br />
+<a class = "footer-content" href="https://www.diak.fi/diak/anna-palautetta/">Palaute</a></p>
+						</div>
+											<div class="col-sm-6 col-md-3 footer-content margin-bottom--medium">
+							<p><strong>Diakilaiselle:<br />
+</strong><a class = "footer-content" href="https://my.diak.fi/" target="_blank" rel="noopener">MyDiak</a><br />
+<a class = "footer-content" href="http://lukujarjestykset.diak.fi/" target="_blank" rel="noopener">Lukujärjestykset</a><br />
+<a class = "footer-content" href="https://portal.office.com/" target="_blank" rel="noopener">Office365</a> (sähköposti)<br />
+<a class = "footer-content" href="https://diakle.diak.fi/login/index.php" target="_blank" rel="noopener">Diakle</a><br />
+<a class = "footer-content" href="https://www.diak.fi/opiskelu/tuki-ja-palvelut/it-palvelut/">IT-palvelut</a><br />
+<a class = "footer-content" href="https://www.diak.fi/diak/kirjasto/">Kirjasto- ja tietopalvelut</a><br />
+<a class = "footer-content" href="https://app.incy.io/login/saml" target="_blank" rel="noopener">Incy-poikkeamaraportointi</a><br />
+<a class = "footer-content" href="https://www.jobiili.fi/" target="_blank" rel="noopener">Jobiili</a><br />
+<a class = "footer-content" href="http://www.odiako.fi" target="_blank" rel="noopener">Opiskelijakunta O&#8217;Diako</a><br />
+<a class = "footer-content" href="https://dialogi.diak.fi/">Dialogi-media</a></p>
+<p><a class = "footer-content" href="https://vuosikatsaus2020.diak.fi/" target="_blank" rel="noopener">Vuosikatsaus</a></p>
+						</div>
+													<div class="col-sm-6 col-md-3 footer-content margin-bottom--medium">
+					<p><strong>Seuraa meitä:</strong></p>
+											<a class = "footer-content" href="https://www.diak.fi/tilaa-uutiskirjeita/" class="link--block footer__link-block margin-bottom">
+							<svg xmlns="http://www.w3.org/2000/svg" width="26" height="21" viewBox="0 0 26 21" aria-hidden="true" focusable="false"><path fill="#FFF" fill-rule="evenodd" d="M26 6.587v11.52a2.328 2.328 0 01-2.321 2.322H2.32A2.328 2.328 0 010 18.107V6.587c.435.479.929.9 1.465 1.262 2.409 1.64 4.846 3.28 7.211 5.006 1.22.9 2.728 2.002 4.31 2.002h.029c1.581 0 3.09-1.103 4.309-2.002 2.365-1.712 4.802-3.366 7.225-5.006A8.546 8.546 0 0026 6.587zm0-4.266c0 1.625-1.204 3.09-2.481 3.976-2.263 1.567-4.541 3.134-6.79 4.715-.943.653-2.54 1.988-3.714 1.988h-.03c-1.175 0-2.77-1.335-3.714-1.988-2.249-1.581-4.527-3.148-6.775-4.715C1.466 5.6 0 3.96 0 2.64 0 1.219.769 0 2.321 0H23.68A2.338 2.338 0 0126 2.321z"/></svg>							Tilaa uutiskirje						</a>
+										<p>
+						Diak somessa:<br />
+						<a class = "footer-content" href="https://twitter.com/diakamk" rel="noopener nofollow" class="link-effect-1 link--some">
+							<svg xmlns="http://www.w3.org/2000/svg" width="25" height="20" viewBox="0 0 25 20" aria-hidden="true" focusable="false"><path fill="#FFF" fill-rule="evenodd" d="M22.11 4.907c.015.216.015.43.015.645 0 6.57-5.081 14.136-14.369 14.136-2.861 0-5.52-.812-7.756-2.23.406.047.798.063 1.22.063 2.36 0 4.534-.786 6.27-2.124-2.22-.046-4.082-1.477-4.722-3.445a6.5 6.5 0 00.955.078 5.4 5.4 0 001.328-.17c-2.315-.461-4.05-2.461-4.05-4.877v-.062a5.102 5.102 0 002.283.632 4.94 4.94 0 01-2.252-4.136c0-.926.252-1.77.688-2.51 2.486 3.015 6.223 4.985 10.413 5.199a5.579 5.579 0 01-.124-1.137C12.01 2.23 14.26 0 17.058 0c1.454 0 2.768.602 3.69 1.568A10.014 10.014 0 0023.955.37a4.976 4.976 0 01-2.222 2.737 10.224 10.224 0 002.909-.77 10.715 10.715 0 01-2.533 2.57"/></svg>							<span class="screen-reader-text">Twitter</span>
+						</a>
+						<a class = "footer-content" href="https://www.facebook.com/diakamk" rel="noopener nofollow" class="link-effect-1 link--some">
+							<svg xmlns="http://www.w3.org/2000/svg" width="13" height="24" viewBox="0 0 13 24" aria-hidden="true" focusable="false"><path fill="#FFF" fill-rule="evenodd" d="M12.54 3.886h-2.279c-1.783 0-2.116.832-2.116 2.028v2.66h4.25l-.565 4.166H8.145v10.688H3.703V12.74H0V8.575h3.703V5.506C3.703 1.944 5.952 0 9.233 0c1.566 0 2.915.113 3.308.17v3.716z"/></svg>							<span class="screen-reader-text">Facebook</span>
+						</a>
+						<a class = "footer-content" href="https://www.instagram.com/diakamk" rel="noopener nofollow" class="link-effect-1 link--some">
+							<svg xmlns="http://www.w3.org/2000/svg" width="23" height="23" viewBox="0 0 23 23" aria-hidden="true" focusable="false"><path fill="#FFF" fill-rule="evenodd" d="M19.759 3.482c0-.552-.45-1-1.003-1h-2.523a1 1 0 00-1 1v2.393c0 .55.448 1 1 1h2.523c.552 0 1.003-.45 1.003-1V3.482zm-8.604 3.279c-2.465 0-4.468 1.942-4.468 4.338 0 2.393 2.003 4.337 4.468 4.337 2.482 0 4.483-1.944 4.483-4.337 0-2.396-2.001-4.338-4.483-4.338zm8.604 2.668h-1.96c.188.595.29 1.247.29 1.901 0 3.712-3.105 6.716-6.934 6.716-3.814 0-6.92-3.004-6.92-6.716 0-.654.103-1.306.291-1.901H2.48v9.4c0 .492.392.886.885.886h15.508a.881.881 0 00.886-.885V9.429zm2.523 9.994a2.872 2.872 0 01-2.857 2.859H2.86A2.873 2.873 0 010 19.423V2.86A2.873 2.873 0 012.859 0h16.566a2.872 2.872 0 012.857 2.859v16.564z"/></svg>							<span class="screen-reader-text">Instagram</span>
+						</a>
+						<a class = "footer-content" href="https://www.youtube.com/channel/UCFRCstrYYjAzHrmHi1fuOIg" rel="noopener nofollow" class="link-effect-1 link--some">
+							<svg xmlns="http://www.w3.org/2000/svg" width="23" height="17" viewBox="0 0 23 17" aria-hidden="true" focusable="false"><path fill="#FFF" fill-rule="evenodd" d="M9.126 11.064l6.212-3.21-6.212-3.246v6.456zM11.5 0c4.839 0 8.047.231 8.047.231.45.051 1.438.051 2.31.975 0 0 .707.694.912 2.285.244 1.861.23 3.722.23 3.722V8.96s.014 1.86-.23 3.722c-.205 1.578-.911 2.284-.911 2.284-.873.912-1.861.912-2.31.963 0 0-3.21.244-8.048.244-5.981-.052-7.816-.231-7.816-.231-.514-.09-1.669-.064-2.542-.976 0 0-.706-.706-.91-2.284C-.014 10.82 0 8.959 0 8.959V7.213s-.013-1.86.231-3.722c.205-1.591.911-2.285.911-2.285.873-.924 1.861-.924 2.31-.975 0 0 3.21-.231 8.048-.231z"/></svg>							<span class="screen-reader-text">YouTube</span>
+						</a>
+						<a class = "footer-content" href="https://www.linkedin.com/school/4284627" rel="noopener nofollow" class="link-effect-1 link--some">
+							<svg xmlns="http://www.w3.org/2000/svg" width="23" height="23" viewBox="0 0 23 23" aria-hidden="true" focusable="false"><path fill="#FFF" fill-rule="evenodd" d="M3.439 18.659H6.79V8.589H3.44v10.07zM7.008 5.484c-.015-.986-.726-1.74-1.872-1.74-1.146 0-1.9.754-1.9 1.74 0 .958.725 1.741 1.857 1.741h.014c1.175 0 1.9-.783 1.9-1.74zm4.976 4.525v.046h-.029l.03-.046zm0 0v-1.42H8.633s.043.943 0 10.07h3.351v-5.63c0-.29.015-.595.102-.812.247-.595.798-1.22 1.727-1.22 1.204 0 1.683.915 1.683 2.279v5.383h3.351v-5.775c0-3.09-1.654-4.527-3.86-4.527-1.76 0-2.561.958-3.003 1.652zm10.302-5.83v13.928a4.18 4.18 0 01-4.179 4.179H4.18A4.18 4.18 0 010 18.107V4.18A4.18 4.18 0 014.179 0h13.928a4.18 4.18 0 014.179 4.179z"/></svg>							<span class="screen-reader-text">LinkedIn</span>
+						</a>
+					</p>
+											<p>
+							<a class = "footer-content" href="https://www.3inalliance.eu" class="link-effect-1 no-arrow" lang="en">
+								<span class="screen-reader-text">
+									Member of 3IN Alliance								</span>
+								<img src="https://www.diak.fi/wp-content/themes/diak/dist/images/logo-3inalliance-01.svg" width="254" height="70" loading="lazy" alt="" class="image--block" />
+							</a>
+						</p>
+									</div>
+			</div>
+		</div>
+	</div></footer>
+               ')),
 tags$html(HTML('</main>'))
 )
 
