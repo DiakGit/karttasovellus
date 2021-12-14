@@ -32,7 +32,10 @@ df_tmp <- dd %>%
   # hyvinvointialue -> hyvinvointialueet
   mutate(regio_level = ifelse(regio_level == "Hyvinvointialue", "Hyvinvointialueet", regio_level)) %>% 
   mutate(aluenimi = ifelse(aluenimi == "Helsinki (sosiaali- ja terveydenhuolto, sekä pelastustoimi)", 
-                           "Helsingin kaupunki", aluenimi))
+                           "Helsingin kaupunki", aluenimi)) %>% 
+  mutate(aluenimi = ifelse(grepl("hyvinvointialue", aluenimi), 
+                           sub("hyvinvointialue", "HVA", aluenimi),
+                           aluenimi))
 
 # Uusi data, jossa sarakenimet ei korjattu
 tibble(name1 = names(df_tmp)) %>% 
@@ -125,6 +128,9 @@ bind_rows(
     group_by(hyvinvointialue_code,hyvinvointialue_name_fi) %>% 
     summarise() %>% rename(region_code = hyvinvointialue_code,
                            region_name = hyvinvointialue_name_fi) %>% 
+    mutate(region_name = ifelse(grepl("hyvinvointialue", region_name), 
+                             sub("hyvinvointialue", "HVA", region_name),
+                             region_name)) %>% 
     mutate(level = "Hyvinvointialueet"),
   muni %>% 
     group_by(municipality_code,municipality_name_fi) %>% 
@@ -179,7 +185,10 @@ df_tmp <- dd %>%
   # # hyvinvointialue -> hyvinvointialueet
   mutate(regio_level = ifelse(regio_level == "Hyvinvointialue", "Hyvinvointialueet", regio_level)) %>% 
 mutate(aluenimi = ifelse(aluenimi == "Helsinki (sosiaali- ja terveydenhuolto, sekä pelastustoimi)", 
-                         "Helsingin kaupunki", aluenimi))
+                         "Helsingin kaupunki", aluenimi))  %>% 
+  mutate(aluenimi = ifelse(grepl("hyvinvointialue", aluenimi), 
+                              sub("hyvinvointialue", "HVA", aluenimi),
+                           aluenimi))
 
 # Uusi data, jossa sarakenimet ei korjattu
 tibble(name1 = names(df_tmp)) %>% 
@@ -237,7 +246,8 @@ dat <- readxl::read_excel("./data_raw/Muuttujakuvaukset_20201102.xlsx") %>%
                                                             "Inhimillinen huono-osaisuus",
                                                             "Huono-osaisuuden taloudelliset seuraukset", 
                                                             "Huono-osaisuuden sosiaaliset seuraukset"))) %>% 
-  arrange(Muuttujaluokka)
+  arrange(Muuttujaluokka) %>% 
+  mutate(Aluetasot = sub("Maakunnat", "Hyvinvointialueet", Aluetasot))
 saveRDS(object = dat, file = "./data/muuttujakuvaukset.RDS")
 
 
