@@ -2,10 +2,19 @@ source("./global.R")
 
 
 ui <- fluidPage(lang = "fi",
-                title = "Tilastot kartalle",
+                title = "DIAK: Huono-osaisuus Suomessa -verkkosovellus",
                 tags$head(
-                  tags$link(rel="shortcut icon", href="favicon.ico"),
-                  tags$link(rel="stylesheet", href="custom.css")
+                  # tags$link(rel="shortcut icon", href="favicon.ico"),
+                  tags$link(rel="stylesheet", href="custom.css"),
+                  # # **<!-- CSS only -->**
+                    tags$link(rel="stylesheet",
+                              href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.2/dist/css/bootstrap.min.css",
+                              integrity="sha384-uWxY/CJNBR+1zjPWmfnSnVxwRheevXITnMqoEIeG1LJrdI0GlVs/9cVSyPYXdcSF",
+                              crossorigin="anonymous"),
+                  #   # **<!-- JavaScript Bundle with Popper -->**
+                    tags$script(src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.2/dist/js/bootstrap.bundle.min.js",
+                                integrity="sha384-kQtW33rZJAHjgefvhyyzcGF3C5TFyBQBA13V1RKPf4uH+bwyzQxZ6CmMZHmNBEfJ",
+                                crossorigin="anonymous")
                   ),
                 meta() %>% 
                     meta_description(description = "DIAK: Huono-osaisuus Suomessa -verkkosovellus") %>% 
@@ -19,103 +28,108 @@ ui <- fluidPage(lang = "fi",
                         twitter_card_type = "summary_large_image",
                         twitter_site = "@muuankarski"
                     ),
-                theme = bslib::bs_theme(bootswatch = "cosmo",
-                                        # bg = "#0b3d91", fg = "white", primary = "#FCC780",
-                                        base_font = font_google("PT Sans"),
-                                        code_font = font_google("Space Mono")),
-                tags$html(HTML('<a class="sr-only sr-only-focusable" href="#maincontent">Skip to main</a>')),
-                tags$html(HTML('
-    <nav class="navbar navbar-light navbar-xyz sticky-top grey-background container_1280">
-      <a class="navbar-brand" role="brand" href = "#"><img src = "https://www.diak.fi/wp-content/themes/diak/dist/images/diak-logo-1.svg" style = "height: 40px; padding-right: 0px;" alt = "logo"></a>
-      <div class = "lead">Huono-osaisuus Suomessa</div>
-      <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarResponsive" aria-controls="navbarResponsive" aria-expanded="false" aria-label="Avaa valikko">
+                theme = bslib::bs_theme(#bootswatch = "cosmo",
+                                        #base_font = font_google("PT Sans"),
+                                        #code_font = font_google("Space Mono")
+                  ),
+                HTML('<a class="sr-only sr-only-focusable" href="#maincontent">Skip to main</a>'),
+                tags$nav(class = "navbar navbar-expand-lg navbar-light navbar-xyz sticky-top grey-background container_1280", 
+                         tags$a(class="navbar-brand", role="brand", href = "#",
+                                tags$img(src = "https://www.diak.fi/wp-content/themes/diak/dist/images/diak-logo-1.svg", 
+                                         style = "height: 40px; padding-right: 0px;", 
+                                         alt = "logo")
+                                ),
+                         tags$div(class = "lead", "Huono-osaisuus Suomessa"),
+                         # HTML('<button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Avaa valikko" aria-label="Toggle navigation">
+                         #          <span class="navbar-toggler-icon"></span>
+                         #      </button>'),
+                         HTML('      <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarResponsive" aria-controls="navbarResponsive" aria-expanded="false" aria-label="Avaa valikko">
         <span class="navbar-toggler-icon"></span>
-      </button>
-      <div role = "navigation" class="collapse navbar-collapse justify-content-between" id="navbarResponsive">
-        <ul class="navbar-nav ml-auto">
-          <li class="nav-item">
-            <a class="nav-link" href="#ohje">Ohje</a>
-          </li>
-          <li class="nav-item">
-            <a class="nav-link" href="#indikaattorivertailu">Indikaattorivertailu</a>
-          </li>
-          <li class="nav-item">
-            <a class="nav-link" href="#alueprofiili">Luo alueprofiili</a>
-          </li>
-          <li class="nav-item">
-            <a class="nav-link" href="#info">Lisätietoja</a>
-          </li>
-          <li class="nav-item">
-            <a class="nav-link" href="#saavutettavuus">Saavutettavuusseloste</a>
-          </li>
-        </ul>
-      </div>
-  </nav>')),
+      </button>'),
+                         
+                         
+                         
+                         tags$div(role = "navigation", class = "collapse navbar-collapse justify-content-between", id="navbarResponsive",
+                                  tags$ul(class = "navbar-nav ml-auto",
+                                          tags$li(class = "nav-item",
+                                                  tags$a(class="nav-link", href="#ohje", "Ohje")
+                                                  ),
+                                          tags$li(class = "nav-item",
+                                                  tags$a(class="nav-link", href="#indikaattorivertailu", "Indikaattorivertailu")
+                                          ),
+                                          tags$li(class = "nav-item",
+                                                  tags$a(class="nav-link", href="#alueprofiili", "Luo alueprofiili")
+                                          ),
+                                          tags$li(class = "nav-item",
+                                                  tags$a(class="nav-link", href="#info", "Lisätietoja")
+                                          ),
+                                          tags$li(class = "nav-item",
+                                                  tags$a(class="nav-link", href="#saavutettavuus", "Saavutettavuusseloste")
+                                          )
+                                          ))
+                  
+                ),
                 tags$html(HTML('<main id="maincontent">')),
                 tags$h2("", id = "alku"),
-                fluidRow(column(width = 12,
-                tags$html(HTML('
-  <div class="container_1280">
-    <div class="row">
-      <div class="col-lg-8">
-
-  <h1 id = "content">Huono-osaisuus Suomessa</h1>                
-                
-  <p class="lead">Sovelluksessa voit tarkastella erilaisia huono-osaisuuden osoittimia sekä luoda  profiileja alueista. Aluetasoja on kolme: maakunnat, seutukunnat ja kunnat.</p>
-  <h2 id = "ohje">Näin käytät sovellusta</h2>
-  
-   <p><a href="#indikaattorivertailu">Muuttujien tarkasteluun</a> ja 
-   <a href="#alueprofiili">alueprofiilien laatimiseen</a> ovat omat valikkonsa.</p>
-   
-  <strong>Indikaattorivertailun</strong> valitse muuttujaluokka-valikosta voit säädellä haluatko katsoa huono-osaisuuden summatietoja vai tarkemmin kunkin huono-osaisuuden ulottuvuuden osoittimia. 
-  Valitse muuttuja-valikosta voit valita tarkemman osoittimen ja 
-  valitse aluetaso-valikosta aluetason.<br/>
-  Voit myös valita, näkyykö pylväs-, kartta- ja aikasarjakuviossa: 
-  <ul>
-    <li>kaikki valitun tason alueet,</li> 
-    <li>valittu alue ja sen naapurit, vai</li> 
-    <li>valitun maakunnan/seutukunnan kunnat</li>
-  </ul> 
-  <br/> 
-  Pylväs- ja karttakuvio sekä aikasarjakuvio muuttuvat samanaikaisesti valinnan muuttuessa.
-  <br/>
-  <strong>Alueprofiilin</strong> täytyy valita vain aluetaso sekä alue. Alueprofiili sisältää aina kaikkien osoittimien tiedot sekä valitulta alueelta että alueen 
-  rajanaapureista, sekä niiden aikasarjakuviot. Lisäksi alueprofiilissa esitetään kunkin osoittimen korkein ja matalin arvo.
-    <br/>
-    <p><a href= "https://www.youtube.com/playlist?list=PLX8L6VZCYbFIzAqc4InxFEbP0SmfOrDzL">Katso opastusvideot sivuston käytöstä!</a></p>
-  Jos haluat viitata karttasivustoon tekstissäsi, käytä lähdeviitteenä:
-    <em>Diakonia-ammattikorkeakoulu (i.a.)</em> ja lähdeluettelossa: <em>Diakonia-ammattikorkeakoulu (i.a.) Huono-osaisuus Suomessa –karttasivusto. Saatavilla pp.kk.vuosi www.diak.fi/eriarvoisuus</em>
-  <br/>
-
-  <p>Indikaattorit ja muuttujat on muodostettu vuosien 2017-2019 tilastojen keskiarvosta vuosivaihtelun minimoimiseksi, ja suhteuttamalla arvo keskimmäiseen eli mediaanimaakuntaan/-seutukuntaan/-kuntaan vertailun helpottamiseksi. Aikasarjoissa lukemat vuodesta 2010 alkaen kolmen vuoden liukuvina keskiarvoina.
-    <a href="https://www.diak.fi/kumppanille-ja-kehittajalle/kehittamistyokalut/huono-osaisuus-suomessa-karttasivusto/#73053a2b">Lue lisää Diakin sivuilta!</a>
-    </p>
-  </div>                            
-                               
-<div class="col-lg-4">
-  <div style = "padding-top: 20px;"></div>
-    <div class="row">
-    <div class="col-sm">
-      <a href = "https://ec.europa.eu/regional_policy/fi/funding/erdf/"><img src="app_eu.png" style="height: 160px;" alt = "Euroopan unionin lippu, jonka alla teksti: Euroopan unioni, Euroopan aluekehitysrahasto"/></a>
-      </div>
-      <div class="col-sm">
-      </div>
-        </div>
-        <div style = "padding-top: 20px;"></div>
-  <div class="row">
-      <div class="col-sm">
-              <a href = "https://www.rakennerahastot.fi"><img src="app_vipu.png" style="height: 62px; padding-right: 5px;" alt = "Rakennerahastot.fi -verkkopalvelun logo"/></a>  
-              <a href = "https://thl.fi/fi/web/hyvinvoinnin-ja-terveyden-edistamisen-johtaminen/osallisuuden-edistaminen/heikoimmassa-asemassa-olevien-osallisuus"><img src="app_sokra.png" style="height: 62px;" alt = "Sosiaalisen osallisuuden edistämisen koordinaatiohankeen Sokran logo"/></a>
-      <!--/div>
-            <div class="col-sm"-->
-        <a href = "https://www.diak.fi"><img src="app_diak.png" style="height: 62px;" alt = "Diakonia-ammattikorkeakoulun logo"/></a>
-      </div>
-      </div>
-      <div style = "padding-bottom: 20px;"></div>
-       <a href = "https://tutkittutieto.fi"><img src="app_teema.jpg" style="height: 100px;" alt = "Tutkitun tiedon teemavuoden logo"/></a>
-      </div>
-</div>
-</div>')))),
+                tags$div(class = "container_1280", 
+                         tags$div(class = "row",
+                                  tags$div(class = "col-lg-8",
+                                           tags$h1(id = "content", "Huono-osaisuus Suomessa"),
+                                           tags$p(class = "lead",
+                                                  "Sovelluksessa voit tarkastella erilaisia huono-osaisuuden osoittimia sekä luoda  profiileja alueista. Aluetasoja on kolme: maakunnat, seutukunnat ja kunnat."),
+                                           tags$h2(id = "ohje", "Näin käytät sovellusta"),
+                                           tags$p(
+                                             tags$a(href = "#indikaattorivertailu", "Muuttujien tarkasteluun"), "ja", 
+                                             tags$a(href = "#alueprofiili", "alueprofiilien laatimiseen"), 
+                                             "ovat omat valikkonsa"),
+                                           tags$p(
+                                           tags$strong("Indikaattorivertailun"),
+                                           "valitse muuttujaluokka-valikosta voit säädellä haluatko katsoa huono-osaisuuden summatietoja vai tarkemmin kunkin huono-osaisuuden ulottuvuuden osoittimia. Valitse muuttuja-valikosta voit valita tarkemman osoittimen ja valitse aluetaso-valikosta aluetason. ", tags$br(),"Voit myös valita, näkyykö pylväs-, kartta- ja aikasarjakuviossa:"
+                                           ),
+                                           tags$ul(
+                                             tags$li("kaikki valitun tason alueet,"),
+                                             tags$li("valittu alue ja sen naapurit, vai"),
+                                             tags$li("valitun maakunnan/seutukunnan kunnat")
+                                           ),
+                                           tags$p("Pylväs- ja karttakuvio sekä aikasarjakuvio muuttuvat samanaikaisesti valinnan muuttuessa.",tags$br(),
+                                                  tags$strong("Alueprofiilin"), "täytyy valita vain aluetaso sekä alue. Alueprofiili sisältää aina kaikkien osoittimien tiedot sekä valitulta alueelta että alueen rajanaapureista, sekä niiden aikasarjakuviot. Lisäksi alueprofiilissa esitetään kunkin osoittimen korkein ja matalin arvo.", tags$br(),
+                                                  tags$a(href = "https://www.youtube.com/playlist?list=PLX8L6VZCYbFIzAqc4InxFEbP0SmfOrDzL", "Katso opastusvideot sivuston käytöstä!")),
+                                           tags$p("Jos haluat viitata karttasivustoon tekstissäsi, käytä lähdeviitteenä:",
+                                                  tags$em("Diakonia-ammattikorkeakoulu (i.a.)"),"ja lähdeluettelossa:", 
+                                                  tags$em("Diakonia-ammattikorkeakoulu (i.a.) Huono-osaisuus Suomessa –karttasivusto. Saatavilla pp.kk.vuosi www.diak.fi/eriarvoisuus")),
+                                           tags$p("Indikaattorit ja muuttujat on muodostettu vuosien 2017-2019 tilastojen keskiarvosta vuosivaihtelun minimoimiseksi, ja suhteuttamalla arvo keskimmäiseen eli mediaanimaakuntaan/-seutukuntaan/-kuntaan vertailun helpottamiseksi. Aikasarjoissa lukemat vuodesta 2010 alkaen kolmen vuoden liukuvina keskiarvoina.",
+                                                  tags$a(href = "https://www.diak.fi/kumppanille-ja-kehittajalle/kehittamistyokalut/huono-osaisuus-suomessa-karttasivusto/#73053a2b", 
+                                                         "Lue lisää Diakin sivuilta!"))
+                                           ),
+                                  tags$div(class = "col-lg-4",
+                                           tags$div(style = "padding-top: 20px;"),
+                                                    tags$div(class = "col-sm",
+                                                             tags$a(href = "https://ec.europa.eu/regional_policy/fi/funding/erdf/", 
+                                                                    tags$img(src = "app_eu.png", 
+                                                                             class="rounded mx-auto d-block",
+                                                                             style="height: 160px;",
+                                                                             alt = "Euroopan unionin lippu, jonka alla teksti: Euroopan unioni, Euroopan aluekehitysrahasto"))),
+                                                             tags$a(href = "https://www.rakennerahastot.fi", 
+                                                                    tags$img(src = "app_vipu.png", 
+                                                                             class="rounded mx-auto d-block",
+                                                                             style="height: 90px; padding-top: 20px;",
+                                                                             alt = "Rakennerahastot.fi -verkkopalvelun logo")),
+                                                             tags$a(href = "https://thl.fi/fi/web/hyvinvoinnin-ja-terveyden-edistamisen-johtaminen/osallisuuden-edistaminen/heikoimmassa-asemassa-olevien-osallisuus", 
+                                                                    tags$img(src = "app_sokra.png", 
+                                                                             class="rounded mx-auto d-block",
+                                                                             style="height: 100px;padding-top: 20px;", 
+                                                                             alt = "Sosiaalisen osallisuuden edistämisen koordinaatiohankeen Sokran logo")),
+                                                                    tags$a(href = "https://tutkittutieto.fi", 
+                                                                    tags$img(src = "app_diak.png", 
+                                                                             class="rounded mx-auto d-block",
+                                                                             style="height: 80px;padding-top: 20px;", 
+                                                                             alt = "Diakonia-ammattikorkeakoulun logo")),
+                                                             tags$a(href = "https://tutkittutieto.fi", 
+                                                                    tags$img(src = "app_teema.jpg", 
+                                                                             class="rounded mx-auto d-block",
+                                                                             style="height: 110px; padding-top: 20px;", 
+                                                                             alt = "Tutkitun tiedon teemavuoden logo"))
+                                  ))),
 tags$div(class = "container_1280 grey-background",
          tags$div(class = "row",
                   tags$div(class = "col-lg-3",
@@ -136,12 +150,10 @@ tags$div(class = "row",
                   plotOutput("timeseries_plot", width = "100%", height = "550px")
          )
 )),
-tags$div(style="padding-top: 40px"),
-
+tags$hr(),
 tags$div(class = "container_1280 grey-background",
          tags$div(class = "row",
                   tags$div(class = "col-lg-12",
-                           tags$div(style="padding-top: 40px"),
                            tags$h2(id = "alueprofiili", "Alueprofiili"),
                            tags$p("Alueprofiilissa näet kaikki aineiston osoittimet luokan mukaan ryhmiteltynä. Kustakin osoittimesta näytetään valitun alueen lisäksi sen rajanaapurit sekä  osoittimen korkeimman ja matalimman arvon alueet. Alueet on järjestetty kunkin osoittimen kohdalla sijan mukaan."),
                            tags$p("Valitse ensin aluetaso, sitten alue ja paina lopuksi <i>Luo alueprofiili</i> -painiketta. Alueprofiilin luominen kestää noin 30 sekuntia. Voit tallentaa profiilin laitteellesi")
@@ -180,198 +192,99 @@ tags$div(class="container_1280",
                            )          
           )),
 
-                tags$html(HTML('
-  <div class="container_1280">
-    <div class="row">
-      <div class="col-lg-8">
-    
-    <h3>Sovellus</h3>
-    
-    <strong>Huono-osaisuus Suomessa -verkkosovellus</strong>
-    <p>Sovellusversio
-    <code>0.3.0</code><br/>
-    Aineistoversio
-    <code>0.2.0</code>
-    </p>
-    <p>Tämä verkkosovellus on tehty
-    <a href="https://www.r-project.org/">R</a>-kielellä
-    <a href="https://shiny.rstudio.com">Shiny</a>-kirjaston avulla. 
-    Sovelluksen lähdekoodi on avoimesti lisensöity ja saatavilla 
-    <a href="https://github.com/DiakGit/karttasovellus">Github</a>-palvelusta.</p>
-    
-    <p>Mikäli löysit sovelluksesta bugin tai sinulla on idea tai toteutus uudesta ominaisuudesta voit:</p>
-    <ul>
-    <li>
-    toteuttaa ominaisuuden/korjauksen ja jättää
-    <a href="https://github.com/DiakGit/karttasovellus/pulls">pull requestin</a>Github-palvelussa,
-    </li>
-    <li>
-    avata uuden <a href="https://github.com/DiakGit/karttasovellus/issues">issuen</a> Github-palvelussa 
-    ja kuvata bugin/ominaisuuden siinä tai
-    </li>
-    <li>
-    laittaa meiliä osoitteeseen 
-    <a href="mailto:sakari.kainulainen@diak.fi"><code>sakari.kainulainen@diak.fi</code></a> tai
-    </li>
-    <li>
-      laittaa palautetta lomakkeella <a href = "https://www.diak.fi/kumppanille-ja-kehittajalle/kehittamistyokalut/huono-osaisuus-suomessa-karttasivusto/#73053a2b">Diakin sivuilta</a>
-    </li>
-    </ul>
-    
-    </div>  
-</div>      
-    </div>      
+tags$div(class = "container_1280",
+         tags$div(class = "row",
+                  tags$div(class = "col-lg-8",
+                           tags$h3("Sovellus"),
+                           tags$strong("Huono-osaisuus Suomessa -verkkosovellus"),
+                           tags$ul(
+                           tags$li("Sovellusversio",
+                           tags$code("0.3.0")),
+                           tags$li("Aineistoversio",
+                           tags$code("0.2.0"))
+                           ),
+                           tags$p("Tämä verkkosovellus on tehty", 
+                                  tags$a(href = "https://www.r-project.org", "R"), "-kielellä", 
+                                  tags$a(href = "https://shiny.rstudio.com", "Shiny"), "-kirjaston avulla. Sovelluksen lähdekoodi on avoimesti lisensöity ja saatavilla", 
+                                  tags$a(href = "https://github.com/DiakGit/karttasovellus", "Github"), "-palvelusta."),
+                           tags$p("Mikäli löysit sovelluksesta bugin tai sinulla on idea tai toteutus uudesta ominaisuudesta voit:"),
+                           tags$ul(
+                             tags$li("toteuttaa ominaisuuden/korjauksen ja jättää", 
+                                     tags$a(href = "https://github.com/DiakGit/karttasovellus/pulls", "pull requestin"), "Github-palvelussa"),
+                             tags$li("avata uuden", 
+                                     tags$a(href = "https://github.com/DiakGit/karttasovellus/issues", "issuen"), "Github-palvelussa ja kuvata bugin/ominaisuuden siinä tai"),
+                             tags$li("laittaa meiliä osoitteeseen", 
+                                     tags$a(href = "mailto:sakari.kainulainen@diak.fi", tags$code("sakari.kainulainen@diak.fi")), "tai"),
+                             tags$li("laittaa palautetta lomakkeella", 
+                                     tags$a(href = "https://www.diak.fi/kumppanille-ja-kehittajalle/kehittamistyokalut/huono-osaisuus-suomessa-karttasivusto/#73053a2b", "Diakin sivuilta"))
+                           )))),
 
 
-  <div class="container_1280">
-    <div class="row">
-      <div class="col-lg-8">
-
-    <h2 id = "saavutettavuus">Saavutettavuusseloste</h2>
-    
-    <p>
-    <i>Saavutettavuudella</i> tarkoitetaan, että verkkosivut ja mobiilisovellukset sekä niiden sisällöt ovat sellaisia,
-    että kuka tahansa voisi niitä käyttää ja ymmärtää mitä niissä sanotaan.
-    </p>
-    <p>Diakin verkkosivuja koskee laki digitaalisten palvelujen tarjoamisesta, joka pohjautuu  EU:n saavutettavuusdirektiiviin. 
-    Lain mukaan kaikilla tulee olla tasavertaiset mahdollisuudet käyttää digitaalisia palveluita.</p>
-    <p>Tämä saavutettavuusseloste koskee <a href="https://www.thl.fi/sokra">Sokra-hankkeessa</a>
-    toteutettu <a href="https://diak.shinyapps.io/karttasovellus/">karttasivusto</a> on julkaistu 23.4.2020,
-    joka tarkoittaa sitä, että sivuston tulee noudattaa WCAG 2.1 –kriteeristön AA-tasoa 23.9.2020 mennessä.
-    </p>
-    <h3>Digipalvelun saavutettavuuden tila</h3>
-
-    <p> <a href ="https://diak.shinyapps.io/karttasovellus/">Karttasivusto</a> 
-    täyttää pääosin WCAG 2.1 -kriteeristön A & AA -saavutettavuusvaatimukset.</p>
-    <p>
-      
-    <h3>Saavutettavuusselosteen laatiminen</h3>
-    <p>Karttasivustoa koskeva seloste on laadittu 19.9.2020 ja sitä on päivitetty 3.11.2020. 
+tags$div(class = "container_1280",
+         tags$div(class = "row",
+                  tags$div(class = "col-lg-8",
+                           tags$h2(id = "saavutettavuus", "Saavutettavuusseloste"),
+                           tags$p("Saavutettavuudella tarkoitetaan, että verkkosivut ja mobiilisovellukset sekä niiden sisällöt ovat sellaisia,
+    että kuka tahansa voisi niitä käyttää ja ymmärtää mitä niissä sanotaan."),
+                           tags$p("Diakin verkkosivuja koskee laki digitaalisten palvelujen tarjoamisesta, joka pohjautuu  EU:n saavutettavuusdirektiiviin. 
+    Lain mukaan kaikilla tulee olla tasavertaiset mahdollisuudet käyttää digitaalisia palveluita."),
+                           tags$p("Tämä saavutettavuusseloste koskee", tags$a(href="https://www.thl.fi/sokra", "Sokra-hankkeessa"),
+                           "toteutettu", tags$a(href="https://diak.shinyapps.io/karttasovellus/", "karttasivusto"), "on julkaistu 23.4.2020,
+    joka tarkoittaa sitä, että sivuston tulee noudattaa WCAG 2.1 –kriteeristön AA-tasoa 23.9.2020 mennessä."),
+                           tags$h3("Digipalvelun saavutettavuuden tila"),
+                           tags$p(tags$a(href ="https://diak.shinyapps.io/karttasovellus/", "Karttasivusto"),"täyttää pääosin WCAG 2.1 -kriteeristön A & AA -saavutettavuusvaatimukset."),
+                           tags$h3("Saavutettavuusselosteen laatiminen"),
+                           tags$p("Karttasivustoa koskeva seloste on laadittu 19.9.2020 ja sitä on päivitetty 3.11.2020. 
     Seloste perustuu itsearvioon, Poutapilvi Oy:n tekemään auditointiraporttiin sekä 
-    seuraavilla testausohjelmistoilla suoritettuun tarkastukseen.</p>
-    
-    <strong>Ruudunlukijat</strong>
-    <ul>
-      <li><a href="https://www.nvaccess.org/">NVDA</a></li>
-      <li><a href="https://wiki.gnome.org/Projects/Orca">Orca</a></li>
-      <li><a href="https://www.chromevox.com/">ChromeVox</a></li>
+    seuraavilla testausohjelmistoilla suoritettuun tarkastukseen."),
+                           tags$strong("Ruudunlukijat"),
+                           tags$ul(
+                             tags$li(tags$a(href = "https://www.nvaccess.org/", "NVDA")),
+                             tags$li(tags$a(href = "https://wiki.gnome.org/Projects/Orca", "Orca")),
+                             tags$li(tags$a(href = "https://www.chromevox.com/", "ChromeVox"))
+                           ),
+                           tags$strong("Saavutettavuuden tarkastuohjelmat"),
+                           tags$ul(
+                             tags$li(tags$a(href = "https://ainspector.github.io/", "AInspector")),
+                             tags$li(tags$a(href = "https://thepaciellogroup.github.io/WAI-ARIA-Usage/WAI-ARIA_usage.html", "WAI-ARIA Usage")),
+                             tags$li(tags$a(href = "https://validator.w3.org/nu/", "Nu Html Checker")),
+                             tags$li(tags$a(href = "https://developer.paciellogroup.com/resources/contrastanalyser/", "Colour Contrast Analyser")),
+                             tags$li(tags$a(href = "https://wave.webaim.org/", "WAVE Web Accessibility Evaluation Tool"))
+                           ),
+                           tags$p("Näiden arvioiden ja ulkopuolisen raportin perusteella karttasivuston ensimmäiseen versioon tehtiin lukuisia saavutettavuutta parantavia korjauksia."),
+                           tags$h3("Palautetta saavutettavuudesta?"),
+                           tags$p("Huomasitko saavutettavuuspuutteen digipalvelussamme? Kerro se meille ja eemme parhaamme puutteen korjaamiseksi"),
+                           tags$p("Jos huomaat sivustolla saavutettavuusongelmia, anna ensin palautetta sivuston ylläpitäjälle. Vastauksessa voi mennä 14 päivää. Jos et ole tyytyväinen saamaasi vastaukseen tai et saa vastausta lainkaan kahden viikon aikana, voit ilmoittaa asiasta valvontaviranomaiselle."),
+                           tags$strong("Valvontaviranomaisen yhteystiedot:"),
+                           tags$p("Etelä-Suomen aluehallintovirasto",tags$br(),
+                                  "Saavutettavuuden valvonnan yksikkö",tags$br(),
+                                  "www.saavutettavuusvaatimukset.fi",tags$br(),
+                                  "saavutettavuus(at)avi.fi",tags$br(),
+                                  "puhelinnumero vaihde 0295 016 000")
+                  )
+         )
+),
 
-    </ul>
-        <strong>Saavutettavuuden tarkastuohjelmat</strong>
-    <ul>
-      <li><a href="https://ainspector.github.io/">AInspector</a></li>
-      <li> <a href="https://thepaciellogroup.github.io/WAI-ARIA-Usage/WAI-ARIA_usage.html">WAI-ARIA Usage</a></li>
-      <li><a href="https://validator.w3.org/nu/">Nu Html Checker</a></li>
-      <li><a href="https://developer.paciellogroup.com/resources/contrastanalyser/">Colour Contrast Analyser</a></li>
-      <li><a href="https://wave.webaim.org/">WAVE Web Accessibility Evaluation Tool</a></li>
-      
-      
+tags$footer(class = "bd-footer py-5 mt-5 bg-dark-diak container_1280",
+                  tags$div(class = "tp-bg-2 padding-top--medium text--small content--hyphenate tp-links-1 cf",
+                           tags$div(class = "container-fluid",
+                                    tags$div(class = "row",
+                                             tags$div(class = "col-sm-6 col-md-3 footer-content margin-bottom--medium",
+                                                      tags$img(src="https://www.diak.fi/wp-content/themes/diak/dist/images/diak-logo-2.svg",
+                                                               width="250",
+                                                               height="77",
+                                                               alt="Diakonia-ammattikorkeakoulun log")),
+                                             tags$div(class = "col-sm-6 col-md-3 footer-content margin-bottom--medium",
+                                                      tags$p(class = "footer-content",
+                                                        tags$strong("Diakonia-ammattikorkeakoulu"), 
+                                                        tags$br(),
+                                                        "PL 12, 00511 Helsinki")),
+                                             tags$div(class = "col-sm-6 col-md-3 footer-content margin-bottom--medium")
+                                    )
+                                    )
+                           )
+            ),
 
-    </ul>
-    
-    <p>Näiden arvioiden ja ulkopuolisen raportin perusteella karttasivuston ensimmäiseen versioon 
-    tehtiin lukuisia saavutettavuutta parantavia korjauksia.</p>
-    
-    <h3>Palautetta saavutettavuudesta?</h3>
-    <p>Huomasitko saavutettavuuspuutteen digipalvelussamme? Kerro se meille ja eemme parhaamme puutteen korjaamiseksi
-    </p>
-    <p>
-    Ilmoita puute tällä <a href="https://www.diak.fi/diak/anna-palautetta/">verkkolomakkeella</a>. 
-    Valitse kohta verkkosivuston saavutettavuus. Kerro palautteessa, mitä Diakin hallinnoimaa sivustoa palaute koskee.
-    </p>
-    <p>
-      Jos huomaat sivustolla saavutettavuusongelmia, anna ensin palautetta sivuston ylläpitäjälle. 
-      Vastauksessa voi mennä 14 päivää. Jos et ole tyytyväinen saamaasi vastaukseen tai 
-      et saa vastausta lainkaan kahden viikon aikana, voit ilmoittaa asiasta valvontaviranomaiselle.
-    </p>
-    <strong>Valvontaviranomaisen yhteystiedot:</strong>
-    <p>
-      Etelä-Suomen aluehallintovirasto<br/>
-      Saavutettavuuden valvonnan yksikkö<br/>
-      www.saavutettavuusvaatimukset.fi<br/>
-      saavutettavuus(at)avi.fi<br/>
-      puhelinnumero vaihde 0295 016 000
-    </p>
-
-        </div>
-    </div>
-  </div>
-
-  </main>              
-                
-                
-')),
-
-
-tags$html(HTML('
-               <footer class="bd-footer py-5 mt-5 bg-dark-diak container_1280">
-	<div class="tp-bg-2 padding-top--medium text--small content--hyphenate tp-links-1 cf">
-		<div class="container-fluid">
-			<div class="row">
-				<div class="col-sm-6 col-md-3 footer-content margin-bottom--medium" aria-hidden="true">
-					<img src="https://www.diak.fi/wp-content/themes/diak/dist/images/diak-logo-2.svg" width="250" height="77" loading="lazy" alt="" class="image--block" />
-				</div>
-															<div class="col-sm-6 col-md-3 footer-content margin-bottom--medium">
-							<p><strong>Diakonia-ammattikorkeakoulu</strong><br />
-PL 12, 00511 Helsinki<br />
-<a class = "footer-content" href="https://www.diak.fi/diak/kampukset/">Kampusten postiosoitteet</a></p>
-<p>Vaihde: 029 469 6000<br />
-<a class = "footer-content" href="mailto:kirjaamo@diak.fi">kirjaamo@diak.fi</a><br />
-<a class = "footer-content" href="mailto:etunimi.sukunimi@diak.fi">etunimi.sukunimi@diak.fi</a><br />
-<a class = "footer-content" href="https://www.diak.fi/diak/yhteystiedot/">Yhteystiedot</a><br />
-<a class = "footer-content" href="https://www.diak.fi/diak/yhteystiedot/henkilohaku/" target="_blank" rel="noopener">Henkilöhaku</a></p>
-<p><a class = "footer-content" href="https://www.diak.fi/diak/organisaatio/saavutettavuusseloste/" rel="noopener">Saavutettavuus</a><br />
-<a class = "footer-content" href="https://www.diak.fi/diak/organisaatio/tietosuoja/">Tietosuoja</a><br />
-<a class = "footer-content" href="https://www.diak.fi/diak/anna-palautetta/">Palaute</a></p>
-						</div>
-											<div class="col-sm-6 col-md-3 footer-content margin-bottom--medium">
-							<p><strong>Diakilaiselle:<br />
-</strong><a class = "footer-content" href="https://my.diak.fi/" target="_blank" rel="noopener">MyDiak</a><br />
-<a class = "footer-content" href="http://lukujarjestykset.diak.fi/" target="_blank" rel="noopener">Lukujärjestykset</a><br />
-<a class = "footer-content" href="https://portal.office.com/" target="_blank" rel="noopener">Office365</a> (sähköposti)<br />
-<a class = "footer-content" href="https://diakle.diak.fi/login/index.php" target="_blank" rel="noopener">Diakle</a><br />
-<a class = "footer-content" href="https://www.diak.fi/opiskelu/tuki-ja-palvelut/it-palvelut/">IT-palvelut</a><br />
-<a class = "footer-content" href="https://www.diak.fi/diak/kirjasto/">Kirjasto- ja tietopalvelut</a><br />
-<a class = "footer-content" href="https://app.incy.io/login/saml" target="_blank" rel="noopener">Incy-poikkeamaraportointi</a><br />
-<a class = "footer-content" href="https://www.jobiili.fi/" target="_blank" rel="noopener">Jobiili</a><br />
-<a class = "footer-content" href="http://www.odiako.fi" target="_blank" rel="noopener">Opiskelijakunta O&#8217;Diako</a><br />
-<a class = "footer-content" href="https://dialogi.diak.fi/">Dialogi-media</a></p>
-<p><a class = "footer-content" href="https://vuosikatsaus2020.diak.fi/" target="_blank" rel="noopener">Vuosikatsaus</a></p>
-						</div>
-													<div class="col-sm-6 col-md-3 footer-content margin-bottom--medium">
-					<p><strong>Seuraa meitä:</strong></p>
-											<a class = "footer-content" href="https://www.diak.fi/tilaa-uutiskirjeita/" class="link--block footer__link-block margin-bottom">
-							<svg xmlns="http://www.w3.org/2000/svg" width="26" height="21" viewBox="0 0 26 21" aria-hidden="true" focusable="false"><path fill="#FFF" fill-rule="evenodd" d="M26 6.587v11.52a2.328 2.328 0 01-2.321 2.322H2.32A2.328 2.328 0 010 18.107V6.587c.435.479.929.9 1.465 1.262 2.409 1.64 4.846 3.28 7.211 5.006 1.22.9 2.728 2.002 4.31 2.002h.029c1.581 0 3.09-1.103 4.309-2.002 2.365-1.712 4.802-3.366 7.225-5.006A8.546 8.546 0 0026 6.587zm0-4.266c0 1.625-1.204 3.09-2.481 3.976-2.263 1.567-4.541 3.134-6.79 4.715-.943.653-2.54 1.988-3.714 1.988h-.03c-1.175 0-2.77-1.335-3.714-1.988-2.249-1.581-4.527-3.148-6.775-4.715C1.466 5.6 0 3.96 0 2.64 0 1.219.769 0 2.321 0H23.68A2.338 2.338 0 0126 2.321z"/></svg>							Tilaa uutiskirje						</a>
-										<p>
-						Diak somessa:<br />
-						<a class = "footer-content" href="https://twitter.com/diakamk" rel="noopener nofollow" class="link-effect-1 link--some">
-							<svg xmlns="http://www.w3.org/2000/svg" width="25" height="20" viewBox="0 0 25 20" aria-hidden="true" focusable="false"><path fill="#FFF" fill-rule="evenodd" d="M22.11 4.907c.015.216.015.43.015.645 0 6.57-5.081 14.136-14.369 14.136-2.861 0-5.52-.812-7.756-2.23.406.047.798.063 1.22.063 2.36 0 4.534-.786 6.27-2.124-2.22-.046-4.082-1.477-4.722-3.445a6.5 6.5 0 00.955.078 5.4 5.4 0 001.328-.17c-2.315-.461-4.05-2.461-4.05-4.877v-.062a5.102 5.102 0 002.283.632 4.94 4.94 0 01-2.252-4.136c0-.926.252-1.77.688-2.51 2.486 3.015 6.223 4.985 10.413 5.199a5.579 5.579 0 01-.124-1.137C12.01 2.23 14.26 0 17.058 0c1.454 0 2.768.602 3.69 1.568A10.014 10.014 0 0023.955.37a4.976 4.976 0 01-2.222 2.737 10.224 10.224 0 002.909-.77 10.715 10.715 0 01-2.533 2.57"/></svg>							<span class="screen-reader-text">Twitter</span>
-						</a>
-						<a class = "footer-content" href="https://www.facebook.com/diakamk" rel="noopener nofollow" class="link-effect-1 link--some">
-							<svg xmlns="http://www.w3.org/2000/svg" width="13" height="24" viewBox="0 0 13 24" aria-hidden="true" focusable="false"><path fill="#FFF" fill-rule="evenodd" d="M12.54 3.886h-2.279c-1.783 0-2.116.832-2.116 2.028v2.66h4.25l-.565 4.166H8.145v10.688H3.703V12.74H0V8.575h3.703V5.506C3.703 1.944 5.952 0 9.233 0c1.566 0 2.915.113 3.308.17v3.716z"/></svg>							<span class="screen-reader-text">Facebook</span>
-						</a>
-						<a class = "footer-content" href="https://www.instagram.com/diakamk" rel="noopener nofollow" class="link-effect-1 link--some">
-							<svg xmlns="http://www.w3.org/2000/svg" width="23" height="23" viewBox="0 0 23 23" aria-hidden="true" focusable="false"><path fill="#FFF" fill-rule="evenodd" d="M19.759 3.482c0-.552-.45-1-1.003-1h-2.523a1 1 0 00-1 1v2.393c0 .55.448 1 1 1h2.523c.552 0 1.003-.45 1.003-1V3.482zm-8.604 3.279c-2.465 0-4.468 1.942-4.468 4.338 0 2.393 2.003 4.337 4.468 4.337 2.482 0 4.483-1.944 4.483-4.337 0-2.396-2.001-4.338-4.483-4.338zm8.604 2.668h-1.96c.188.595.29 1.247.29 1.901 0 3.712-3.105 6.716-6.934 6.716-3.814 0-6.92-3.004-6.92-6.716 0-.654.103-1.306.291-1.901H2.48v9.4c0 .492.392.886.885.886h15.508a.881.881 0 00.886-.885V9.429zm2.523 9.994a2.872 2.872 0 01-2.857 2.859H2.86A2.873 2.873 0 010 19.423V2.86A2.873 2.873 0 012.859 0h16.566a2.872 2.872 0 012.857 2.859v16.564z"/></svg>							<span class="screen-reader-text">Instagram</span>
-						</a>
-						<a class = "footer-content" href="https://www.youtube.com/channel/UCFRCstrYYjAzHrmHi1fuOIg" rel="noopener nofollow" class="link-effect-1 link--some">
-							<svg xmlns="http://www.w3.org/2000/svg" width="23" height="17" viewBox="0 0 23 17" aria-hidden="true" focusable="false"><path fill="#FFF" fill-rule="evenodd" d="M9.126 11.064l6.212-3.21-6.212-3.246v6.456zM11.5 0c4.839 0 8.047.231 8.047.231.45.051 1.438.051 2.31.975 0 0 .707.694.912 2.285.244 1.861.23 3.722.23 3.722V8.96s.014 1.86-.23 3.722c-.205 1.578-.911 2.284-.911 2.284-.873.912-1.861.912-2.31.963 0 0-3.21.244-8.048.244-5.981-.052-7.816-.231-7.816-.231-.514-.09-1.669-.064-2.542-.976 0 0-.706-.706-.91-2.284C-.014 10.82 0 8.959 0 8.959V7.213s-.013-1.86.231-3.722c.205-1.591.911-2.285.911-2.285.873-.924 1.861-.924 2.31-.975 0 0 3.21-.231 8.048-.231z"/></svg>							<span class="screen-reader-text">YouTube</span>
-						</a>
-						<a class = "footer-content" href="https://www.linkedin.com/school/4284627" rel="noopener nofollow" class="link-effect-1 link--some">
-							<svg xmlns="http://www.w3.org/2000/svg" width="23" height="23" viewBox="0 0 23 23" aria-hidden="true" focusable="false"><path fill="#FFF" fill-rule="evenodd" d="M3.439 18.659H6.79V8.589H3.44v10.07zM7.008 5.484c-.015-.986-.726-1.74-1.872-1.74-1.146 0-1.9.754-1.9 1.74 0 .958.725 1.741 1.857 1.741h.014c1.175 0 1.9-.783 1.9-1.74zm4.976 4.525v.046h-.029l.03-.046zm0 0v-1.42H8.633s.043.943 0 10.07h3.351v-5.63c0-.29.015-.595.102-.812.247-.595.798-1.22 1.727-1.22 1.204 0 1.683.915 1.683 2.279v5.383h3.351v-5.775c0-3.09-1.654-4.527-3.86-4.527-1.76 0-2.561.958-3.003 1.652zm10.302-5.83v13.928a4.18 4.18 0 01-4.179 4.179H4.18A4.18 4.18 0 010 18.107V4.18A4.18 4.18 0 014.179 0h13.928a4.18 4.18 0 014.179 4.179z"/></svg>							<span class="screen-reader-text">LinkedIn</span>
-						</a>
-					</p>
-											<p>
-							<a class = "footer-content" href="https://www.3inalliance.eu" class="link-effect-1 no-arrow" lang="en">
-								<span class="screen-reader-text">
-									Member of 3IN Alliance								</span>
-								<img src="https://www.diak.fi/wp-content/themes/diak/dist/images/logo-3inalliance-01.svg" width="254" height="70" loading="lazy" alt="" class="image--block" />
-							</a>
-						</p>
-									</div>
-			</div>
-		</div>
-	</div></footer>
-               ')),
 tags$html(HTML('</main>'))
 )
 
