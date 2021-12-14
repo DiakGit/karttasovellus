@@ -141,9 +141,12 @@ tags$div(class = "container_1280 grey-background",
                                     uiOutput("output_regio_show_mode"),
                                     uiOutput("output_save_data_indicator")
                                     ),
-                  tags$div(class = "col-lg-9",
-                                    plotOutput("map_rank_plot", width = "100%", height = "800px")
-                           )
+                  tags$div(class = "col-lg-4",
+                           plotOutput("rank_plot", width = "100%", height = "800px")
+                           ),
+                  tags$div(class = "col-lg-5",
+                           plotOutput("map_plot", width = "100%", height = "800px")
+                  )
                   ),
 tags$div(class = "row",
          tags$div(class = "col-lg-12",
@@ -687,7 +690,7 @@ server <- function(input, output) {
     
     
     
-    output$map_rank_plot <- renderPlot({
+    output$rank_plot <- renderPlot({
         
         req(input$value_variable_class)
         req(input$value_variable)
@@ -730,21 +733,27 @@ server <- function(input, output) {
                                                        timeseries = FALSE)
         }
         
+        # luodaan alaotsikko
+        if (input$value_regio_show_mode == "valitun alueen kunnat"){
+          kuvan_subtitle <- glue("Kuvassa näytetään alueeseen {input$value_region_selected} tasolla {tolower(input$value_regio_level)} kuuluvat kunnat")
+        } else {
+          kuvan_subtitle <- glue("Aluetaso: {input$value_regio_level}")
+        }
+        
         ggplot(dat, aes(x = value, y = reorder(aluenimi, -rank))
         ) + 
             geom_col(fill = "#253494") +
             theme_ipsum(base_family = "PT Sans",
                         plot_title_family = "PT Sans",
                         subtitle_family = "PT Sans",
-                        grid_col = "white") +
+                        grid_col = "white",
+                        plot_title_face = "plain") +
             xlim(c(0,max(dat$value, na.rm = TRUE)*1.2)) +
             theme(legend.position = "right",
                   plot.title.position = "plot") +
-            # scale_fill_ipsum() +
-            # scale_fill_viridis_c(option = "viridis", direction = -1, alpha = .4, na.value="grey90") +
-            # scale_fill_fermenter(palette = "YlGnBu") +
             scale_color_manual(values = c("grey80","black")) + 
-            geom_col(aes(color = color), fill = NA, show.legend = FALSE) -> plot
+            geom_col(aes(color = color, fill = value), show.legend = FALSE) +
+          scale_fill_fermenter(palette = "YlGnBu", type = "seq") -> plot
         
         # Tolppakuvion eri aluetasoilla erityyppiset tolppakuviot
         if (input$value_regio_level == "Seutukunnat"){
@@ -753,7 +762,7 @@ server <- function(input, output) {
                 geom_text(dat = dat[!is.na(dat$fill),], 
                           aes(label = paste0(value, " ", rank, "/", max(rank, na.rm = TRUE))), 
                           color = "black", 
-                          nudge_x = max(dat$value, na.rm = TRUE)*0.1, 
+                          nudge_x = max(dat$value, na.rm = TRUE)*0.2, 
                           family = "PT Sans", size = 2.5)
         } else if (input$value_regio_level == "Kunnat"){
             
@@ -762,116 +771,20 @@ server <- function(input, output) {
                 geom_text(dat = dat[dat$color,],
                           aes(label = paste0(aluenimi, " ",value, " ", rank, "/", max(rank, na.rm = TRUE))),
                           color = "black",
-                          nudge_x = max(dat$value, na.rm = TRUE)*0.2,
+                          nudge_x = max(dat$value, na.rm = TRUE)*0.3,
                           family = "PT Sans")
         } else if (input$value_regio_level == "Hyvinvointialueet"){
             plot <- plot + geom_text(aes(label = value), 
                                      color = "black", 
-                                     nudge_x = max(dat$value, na.rm = TRUE)*0.1, 
+                                     nudge_x = max(dat$value, na.rm = TRUE)*0.2, 
                                      family = "PT Sans")
         }
         plot + scale_y_discrete(expand = expansion(add = 2)) +
-            labs(x = NULL, y = NULL, fill = NULL) -> p1
-        
-        
-        ## kartta ----
-        
-        dat <- process_data()
-        dat <- dat %>% #sf::st_transform(crs = 3067) %>% 
-            mutate(color = ifelse(aluenimi %in% input$value_region_selected, TRUE, FALSE))
-        
-        if (input$value_regio_show_mode == "kaikki tason alueet"){
-            dat <- dat
-        } else if (input$value_regio_show_mode == "valittu alue ja sen naapurit"){
-            dat <- dat %>% filter(aluekoodi %in% naapurikoodit)
-        } else if (input$value_regio_show_mode == "valitun alueen kunnat"){
-            
-            dat <- create_municipalities_within_region(varname = input$value_variable, 
-                                                       regio_level = input$value_regio_level,
-                                                       aluenimi = input$value_region_selected,
-                                                       timeseries = FALSE)
-            
-            reg <- readRDS(glue("./data/regio_Kunnat.RDS"))
-            res <- left_join(reg, dat) %>% 
-                filter(!is.na(aluenimi))
-            
-            dat <- res %>%
-                filter(!is.na(value)) %>%
-                arrange(desc(value)) %>%
-                mutate(value = round(value, 1)) %>%
-                mutate(rank = 1:n(), 
-                       color = TRUE) 
-        }
-        
-        
-        
-        
-        # ggplot(data = dat, aes(fill = value, color = color)) +
-        ggplot(data = dat, aes(fill = value)) +
-            geom_sf(color = alpha("white", 1/3))  +
-            geom_sf(aes(color = color), fill = NA, show.legend = FALSE)  +    
-            # scale_fill_viridis(option = "viridis", direction = -1, alpha = .5) +
-            scale_fill_fermenter(palette = "YlGnBu", type = "seq") +
-            scale_color_manual(values = c(alpha("white", 1/3), "black")) +
-            theme_minimal(base_family = "PT Sans", base_size = 12) -> p
-        
-        if (input$value_regio_show_mode == "kaikki tason alueet"){
-            if (input$value_regio_level != "Kunnat"){
-                p + geom_sf_label(data = dat %>% filter(!aluenimi %in% input$value_region_selected), 
-                                  aes(label = value), 
-                                  family = "PT Sans", 
-                                  color = "black", 
-                                  fill = "white", 
-                                  size = 2.5) -> p
-            }
-            p <- p + geom_sf_label(data = dat %>% filter(aluenimi == input$value_region_selected),
-                                   aes(label = paste(aluenimi, value)),
-                                   fill = "white", color = "black", family = "PT Sans")
-            
-        } else if (input$value_regio_show_mode == "valittu alue ja sen naapurit"){
-            p + geom_sf_label(data = dat,
-                              aes(label = paste(aluenimi, value)),
-                              fill = "white", color = "black", family = "PT Sans") -> p
-        } else if (input$value_regio_show_mode == "valitun alueen kunnat"){
-            p + ggrepel::geom_label_repel(data = dat %>%
-                                              sf::st_set_geometry(NULL) %>%
-                                              bind_cols(dat %>% sf::st_centroid() %>% sf::st_coordinates() %>% as_tibble()),
-                                          aes(label = paste0(aluenimi,"\n", value), x = X, y = Y),
-                                          color = "black", fill = alpha("white", 2/3),
-                                          family = "PT Sans", size = 3, lineheight = .8) -> p
-            
-        }
-        p + theme(axis.text = element_blank(),
-                  axis.title = element_blank(),
-                  panel.grid = element_blank(),
-                  # legend.position = "left",
-                  legend.position = c(0.1, 0.5),
-                  plot.title.position = "plot") +
-            labs(fill = paste0(add_line_break2(input$value_variable, 20), "\n(suhdeluku)")) -> p2
-        
-        # luodaan alaotsikko
-        if (input$value_regio_show_mode == "valitun alueen kunnat"){
-            kuvan_subtitle <- glue("Kuvassa näytetään alueeseen {input$value_region_selected} tasolla {tolower(input$value_regio_level)} kuuluvat kunnat")
-        } else {
-            kuvan_subtitle <- glue("Aluetaso: {input$value_regio_level}")
-        }
-        
-        
-        p1 + p2 +
-            plot_layout(
-                ncol = 2,
-                widths = c(1, 1.2)
-            ) -> plotlist
-        wrap_plots(plotlist, ncol = 1) +
-            plot_annotation(
-                title = glue("{input$value_variable}"),
-                subtitle = kuvan_subtitle,
-                caption = glue("Huono-osaisuus Suomessa -karttasovellus (Diak)\nData: THL (perusdata) & Diak (mediaanisuhteutus)\nTiedot haettu:{Sys.Date()}"),
-                theme = theme(plot.title = element_text(family = "PT Sans", size = 20),
-                              plot.subtitle = element_text(family = "PT Sans", size = 16),
-                              plot.caption = element_text(family = "PT Sans", size = 11))
-            )
-        
+            labs(x = NULL, y = NULL, fill = NULL) +
+          labs(title = glue("{input$value_variable}"),
+               subtitle = kuvan_subtitle,
+               caption = glue("Huono-osaisuus Suomessa -karttasovellus (Diak)\nData: THL (perusdata) & Diak (mediaanisuhteutus)\nTiedot haettu:{Sys.Date()}"))
+
     }, alt = reactive({
         
         req(input$value_variable_class)
@@ -917,11 +830,172 @@ server <- function(input, output) {
             )
             
         }
+        }))
         
-        
-        
-        
-        
+        output$map_plot <- renderPlot({
+          
+          req(input$value_variable_class)
+          req(input$value_variable)
+          req(input$value_regio_level)
+          req(input$value_region_selected)
+          req(input$value_regio_show_mode)
+
+          dat <- process_data()
+          
+          region_data <- get_region_data()
+          naapurikoodit <- get_naapurikoodit(region_data = region_data,
+                                             regio_lvl = input$value_regio_level,
+                                             regio_selected = input$value_region_selected)
+          
+          dat <- dat %>% 
+            mutate(color = ifelse(aluenimi %in% input$value_region_selected, TRUE, FALSE))
+          
+          if (input$value_regio_show_mode == "kaikki tason alueet"){
+            dat <- dat
+          } else if (input$value_regio_show_mode == "valittu alue ja sen naapurit"){
+            dat <- dat %>% filter(aluekoodi %in% naapurikoodit)
+          } else if (input$value_regio_show_mode == "valitun alueen kunnat"){
+            
+            dat <- create_municipalities_within_region(varname = input$value_variable, 
+                                                       regio_level = input$value_regio_level,
+                                                       aluenimi = input$value_region_selected,
+                                                       timeseries = FALSE)
+            
+            reg <- readRDS(glue("./data/regio_Kunnat.RDS"))
+            res <- left_join(reg, dat) %>% 
+              filter(!is.na(aluenimi))
+            
+            dat <- res %>%
+              filter(!is.na(value)) %>%
+              arrange(desc(value)) %>%
+              mutate(value = round(value, 1)) %>%
+              mutate(rank = 1:n(), 
+                     color = TRUE) 
+          }
+          
+          # luodaan alaotsikko
+          if (input$value_regio_show_mode == "valitun alueen kunnat"){
+            kuvan_subtitle <- glue("Kuvassa näytetään alueeseen {input$value_region_selected} tasolla {tolower(input$value_regio_level)} kuuluvat kunnat")
+          } else {
+            kuvan_subtitle <- glue("Aluetaso: {input$value_regio_level}")
+          }
+          
+          ggplot(data = dat, aes(fill = value)) +
+            geom_sf(color = alpha("white", 1/3))  +
+            geom_sf(aes(color = color), fill = NA, show.legend = FALSE)  +    
+            scale_fill_fermenter(palette = "YlGnBu", type = "seq") +
+            scale_color_manual(values = c(alpha("white", 1/3), "black")) +
+            theme_ipsum(base_family = "PT Sans",
+                        plot_title_family = "PT Sans",
+                        subtitle_family = "PT Sans",
+                        grid_col = "white",
+                        plot_title_face = "plain") -> p
+          
+          if (input$value_regio_show_mode == "kaikki tason alueet"){
+            if (input$value_regio_level != "Kunnat"){
+              p + geom_sf_label(data = dat %>% filter(!aluenimi %in% input$value_region_selected), 
+                                aes(label = value), 
+                                family = "PT Sans", 
+                                color = "black", 
+                                fill = "white", 
+                                size = 2.5) -> p
+            }
+            p <- p + geom_sf_label(data = dat %>% filter(aluenimi == input$value_region_selected),
+                                   aes(label = paste(aluenimi, value)),
+                                   fill = "white", color = "black", family = "PT Sans")
+            
+          } else if (input$value_regio_show_mode == "valittu alue ja sen naapurit"){
+            p + geom_sf_label(data = dat,
+                              aes(label = paste(aluenimi, value)),
+                              fill = "white", color = "black", family = "PT Sans") -> p
+          } else if (input$value_regio_show_mode == "valitun alueen kunnat"){
+            p + ggrepel::geom_label_repel(data = dat %>%
+                                            sf::st_set_geometry(NULL) %>%
+                                            bind_cols(dat %>% sf::st_centroid() %>% sf::st_coordinates() %>% as_tibble()),
+                                          aes(label = paste0(aluenimi,"\n", value), x = X, y = Y),
+                                          color = "black", fill = alpha("white", 2/3),
+                                          family = "PT Sans", size = 3, lineheight = .8) -> p
+            
+          }
+          p + theme(axis.text.x = element_blank(),
+                    axis.text.y = element_blank(),
+                    axis.title.x = element_blank(),
+                    axis.title.y = element_blank(),
+                    panel.grid.major = element_blank(),
+                    panel.grid.minor = element_blank(),
+                    # plot.title = element_text(family = "PT Sans", size = 20),
+                    #                   plot.subtitle = element_text(family = "PT Sans", size = 16),
+                    #                   plot.caption = element_text(family = "PT Sans", size = 11),
+                    legend.position = c(0.1, 0.5),
+                    plot.title.position = "plot") +
+            labs(title = glue("{input$value_variable}"),
+                 subtitle = kuvan_subtitle,
+                 caption = glue("Huono-osaisuus Suomessa -karttasovellus (Diak)\nData: THL (perusdata) & Diak (mediaanisuhteutus)\nTiedot haettu:{Sys.Date()}"),
+                 fill = paste0(add_line_break2(input$value_variable, 20), "\n(suhdeluku)"))
+          # 
+          # 
+          # 
+          # 
+          # p1 + p2 +
+          #   plot_layout(
+          #     ncol = 2,
+          #     widths = c(1, 1.2)
+          #   ) -> plotlist
+          # wrap_plots(plotlist, ncol = 1) +
+          #   plot_annotation(
+          #     title = glue("{input$value_variable}"),
+          #     subtitle = kuvan_subtitle,
+          #     caption = glue("Huono-osaisuus Suomessa -karttasovellus (Diak)\nData: THL (perusdata) & Diak (mediaanisuhteutus)\nTiedot haettu:{Sys.Date()}"),
+          #     theme = theme(plot.title = element_text(family = "PT Sans", size = 20),
+          #                   plot.subtitle = element_text(family = "PT Sans", size = 16),
+          #                   plot.caption = element_text(family = "PT Sans", size = 11))
+          #   )
+          
+        }, alt = reactive({
+          
+          req(input$value_variable_class)
+          req(input$value_variable)
+          req(input$value_regio_level)
+          req(input$value_region_selected)
+          req(input$value_regio_show_mode)
+          
+          if (input$value_regio_show_mode == "kaikki tason alueet"){
+            alt_teksti <- paste("Muuttujan", input$value_variable, 
+                                "arvot aluetasolla",input$value_regio_level,
+                                "esitetään pylväskuviossa pylvään pituutena ja täyttövärinä ja karttakuviossa alueen täyttövärinä.",
+                                "Kuvioissa näytetään kaikki aluetason alueet ja korostettuna on",
+                                input$value_region_selected
+            )
+          } else if (input$value_regio_show_mode == "valittu alue ja sen naapurit"){
+            
+            region_data <- get_region_data()
+            naapurikoodit <- get_naapurikoodit(region_data = region_data,
+                                               regio_lvl = input$value_regio_level,
+                                               regio_selected = input$value_region_selected)
+            region_nms <- region_data[region_data$level %in% input$value_regio_level & region_data$region_code %in% naapurikoodit, ]$region_name
+            alt_teksti <-         paste("Muuttujan", input$value_variable, 
+                                        "arvot esitetään pylväskuviossa pylväiden pituutena ja pylvään pituutena ja karttakuviossa alueen värinä. Aluetasona näytetään",
+                                        input$value_regio_level,
+                                        "ja alueina näytetään ",
+                                        glue_collapse(region_nms, sep = ", ", last = " ja "), "korostettuna", 
+                                        input$value_region_selected
+            )
+            
+          } else if (input$value_regio_show_mode == "valitun alueen kunnat"){
+            
+            dat <- create_municipalities_within_region(varname = input$value_variable, 
+                                                       regio_level = input$value_regio_level,
+                                                       aluenimi = input$value_region_selected,
+                                                       timeseries = FALSE)
+            
+            alt_teksti <-         paste("Muuttujan ", input$value_variable, 
+                                        "arvot esitetään pylväiden pituutena ja pylvään täyttövärinä ja karttakuviossa alueen värinä kuntatasolla käsittäen kunnat jotka kuuluvat alueeseen",
+                                        input$value_region_selected, "tasolla", input$value_regio_level,
+                                        "Kuntina näytetään",
+                                        glue_collapse(unique(dat$aluenimi), sep = ", ", last = " ja ")
+            )
+            
+          }
     }))
     
     ## aikasarja ----
@@ -1074,11 +1148,15 @@ server <- function(input, output) {
             #                           aes(label = aluenimi), color = "white", family = "PT Sans") +
             
             scale_x_continuous(breaks = sort(unique(df$aika)), labels = labels) +
-            theme_ipsum(base_family = "PT Sans",
-                        plot_title_family = "PT Sans",
-                        subtitle_family = "PT Sans",
-                        axis_title_size = 12,
-                        plot_title_face = "plain") +
+          theme_ipsum(base_family = "PT Sans",
+                      plot_title_family = "PT Sans",
+                      subtitle_family = "PT Sans",
+                      plot_title_face = "plain") +
+            # theme_ipsum(base_family = "PT Sans",
+            #             plot_title_family = "PT Sans",
+            #             subtitle_family = "PT Sans",
+            #             axis_title_size = 12,
+            #             plot_title_face = "plain") +
             # scale_fill_brewer(palette = "YlGnBu") +
             # scale_color_brewer(palette = "YlGnBu") +
             # scale_fill_viridis_d(option = "plasma", direction = -1, begin = .1, end = .9) +
@@ -1095,10 +1173,11 @@ server <- function(input, output) {
                   panel.grid.minor.x = element_blank(),
                   panel.grid.major.y = element_blank(),
                   plot.title.position = "plot",
-                  plot.margin = unit(c(0,0,0,0), "mm"),
-                  plot.title = element_text(family = "PT Sans", size = 20),
-                  plot.subtitle = element_text(family = "PT Sans", size = 16),
-                  plot.caption = element_text(family = "PT Sans", size = 11)) -> plot1
+                  plot.margin = unit(c(0,0,0,0), "mm")#,
+                  # plot.title = element_text(family = "PT Sans", size = 20),
+                  # plot.subtitle = element_text(family = "PT Sans", size = 16),
+                  # plot.caption = element_text(family = "PT Sans", size = 11)
+                  ) -> plot1
         
         plot_gini <- plot_gini + scale_x_continuous(breaks = sort(unique(df$aika)), labels = labels) +
             theme_ipsum(base_family = "PT Sans",
@@ -1120,10 +1199,11 @@ server <- function(input, output) {
                   plot.title.position = "plot",
                   axis.title.x = element_blank(),
                   plot.margin = unit(c(0,0,0,0), "mm"),
-                  axis.text.x = element_blank(),
-                  plot.title = element_text(family = "PT Sans", size = 20),
-                  plot.subtitle = element_text(family = "PT Sans", size = 16),
-                  plot.caption = element_text(family = "PT Sans", size = 11))
+                  axis.text.x = element_blank()#,
+                  # plot.title = element_text(family = "PT Sans", size = 20),
+                  # plot.subtitle = element_text(family = "PT Sans", size = 16),
+                  # plot.caption = element_text(family = "PT Sans", size = 11)
+                  )
         
         patchwork::wrap_plots(plot1,plot_gini, ncol = 1, heights = c(1,0.3))
         
