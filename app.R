@@ -141,11 +141,11 @@ tags$div(class = "container_1280 grey-background",
                                     uiOutput("output_regio_show_mode"),
                                     uiOutput("output_save_data_indicator")
                                     ),
-                  tags$div(class = "col-lg-4",
-                           plotOutput("rank_plot", width = "100%", height = "800px")
-                           ),
                   tags$div(class = "col-lg-5",
                            plotOutput("map_plot", width = "100%", height = "800px")
+                           ),
+                  tags$div(class = "col-lg-4",
+                           uiOutput("ui_plot_bar")
                   )
                   ),
 tags$div(class = "row",
@@ -558,7 +558,7 @@ server <- function(input, output) {
         dat_1 <- dat[dat$regio_level %in% input$value_regio_level & dat$variable %in% input$value_variable,]
         
         reg <- readRDS(glue("./data/regio_{input$value_regio_level}.RDS"))
-        res <- left_join(reg, dat_1)    
+        res <- left_join(reg, dat_1)  
         
         res <- res %>%
             select(-regio_level) %>%
@@ -587,8 +587,9 @@ server <- function(input, output) {
         
         if (regio_level == "Hyvinvointialueet"){
             muni_key_subset <- geofi::municipality_key_2019 %>% 
+              mutate(hyvinvointialue_name_fi = sub("hyvinvointialue", "HVA", hyvinvointialue_name_fi)) %>% 
                 filter(hyvinvointialue_name_fi == aluenimi) %>% 
-                select(name_fi)
+              select(name_fi)
         } else {
             muni_key_subset <- geofi::municipality_key_2019 %>% 
                 filter(seutukunta_name_fi == aluenimi) %>% 
@@ -616,7 +617,7 @@ server <- function(input, output) {
         dat_1 <- dat[dat$regio_level %in% react_value_regio_level_profile() & dat$variable %in% input$value_variable,]
         
         reg <- readRDS(glue("./data/regio_{react_value_regio_level_profile()}.RDS"))
-        res <- left_join(reg, dat_1)    
+        res <- left_join(reg, dat_1)
         
         res <- res %>%
             select(-regio_level) %>%
@@ -688,6 +689,40 @@ server <- function(input, output) {
     
     ## indikaattorikuviot ----
     
+    output$ui_plot_bar <- renderUI({
+      
+      req(input$value_variable_class)
+      req(input$value_variable)
+      req(input$value_regio_level)
+      req(input$value_region_selected)
+      req(input$value_regio_show_mode)
+      
+      Sys.sleep(1)
+      if (input$value_regio_show_mode == "kaikki tason alueet"){
+        if (grepl("Kunnat", input$value_regio_level)){
+          bar_height = 4100
+        } else if (grepl("Seutu", input$value_regio_level)){
+          bar_height = 1600
+        } else {
+          bar_height = 800
+        }
+      } else if (input$value_regio_show_mode == "valitun alueen kunnat"){
+        bar_height = 800
+      } else {
+        bar_height = 500
+      }
+      
+
+
+      tagList(
+        div(style='height:820px; overflow-y: auto; overflow-x: hidden;',
+            plotOutput("rank_plot", width = "100%", height = bar_height)
+        )
+        
+      )
+      
+    })
+    
     
     
     output$rank_plot <- renderPlot({
@@ -716,12 +751,10 @@ server <- function(input, output) {
                    aluenimi = fct_reorder(aluenimi, -rank),
                    fill = value,
                    color = ifelse(aluenimi %in% input$value_region_selected, TRUE, FALSE))
-        # kuntatasolla kaikki alueet -näkymässä näytetään vaan valitun kunnan arvo
-        # dat$color <- ifelse(input$value_regio_level == "Kunnat" & dat$aluenimi , )
-        
-        
+
         if (input$value_regio_show_mode == "valittu alue ja sen naapurit"){
-            dat$fill <- ifelse(!dat$aluekoodi %in% naapurikoodit, NA, dat$fill)
+            # dat$fill <- ifelse(!dat$aluekoodi %in% naapurikoodit, NA, dat$fill)
+            dat <- dat %>% filter(aluekoodi %in% naapurikoodit)
             if (input$value_regio_level == "Kunnat"){
                 dat$color <- ifelse(!dat$aluekoodi %in% naapurikoodit, FALSE, TRUE)
             }
@@ -740,9 +773,7 @@ server <- function(input, output) {
           kuvan_subtitle <- glue("Aluetaso: {input$value_regio_level}")
         }
         
-        ggplot(dat, aes(x = value, y = reorder(aluenimi, -rank))
-        ) + 
-            geom_col(fill = "#253494") +
+        ggplot(dat, aes(x = value, y = reorder(aluenimi, -rank))) + 
             theme_ipsum(base_family = "PT Sans",
                         plot_title_family = "PT Sans",
                         subtitle_family = "PT Sans",
@@ -751,34 +782,15 @@ server <- function(input, output) {
             xlim(c(0,max(dat$value, na.rm = TRUE)*1.2)) +
             theme(legend.position = "right",
                   plot.title.position = "plot") +
-            scale_color_manual(values = c("grey80","black")) + 
-            geom_col(aes(color = color, fill = value), show.legend = FALSE) +
+            scale_color_manual(values = c("white","black")) + 
+            geom_col(aes(color = color, fill = value), show.legend = FALSE, size = 1.1) +
           scale_fill_fermenter(palette = "YlGnBu", type = "seq") -> plot
-        
-        # Tolppakuvion eri aluetasoilla erityyppiset tolppakuviot
-        if (input$value_regio_level == "Seutukunnat"){
-            plot <- plot +
-                theme(axis.text.y = element_text(size = 9)) +
-                geom_text(dat = dat[!is.na(dat$fill),], 
-                          aes(label = paste0(value, " ", rank, "/", max(rank, na.rm = TRUE))), 
-                          color = "black", 
-                          nudge_x = max(dat$value, na.rm = TRUE)*0.2, 
-                          family = "PT Sans", size = 2.5)
-        } else if (input$value_regio_level == "Kunnat"){
-            
-            plot <- plot +
-                theme(axis.text.y = element_blank()) +
-                geom_text(dat = dat[dat$color,],
-                          aes(label = paste0(aluenimi, " ",value, " ", rank, "/", max(rank, na.rm = TRUE))),
-                          color = "black",
-                          nudge_x = max(dat$value, na.rm = TRUE)*0.3,
-                          family = "PT Sans")
-        } else if (input$value_regio_level == "Hyvinvointialueet"){
+
             plot <- plot + geom_text(aes(label = value), 
                                      color = "black", 
                                      nudge_x = max(dat$value, na.rm = TRUE)*0.2, 
                                      family = "PT Sans")
-        }
+            
         plot + scale_y_discrete(expand = expansion(add = 2)) +
             labs(x = NULL, y = NULL, fill = NULL) +
           labs(title = glue("{input$value_variable}"),
