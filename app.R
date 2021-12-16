@@ -1,36 +1,295 @@
 source("./global.R")
 
 
-ui <- fluidPage(
-    # use_waitress(),
-    uiOutput("output_indicator_class"),
-    uiOutput("output_indicator"),
-    uiOutput("output_regio_level"),
-    uiOutput("output_regio_select"),
-    uiOutput("output_regio_show_mode"),
-    shinycssloaders::withSpinner(plotOutput("timeseries_plot")),
-    shinycssloaders::withSpinner(plotOutput("map_rank_plot"))#,
-    
-    # uiOutput("output_regio_level_profile"),
-    # uiOutput("output_region_profile"),
-    # uiOutput("output_button_profile"),
-    # textOutput("aputeksti"),
-    # # uiOutput("output_save_word"),
-    # shinycssloaders::withSpinner(uiOutput("region_profile_html")),
-    # tags$hr(),
-    # plotOutput("profiilikartta01", width = "90%", height = "500px"),
-    
-    # uiOutput("output_save_map"),
-    # leaflet::leafletOutput("map1", width = "100%", height = "285px"),
-    # DT::dataTableOutput("rank_tbl"),
-    # verbatimTextOutput("value"),
-    # uiOutput("output_regio_level_profile"),
-    # uiOutput("output_region_profile"),
-    # uiOutput("region_profile_html"),
-    # DT::dataTableOutput("variable_desctiption")
-    # gt::gt_output("variable_desctiption_gt")
-)
+ui <- fluidPage(lang = "fi",
+                title = "DIAK: Huono-osaisuus Suomessa -verkkosovellus",
+                tags$head(
+                  # tags$link(rel="shortcut icon", href="favicon.ico"),
+                  tags$link(rel="stylesheet", href="custom.css"),
+                  # # **<!-- CSS only -->**
+                    tags$link(rel="stylesheet",
+                              href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.2/dist/css/bootstrap.min.css",
+                              integrity="sha384-uWxY/CJNBR+1zjPWmfnSnVxwRheevXITnMqoEIeG1LJrdI0GlVs/9cVSyPYXdcSF",
+                              crossorigin="anonymous"),
+                  #   # **<!-- JavaScript Bundle with Popper -->**
+                    tags$script(src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.2/dist/js/bootstrap.bundle.min.js",
+                                integrity="sha384-kQtW33rZJAHjgefvhyyzcGF3C5TFyBQBA13V1RKPf4uH+bwyzQxZ6CmMZHmNBEfJ",
+                                crossorigin="anonymous")
+                  ),
+                meta() %>% 
+                    meta_description(description = "DIAK: Huono-osaisuus Suomessa -verkkosovellus") %>% 
+                    meta_social(
+                        title = "DIAK: Huono-osaisuus Suomessa -verkkosovellus",
+                        description = "Sovelluksessa voit tarkastella erilaisia huono-osaisuuden osoittimia sekä luoda profiileja alueista",
+                        url = "",
+                        image = "logo_650x650.jpg",
+                        image_alt = "An image for social media cards",
+                        twitter_creator = "@muuankarski",
+                        twitter_card_type = "summary_large_image",
+                        twitter_site = "@muuankarski"
+                    ),
+                theme = bslib::bs_theme(#bootswatch = "cosmo",
+                                        #base_font = font_google("PT Sans"),
+                                        #code_font = font_google("Space Mono")
+                  ),
+                HTML('<a class="sr-only sr-only-focusable" href="#maincontent">Skip to main</a>'),
+                tags$nav(class = "navbar navbar-expand-lg navbar-light navbar-xyz sticky-top grey-background container_1280", 
+                         tags$a(class="navbar-brand", role="brand", href = "#",
+                                tags$img(src = "https://www.diak.fi/wp-content/themes/diak/dist/images/diak-logo-1.svg", 
+                                         style = "height: 40px; padding-right: 0px;", 
+                                         alt = "logo")
+                                ),
+                         tags$div(class = "lead", "Huono-osaisuus Suomessa"),
+                         # HTML('<button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Avaa valikko" aria-label="Toggle navigation">
+                         #          <span class="navbar-toggler-icon"></span>
+                         #      </button>'),
+                         HTML('      <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarResponsive" aria-controls="navbarResponsive" aria-expanded="false" aria-label="Avaa valikko">
+        <span class="navbar-toggler-icon"></span>
+      </button>'),
+                         
+                         
+                         
+                         tags$div(role = "navigation", class = "collapse navbar-collapse justify-content-between", id="navbarResponsive",
+                                  tags$ul(class = "navbar-nav ml-auto",
+                                          tags$li(class = "nav-item",
+                                                  tags$a(class="nav-link", href="#ohje", "Ohje")
+                                                  ),
+                                          tags$li(class = "nav-item",
+                                                  tags$a(class="nav-link", href="#indikaattorivertailu", "Indikaattorivertailu")
+                                          ),
+                                          tags$li(class = "nav-item",
+                                                  tags$a(class="nav-link", href="#alueprofiili", "Luo alueprofiili")
+                                          ),
+                                          tags$li(class = "nav-item",
+                                                  tags$a(class="nav-link", href="#info", "Lisätietoja")
+                                          ),
+                                          tags$li(class = "nav-item",
+                                                  tags$a(class="nav-link", href="#saavutettavuus", "Saavutettavuusseloste")
+                                          )
+                                          ))
+                  
+                ),
+                tags$html(HTML('<main id="maincontent">')),
+                tags$h2("", id = "alku"),
+                tags$div(class = "container_1280", 
+                         tags$div(class = "row",
+                                  tags$div(class = "col-lg-8",
+                                           tags$h1(id = "content", "Huono-osaisuus Suomessa"),
+                                           tags$p(class = "lead",
+                                                  "Sovelluksessa voit tarkastella erilaisia huono-osaisuuden osoittimia sekä luoda  profiileja alueista. Aluetasoja on kolme: maakunnat, seutukunnat ja kunnat."),
+                                           tags$h2(id = "ohje", "Näin käytät sovellusta"),
+                                           tags$p(
+                                             tags$a(href = "#indikaattorivertailu", "Muuttujien tarkasteluun"), "ja", 
+                                             tags$a(href = "#alueprofiili", "alueprofiilien laatimiseen"), 
+                                             "ovat omat valikkonsa"),
+                                           tags$p(
+                                           tags$strong("Indikaattorivertailun"),
+                                           "valitse muuttujaluokka-valikosta voit säädellä haluatko katsoa huono-osaisuuden summatietoja vai tarkemmin kunkin huono-osaisuuden ulottuvuuden osoittimia. Valitse muuttuja-valikosta voit valita tarkemman osoittimen ja valitse aluetaso-valikosta aluetason. ", tags$br(),"Voit myös valita, näkyykö pylväs-, kartta- ja aikasarjakuviossa:"
+                                           ),
+                                           tags$ul(
+                                             tags$li("kaikki valitun tason alueet,"),
+                                             tags$li("valittu alue ja sen naapurit, vai"),
+                                             tags$li("valitun maakunnan/seutukunnan kunnat")
+                                           ),
+                                           tags$p("Pylväs- ja karttakuvio sekä aikasarjakuvio muuttuvat samanaikaisesti valinnan muuttuessa.",tags$br(),
+                                                  tags$strong("Alueprofiilin"), "täytyy valita vain aluetaso sekä alue. Alueprofiili sisältää aina kaikkien osoittimien tiedot sekä valitulta alueelta että alueen rajanaapureista, sekä niiden aikasarjakuviot. Lisäksi alueprofiilissa esitetään kunkin osoittimen korkein ja matalin arvo.", tags$br(),
+                                                  tags$a(href = "https://www.youtube.com/playlist?list=PLX8L6VZCYbFIzAqc4InxFEbP0SmfOrDzL", "Katso opastusvideot sivuston käytöstä!")),
+                                           tags$p("Jos haluat viitata karttasivustoon tekstissäsi, käytä lähdeviitteenä:",
+                                                  tags$em("Diakonia-ammattikorkeakoulu (i.a.)"),"ja lähdeluettelossa:", 
+                                                  tags$em("Diakonia-ammattikorkeakoulu (i.a.) Huono-osaisuus Suomessa –karttasivusto. Saatavilla pp.kk.vuosi www.diak.fi/eriarvoisuus")),
+                                           tags$p("Indikaattorit ja muuttujat on muodostettu vuosien 2017-2019 tilastojen keskiarvosta vuosivaihtelun minimoimiseksi, ja suhteuttamalla arvo keskimmäiseen eli mediaanimaakuntaan/-seutukuntaan/-kuntaan vertailun helpottamiseksi. Aikasarjoissa lukemat vuodesta 2010 alkaen kolmen vuoden liukuvina keskiarvoina.",
+                                                  tags$a(href = "https://www.diak.fi/kumppanille-ja-kehittajalle/kehittamistyokalut/huono-osaisuus-suomessa-karttasivusto/#73053a2b", 
+                                                         "Lue lisää Diakin sivuilta!"))
+                                           ),
+                                  tags$div(class = "col-lg-4",
+                                           tags$div(style = "padding-top: 20px;"),
+                                                    tags$div(class = "col-sm",
+                                                             tags$a(href = "https://ec.europa.eu/regional_policy/fi/funding/erdf/", 
+                                                                    tags$img(src = "app_eu.png", 
+                                                                             class="rounded mx-auto d-block",
+                                                                             style="height: 160px;",
+                                                                             alt = "Euroopan unionin lippu, jonka alla teksti: Euroopan unioni, Euroopan aluekehitysrahasto"))),
+                                                             tags$a(href = "https://www.rakennerahastot.fi", 
+                                                                    tags$img(src = "app_vipu.png", 
+                                                                             class="rounded mx-auto d-block",
+                                                                             style="height: 90px; padding-top: 20px;",
+                                                                             alt = "Rakennerahastot.fi -verkkopalvelun logo")),
+                                                             tags$a(href = "https://thl.fi/fi/web/hyvinvoinnin-ja-terveyden-edistamisen-johtaminen/osallisuuden-edistaminen/heikoimmassa-asemassa-olevien-osallisuus", 
+                                                                    tags$img(src = "app_sokra.png", 
+                                                                             class="rounded mx-auto d-block",
+                                                                             style="height: 100px;padding-top: 20px;", 
+                                                                             alt = "Sosiaalisen osallisuuden edistämisen koordinaatiohankeen Sokran logo")),
+                                                                    tags$a(href = "https://tutkittutieto.fi", 
+                                                                    tags$img(src = "app_diak.png", 
+                                                                             class="rounded mx-auto d-block",
+                                                                             style="height: 80px;padding-top: 20px;", 
+                                                                             alt = "Diakonia-ammattikorkeakoulun logo")),
+                                                             tags$a(href = "https://tutkittutieto.fi", 
+                                                                    tags$img(src = "app_teema.jpg", 
+                                                                             class="rounded mx-auto d-block",
+                                                                             style="height: 110px; padding-top: 20px;", 
+                                                                             alt = "Tutkitun tiedon teemavuoden logo"))
+                                  ))),
+tags$div(class = "container_1280 grey-background",
+         tags$div(class = "row",
+                  tags$div(class = "col-lg-3",
+                                    tags$h2(id = "indikaattorivertailu", "Indikaattorivertailu"),
+                                    uiOutput("output_indicator_class"),
+                                    uiOutput("output_indicator"),
+                                    uiOutput("output_regio_level"),
+                                    uiOutput("output_regio_select"),
+                                    uiOutput("output_regio_show_mode"),
+                                    uiOutput("output_save_data_indicator")
+                                    ),
+                  tags$div(class = "col-lg-5",
+                           plotOutput("map_plot", width = "100%", height = "800px")
+                           ),
+                  tags$div(class = "col-lg-4",
+                           uiOutput("ui_plot_bar")
+                  )
+                  ),
+tags$div(class = "row",
+         tags$div(class = "col-lg-12",
+                  plotOutput("timeseries_plot", width = "100%", height = "550px")
+         )
+)),
+tags$hr(),
+tags$div(class = "container_1280 grey-background",
+         tags$div(class = "row",
+                  tags$div(class = "col-lg-12",
+                           tags$h2(id = "alueprofiili", "Alueprofiili"),
+                           tags$p("Alueprofiilissa näet kaikki aineiston osoittimet luokan mukaan ryhmiteltynä. Kustakin osoittimesta näytetään valitun alueen lisäksi sen rajanaapurit sekä  osoittimen korkeimman ja matalimman arvon alueet. Alueet on järjestetty kunkin osoittimen kohdalla sijan mukaan."),
+                           tags$p("Valitse ensin aluetaso, sitten alue ja paina lopuksi <i>Luo alueprofiili</i> -painiketta. Alueprofiilin luominen kestää noin 30 sekuntia. Voit tallentaa profiilin laitteellesi")
+                  )),
+         tags$div(class = "row",
+                  tags$div(class = "col-lg-6",
+                           uiOutput("output_regio_level_profile")
+                           ),
+                  tags$div(class = "col-lg-6",
+                           uiOutput("output_region_profile")
+                  )
+                  ),
+tags$div(class = "row",
+         tags$div(class = "col-lg-12",
+                  uiOutput("output_button_profile")
+                  )
+         ),
+tags$div(class = "row",
+         tags$div(class = "col-lg-12",
+                  uiOutput("region_profile_html")
+         )
+)),
+tags$div(class="container_1280",
+         tags$div(class="row",
+                  tags$div(class = "col-lg-12",
+                           tags$h2(id = "info", "Lisätietoja"),
+                           tags$h3("Aineisto"),
+                           tags$h4("Summamuttujat"),
+                           gt_output("variable_desctiption_gt1"),
+                           tags$h4("Inhimillinen huono-osaisuus"),
+                           gt_output("variable_desctiption_gt2"),
+                           tags$h4("Huono-osaisuuden taloudelliset seuraukset"),
+                           gt_output("variable_desctiption_gt3"),
+                           tags$h4("Huono-osaisuuden sosiaaliset seuraukset"),
+                           gt_output("variable_desctiption_gt4")
+                           )          
+          )),
 
+tags$div(class = "container_1280",
+         tags$div(class = "row",
+                  tags$div(class = "col-lg-8",
+                           tags$h3("Sovellus"),
+                           tags$strong("Huono-osaisuus Suomessa -verkkosovellus"),
+                           tags$ul(
+                           tags$li("Sovellusversio",
+                           tags$code("0.3.0")),
+                           tags$li("Aineistoversio",
+                           tags$code("0.2.0"))
+                           ),
+                           tags$p("Tämä verkkosovellus on tehty", 
+                                  tags$a(href = "https://www.r-project.org", "R"), "-kielellä", 
+                                  tags$a(href = "https://shiny.rstudio.com", "Shiny"), "-kirjaston avulla. Sovelluksen lähdekoodi on avoimesti lisensöity ja saatavilla", 
+                                  tags$a(href = "https://github.com/DiakGit/karttasovellus", "Github"), "-palvelusta."),
+                           tags$p("Mikäli löysit sovelluksesta bugin tai sinulla on idea tai toteutus uudesta ominaisuudesta voit:"),
+                           tags$ul(
+                             tags$li("toteuttaa ominaisuuden/korjauksen ja jättää", 
+                                     tags$a(href = "https://github.com/DiakGit/karttasovellus/pulls", "pull requestin"), "Github-palvelussa"),
+                             tags$li("avata uuden", 
+                                     tags$a(href = "https://github.com/DiakGit/karttasovellus/issues", "issuen"), "Github-palvelussa ja kuvata bugin/ominaisuuden siinä tai"),
+                             tags$li("laittaa meiliä osoitteeseen", 
+                                     tags$a(href = "mailto:sakari.kainulainen@diak.fi", tags$code("sakari.kainulainen@diak.fi")), "tai"),
+                             tags$li("laittaa palautetta lomakkeella", 
+                                     tags$a(href = "https://www.diak.fi/kumppanille-ja-kehittajalle/kehittamistyokalut/huono-osaisuus-suomessa-karttasivusto/#73053a2b", "Diakin sivuilta"))
+                           )))),
+
+
+tags$div(class = "container_1280",
+         tags$div(class = "row",
+                  tags$div(class = "col-lg-8",
+                           tags$h2(id = "saavutettavuus", "Saavutettavuusseloste"),
+                           tags$p("Saavutettavuudella tarkoitetaan, että verkkosivut ja mobiilisovellukset sekä niiden sisällöt ovat sellaisia,
+    että kuka tahansa voisi niitä käyttää ja ymmärtää mitä niissä sanotaan."),
+                           tags$p("Diakin verkkosivuja koskee laki digitaalisten palvelujen tarjoamisesta, joka pohjautuu  EU:n saavutettavuusdirektiiviin. 
+    Lain mukaan kaikilla tulee olla tasavertaiset mahdollisuudet käyttää digitaalisia palveluita."),
+                           tags$p("Tämä saavutettavuusseloste koskee", tags$a(href="https://www.thl.fi/sokra", "Sokra-hankkeessa"),
+                           "toteutettu", tags$a(href="https://diak.shinyapps.io/karttasovellus/", "karttasivusto"), "on julkaistu 23.4.2020,
+    joka tarkoittaa sitä, että sivuston tulee noudattaa WCAG 2.1 –kriteeristön AA-tasoa 23.9.2020 mennessä."),
+                           tags$h3("Digipalvelun saavutettavuuden tila"),
+                           tags$p(tags$a(href ="https://diak.shinyapps.io/karttasovellus/", "Karttasivusto"),"täyttää pääosin WCAG 2.1 -kriteeristön A & AA -saavutettavuusvaatimukset."),
+                           tags$h3("Saavutettavuusselosteen laatiminen"),
+                           tags$p("Karttasivustoa koskeva seloste on laadittu 19.9.2020 ja sitä on päivitetty 3.11.2020. 
+    Seloste perustuu itsearvioon, Poutapilvi Oy:n tekemään auditointiraporttiin sekä 
+    seuraavilla testausohjelmistoilla suoritettuun tarkastukseen."),
+                           tags$strong("Ruudunlukijat"),
+                           tags$ul(
+                             tags$li(tags$a(href = "https://www.nvaccess.org/", "NVDA")),
+                             tags$li(tags$a(href = "https://wiki.gnome.org/Projects/Orca", "Orca")),
+                             tags$li(tags$a(href = "https://www.chromevox.com/", "ChromeVox"))
+                           ),
+                           tags$strong("Saavutettavuuden tarkastuohjelmat"),
+                           tags$ul(
+                             tags$li(tags$a(href = "https://ainspector.github.io/", "AInspector")),
+                             tags$li(tags$a(href = "https://thepaciellogroup.github.io/WAI-ARIA-Usage/WAI-ARIA_usage.html", "WAI-ARIA Usage")),
+                             tags$li(tags$a(href = "https://validator.w3.org/nu/", "Nu Html Checker")),
+                             tags$li(tags$a(href = "https://developer.paciellogroup.com/resources/contrastanalyser/", "Colour Contrast Analyser")),
+                             tags$li(tags$a(href = "https://wave.webaim.org/", "WAVE Web Accessibility Evaluation Tool"))
+                           ),
+                           tags$p("Näiden arvioiden ja ulkopuolisen raportin perusteella karttasivuston ensimmäiseen versioon tehtiin lukuisia saavutettavuutta parantavia korjauksia."),
+                           tags$h3("Palautetta saavutettavuudesta?"),
+                           tags$p("Huomasitko saavutettavuuspuutteen digipalvelussamme? Kerro se meille ja eemme parhaamme puutteen korjaamiseksi"),
+                           tags$p("Jos huomaat sivustolla saavutettavuusongelmia, anna ensin palautetta sivuston ylläpitäjälle. Vastauksessa voi mennä 14 päivää. Jos et ole tyytyväinen saamaasi vastaukseen tai et saa vastausta lainkaan kahden viikon aikana, voit ilmoittaa asiasta valvontaviranomaiselle."),
+                           tags$strong("Valvontaviranomaisen yhteystiedot:"),
+                           tags$p("Etelä-Suomen aluehallintovirasto",tags$br(),
+                                  "Saavutettavuuden valvonnan yksikkö",tags$br(),
+                                  "www.saavutettavuusvaatimukset.fi",tags$br(),
+                                  "saavutettavuus(at)avi.fi",tags$br(),
+                                  "puhelinnumero vaihde 0295 016 000")
+                  )
+         )
+),
+
+tags$footer(class = "bd-footer py-5 mt-5 bg-dark-diak container_1280",
+                  tags$div(class = "tp-bg-2 padding-top--medium text--small content--hyphenate tp-links-1 cf",
+                           tags$div(class = "container-fluid",
+                                    tags$div(class = "row",
+                                             tags$div(class = "col-sm-6 col-md-3 footer-content margin-bottom--medium",
+                                                      tags$img(src="https://www.diak.fi/wp-content/themes/diak/dist/images/diak-logo-2.svg",
+                                                               width="250",
+                                                               height="77",
+                                                               alt="Diakonia-ammattikorkeakoulun log")),
+                                             tags$div(class = "col-sm-6 col-md-3 footer-content margin-bottom--medium",
+                                                      tags$p(class = "footer-content",
+                                                        tags$strong("Diakonia-ammattikorkeakoulu"), 
+                                                        tags$br(),
+                                                        "PL 12, 00511 Helsinki")),
+                                             tags$div(class = "col-sm-6 col-md-3 footer-content margin-bottom--medium")
+                                    )
+                                    )
+                           )
+            ),
+
+tags$html(HTML('</main>'))
+)
 
 # Serverin logiikka ----
 server <- function(input, output) {
@@ -299,7 +558,7 @@ server <- function(input, output) {
         dat_1 <- dat[dat$regio_level %in% input$value_regio_level & dat$variable %in% input$value_variable,]
         
         reg <- readRDS(glue("./data/regio_{input$value_regio_level}.RDS"))
-        res <- left_join(reg, dat_1)    
+        res <- left_join(reg, dat_1)  
         
         res <- res %>%
             select(-regio_level) %>%
@@ -328,8 +587,9 @@ server <- function(input, output) {
         
         if (regio_level == "Hyvinvointialueet"){
             muni_key_subset <- geofi::municipality_key_2019 %>% 
+              mutate(hyvinvointialue_name_fi = sub("hyvinvointialue", "HVA", hyvinvointialue_name_fi)) %>% 
                 filter(hyvinvointialue_name_fi == aluenimi) %>% 
-                select(name_fi)
+              select(name_fi)
         } else {
             muni_key_subset <- geofi::municipality_key_2019 %>% 
                 filter(seutukunta_name_fi == aluenimi) %>% 
@@ -357,7 +617,7 @@ server <- function(input, output) {
         dat_1 <- dat[dat$regio_level %in% react_value_regio_level_profile() & dat$variable %in% input$value_variable,]
         
         reg <- readRDS(glue("./data/regio_{react_value_regio_level_profile()}.RDS"))
-        res <- left_join(reg, dat_1)    
+        res <- left_join(reg, dat_1)
         
         res <- res %>%
             select(-regio_level) %>%
@@ -429,9 +689,43 @@ server <- function(input, output) {
     
     ## indikaattorikuviot ----
     
+    output$ui_plot_bar <- renderUI({
+      
+      req(input$value_variable_class)
+      req(input$value_variable)
+      req(input$value_regio_level)
+      req(input$value_region_selected)
+      req(input$value_regio_show_mode)
+      
+      Sys.sleep(1)
+      if (input$value_regio_show_mode == "kaikki tason alueet"){
+        if (grepl("Kunnat", input$value_regio_level)){
+          bar_height = 4100
+        } else if (grepl("Seutu", input$value_regio_level)){
+          bar_height = 1600
+        } else {
+          bar_height = 800
+        }
+      } else if (input$value_regio_show_mode == "valitun alueen kunnat"){
+        bar_height = 800
+      } else {
+        bar_height = 500
+      }
+      
+
+
+      tagList(
+        div(style='height:820px; overflow-y: auto; overflow-x: hidden;',
+            plotOutput("rank_plot", width = "100%", height = bar_height)
+        )
+        
+      )
+      
+    })
     
     
-    output$map_rank_plot <- renderPlot({
+    
+    output$rank_plot <- renderPlot({
         
         req(input$value_variable_class)
         req(input$value_variable)
@@ -457,12 +751,10 @@ server <- function(input, output) {
                    aluenimi = fct_reorder(aluenimi, -rank),
                    fill = value,
                    color = ifelse(aluenimi %in% input$value_region_selected, TRUE, FALSE))
-        # kuntatasolla kaikki alueet -näkymässä näytetään vaan valitun kunnan arvo
-        # dat$color <- ifelse(input$value_regio_level == "Kunnat" & dat$aluenimi , )
-        
-        
+
         if (input$value_regio_show_mode == "valittu alue ja sen naapurit"){
-            dat$fill <- ifelse(!dat$aluekoodi %in% naapurikoodit, NA, dat$fill)
+            # dat$fill <- ifelse(!dat$aluekoodi %in% naapurikoodit, NA, dat$fill)
+            dat <- dat %>% filter(aluekoodi %in% naapurikoodit)
             if (input$value_regio_level == "Kunnat"){
                 dat$color <- ifelse(!dat$aluekoodi %in% naapurikoodit, FALSE, TRUE)
             }
@@ -474,148 +766,37 @@ server <- function(input, output) {
                                                        timeseries = FALSE)
         }
         
-        ggplot(dat, aes(x = value, y = reorder(aluenimi, -rank))
-        ) + 
-            geom_col(fill = "#253494") +
+        # luodaan alaotsikko
+        if (input$value_regio_show_mode == "valitun alueen kunnat"){
+          kuvan_subtitle <- glue("Kuvassa näytetään alueeseen {input$value_region_selected} tasolla {tolower(input$value_regio_level)} kuuluvat kunnat")
+        } else {
+          kuvan_subtitle <- glue("Aluetaso: {input$value_regio_level}")
+        }
+        
+        ggplot(dat, aes(x = value, y = reorder(aluenimi, -rank))) + 
             theme_ipsum(base_family = "PT Sans",
                         plot_title_family = "PT Sans",
                         subtitle_family = "PT Sans",
-                        grid_col = "white") +
+                        grid_col = "white",
+                        plot_title_face = "plain") +
             xlim(c(0,max(dat$value, na.rm = TRUE)*1.2)) +
             theme(legend.position = "right",
                   plot.title.position = "plot") +
-            # scale_fill_ipsum() +
-            # scale_fill_viridis_c(option = "viridis", direction = -1, alpha = .4, na.value="grey90") +
-            # scale_fill_fermenter(palette = "YlGnBu") +
-            scale_color_manual(values = c("grey80","black")) + 
-            geom_col(aes(color = color), fill = NA, show.legend = FALSE) -> plot
-        
-        # Tolppakuvion eri aluetasoilla erityyppiset tolppakuviot
-        if (input$value_regio_level == "Seutukunnat"){
-            plot <- plot +
-                theme(axis.text.y = element_text(size = 9)) +
-                geom_text(dat = dat[!is.na(dat$fill),], 
-                          aes(label = paste0(value, " ", rank, "/", max(rank, na.rm = TRUE))), 
-                          color = "black", 
-                          nudge_x = max(dat$value, na.rm = TRUE)*0.1, 
-                          family = "PT Sans", size = 2.5)
-        } else if (input$value_regio_level == "Kunnat"){
-            
-            plot <- plot +
-                theme(axis.text.y = element_blank()) +
-                geom_text(dat = dat[dat$color,],
-                          aes(label = paste0(aluenimi, " ",value, " ", rank, "/", max(rank, na.rm = TRUE))),
-                          color = "black",
-                          nudge_x = max(dat$value, na.rm = TRUE)*0.2,
-                          family = "PT Sans")
-        } else if (input$value_regio_level == "Hyvinvointialueet"){
+            scale_color_manual(values = c("white","black")) + 
+            geom_col(aes(color = color, fill = value), show.legend = FALSE, size = 1.1) +
+          scale_fill_fermenter(palette = "YlGnBu", type = "seq") -> plot
+
             plot <- plot + geom_text(aes(label = value), 
                                      color = "black", 
-                                     nudge_x = max(dat$value, na.rm = TRUE)*0.1, 
+                                     nudge_x = max(dat$value, na.rm = TRUE)*0.2, 
                                      family = "PT Sans")
-        }
+            
         plot + scale_y_discrete(expand = expansion(add = 2)) +
-            labs(x = NULL, y = NULL, fill = NULL) -> p1
-        
-        
-        ## kartta ----
-        
-        dat <- process_data()
-        dat <- dat %>% #sf::st_transform(crs = 3067) %>% 
-            mutate(color = ifelse(aluenimi %in% input$value_region_selected, TRUE, FALSE))
-        
-        if (input$value_regio_show_mode == "kaikki tason alueet"){
-            dat <- dat
-        } else if (input$value_regio_show_mode == "valittu alue ja sen naapurit"){
-            dat <- dat %>% filter(aluekoodi %in% naapurikoodit)
-        } else if (input$value_regio_show_mode == "valitun alueen kunnat"){
-            
-            dat <- create_municipalities_within_region(varname = input$value_variable, 
-                                                       regio_level = input$value_regio_level,
-                                                       aluenimi = input$value_region_selected,
-                                                       timeseries = FALSE)
-            
-            reg <- readRDS(glue("./data/regio_Kunnat.RDS"))
-            res <- left_join(reg, dat) %>% 
-                filter(!is.na(aluenimi))
-            
-            dat <- res %>%
-                filter(!is.na(value)) %>%
-                arrange(desc(value)) %>%
-                mutate(value = round(value, 1)) %>%
-                mutate(rank = 1:n(), 
-                       color = TRUE) 
-        }
-        
-        
-        
-        
-        # ggplot(data = dat, aes(fill = value, color = color)) +
-        ggplot(data = dat, aes(fill = value)) +
-            geom_sf(color = alpha("white", 1/3))  +
-            geom_sf(aes(color = color), fill = NA, show.legend = FALSE)  +    
-            # scale_fill_viridis(option = "viridis", direction = -1, alpha = .5) +
-            scale_fill_fermenter(palette = "YlGnBu", type = "seq") +
-            scale_color_manual(values = c(alpha("white", 1/3), "black")) +
-            theme_minimal(base_family = "PT Sans", base_size = 12) -> p
-        
-        if (input$value_regio_show_mode == "kaikki tason alueet"){
-            if (input$value_regio_level != "Kunnat"){
-                p + geom_sf_label(data = dat %>% filter(!aluenimi %in% input$value_region_selected), 
-                                  aes(label = value), 
-                                  family = "PT Sans", 
-                                  color = "black", 
-                                  fill = "white", 
-                                  size = 2.5) -> p
-            }
-            p <- p + geom_sf_label(data = dat %>% filter(aluenimi == input$value_region_selected),
-                                   aes(label = paste(aluenimi, value)),
-                                   fill = "white", color = "black", family = "PT Sans")
-            
-        } else if (input$value_regio_show_mode == "valittu alue ja sen naapurit"){
-            p + geom_sf_label(data = dat,
-                              aes(label = paste(aluenimi, value)),
-                              fill = "white", color = "black", family = "PT Sans") -> p
-        } else if (input$value_regio_show_mode == "valitun alueen kunnat"){
-            p + ggrepel::geom_label_repel(data = dat %>%
-                                              sf::st_set_geometry(NULL) %>%
-                                              bind_cols(dat %>% sf::st_centroid() %>% sf::st_coordinates() %>% as_tibble()),
-                                          aes(label = paste0(aluenimi,"\n", value), x = X, y = Y),
-                                          color = "black", fill = alpha("white", 2/3),
-                                          family = "PT Sans", size = 3, lineheight = .8) -> p
-            
-        }
-        p + theme(axis.text = element_blank(),
-                  axis.title = element_blank(),
-                  panel.grid = element_blank(),
-                  # legend.position = "left",
-                  legend.position = c(0.1, 0.5),
-                  plot.title.position = "plot") +
-            labs(fill = paste0(add_line_break2(input$value_variable, 20), "\n(suhdeluku)")) -> p2
-        
-        # luodaan alaotsikko
-        if (input$value_regio_show_mode == "valitun alueen kunnat"){
-            kuvan_subtitle <- glue("Kuvassa näytetään alueeseen {input$value_region_selected} tasolla {tolower(input$value_regio_level)} kuuluvat kunnat")
-        } else {
-            kuvan_subtitle <- glue("Aluetaso: {input$value_regio_level}")
-        }
-        
-        
-        p1 + p2 +
-            plot_layout(
-                ncol = 2,
-                widths = c(1, 1.2)
-            ) -> plotlist
-        wrap_plots(plotlist, ncol = 1) +
-            plot_annotation(
-                title = glue("{input$value_variable}"),
-                subtitle = kuvan_subtitle,
-                caption = glue("Huono-osaisuus Suomessa -karttasovellus (Diak)\nData: THL (perusdata) & Diak (mediaanisuhteutus)\nTiedot haettu:{Sys.Date()}"),
-                theme = theme(plot.title = element_text(family = "PT Sans", size = 20),
-                              plot.subtitle = element_text(family = "PT Sans", size = 16),
-                              plot.caption = element_text(family = "PT Sans", size = 11))
-            )
-        
+            labs(x = NULL, y = NULL, fill = NULL) +
+          labs(title = glue("{input$value_variable}"),
+               subtitle = kuvan_subtitle,
+               caption = glue("Huono-osaisuus Suomessa -karttasovellus (Diak)\nData: THL (perusdata) & Diak (mediaanisuhteutus)\nTiedot haettu:{Sys.Date()}"))
+
     }, alt = reactive({
         
         req(input$value_variable_class)
@@ -661,11 +842,172 @@ server <- function(input, output) {
             )
             
         }
+        }))
         
-        
-        
-        
-        
+        output$map_plot <- renderPlot({
+          
+          req(input$value_variable_class)
+          req(input$value_variable)
+          req(input$value_regio_level)
+          req(input$value_region_selected)
+          req(input$value_regio_show_mode)
+
+          dat <- process_data()
+          
+          region_data <- get_region_data()
+          naapurikoodit <- get_naapurikoodit(region_data = region_data,
+                                             regio_lvl = input$value_regio_level,
+                                             regio_selected = input$value_region_selected)
+          
+          dat <- dat %>% 
+            mutate(color = ifelse(aluenimi %in% input$value_region_selected, TRUE, FALSE))
+          
+          if (input$value_regio_show_mode == "kaikki tason alueet"){
+            dat <- dat
+          } else if (input$value_regio_show_mode == "valittu alue ja sen naapurit"){
+            dat <- dat %>% filter(aluekoodi %in% naapurikoodit)
+          } else if (input$value_regio_show_mode == "valitun alueen kunnat"){
+            
+            dat <- create_municipalities_within_region(varname = input$value_variable, 
+                                                       regio_level = input$value_regio_level,
+                                                       aluenimi = input$value_region_selected,
+                                                       timeseries = FALSE)
+            
+            reg <- readRDS(glue("./data/regio_Kunnat.RDS"))
+            res <- left_join(reg, dat) %>% 
+              filter(!is.na(aluenimi))
+            
+            dat <- res %>%
+              filter(!is.na(value)) %>%
+              arrange(desc(value)) %>%
+              mutate(value = round(value, 1)) %>%
+              mutate(rank = 1:n(), 
+                     color = TRUE) 
+          }
+          
+          # luodaan alaotsikko
+          if (input$value_regio_show_mode == "valitun alueen kunnat"){
+            kuvan_subtitle <- glue("Kuvassa näytetään alueeseen {input$value_region_selected} tasolla {tolower(input$value_regio_level)} kuuluvat kunnat")
+          } else {
+            kuvan_subtitle <- glue("Aluetaso: {input$value_regio_level}")
+          }
+          
+          ggplot(data = dat, aes(fill = value)) +
+            geom_sf(color = alpha("white", 1/3))  +
+            geom_sf(aes(color = color), fill = NA, show.legend = FALSE)  +    
+            scale_fill_fermenter(palette = "YlGnBu", type = "seq") +
+            scale_color_manual(values = c(alpha("white", 1/3), "black")) +
+            theme_ipsum(base_family = "PT Sans",
+                        plot_title_family = "PT Sans",
+                        subtitle_family = "PT Sans",
+                        grid_col = "white",
+                        plot_title_face = "plain") -> p
+          
+          if (input$value_regio_show_mode == "kaikki tason alueet"){
+            if (input$value_regio_level != "Kunnat"){
+              p + geom_sf_label(data = dat %>% filter(!aluenimi %in% input$value_region_selected), 
+                                aes(label = value), 
+                                family = "PT Sans", 
+                                color = "black", 
+                                fill = "white", 
+                                size = 2.5) -> p
+            }
+            p <- p + geom_sf_label(data = dat %>% filter(aluenimi == input$value_region_selected),
+                                   aes(label = paste(aluenimi, value)),
+                                   fill = "white", color = "black", family = "PT Sans")
+            
+          } else if (input$value_regio_show_mode == "valittu alue ja sen naapurit"){
+            p + geom_sf_label(data = dat,
+                              aes(label = paste(aluenimi, value)),
+                              fill = "white", color = "black", family = "PT Sans") -> p
+          } else if (input$value_regio_show_mode == "valitun alueen kunnat"){
+            p + ggrepel::geom_label_repel(data = dat %>%
+                                            sf::st_set_geometry(NULL) %>%
+                                            bind_cols(dat %>% sf::st_centroid() %>% sf::st_coordinates() %>% as_tibble()),
+                                          aes(label = paste0(aluenimi,"\n", value), x = X, y = Y),
+                                          color = "black", fill = alpha("white", 2/3),
+                                          family = "PT Sans", size = 3, lineheight = .8) -> p
+            
+          }
+          p + theme(axis.text.x = element_blank(),
+                    axis.text.y = element_blank(),
+                    axis.title.x = element_blank(),
+                    axis.title.y = element_blank(),
+                    panel.grid.major = element_blank(),
+                    panel.grid.minor = element_blank(),
+                    # plot.title = element_text(family = "PT Sans", size = 20),
+                    #                   plot.subtitle = element_text(family = "PT Sans", size = 16),
+                    #                   plot.caption = element_text(family = "PT Sans", size = 11),
+                    legend.position = c(0.1, 0.5),
+                    plot.title.position = "plot") +
+            labs(title = glue("{input$value_variable}"),
+                 subtitle = kuvan_subtitle,
+                 caption = glue("Huono-osaisuus Suomessa -karttasovellus (Diak)\nData: THL (perusdata) & Diak (mediaanisuhteutus)\nTiedot haettu:{Sys.Date()}"),
+                 fill = paste0(add_line_break2(input$value_variable, 20), "\n(suhdeluku)"))
+          # 
+          # 
+          # 
+          # 
+          # p1 + p2 +
+          #   plot_layout(
+          #     ncol = 2,
+          #     widths = c(1, 1.2)
+          #   ) -> plotlist
+          # wrap_plots(plotlist, ncol = 1) +
+          #   plot_annotation(
+          #     title = glue("{input$value_variable}"),
+          #     subtitle = kuvan_subtitle,
+          #     caption = glue("Huono-osaisuus Suomessa -karttasovellus (Diak)\nData: THL (perusdata) & Diak (mediaanisuhteutus)\nTiedot haettu:{Sys.Date()}"),
+          #     theme = theme(plot.title = element_text(family = "PT Sans", size = 20),
+          #                   plot.subtitle = element_text(family = "PT Sans", size = 16),
+          #                   plot.caption = element_text(family = "PT Sans", size = 11))
+          #   )
+          
+        }, alt = reactive({
+          
+          req(input$value_variable_class)
+          req(input$value_variable)
+          req(input$value_regio_level)
+          req(input$value_region_selected)
+          req(input$value_regio_show_mode)
+          
+          if (input$value_regio_show_mode == "kaikki tason alueet"){
+            alt_teksti <- paste("Muuttujan", input$value_variable, 
+                                "arvot aluetasolla",input$value_regio_level,
+                                "esitetään pylväskuviossa pylvään pituutena ja täyttövärinä ja karttakuviossa alueen täyttövärinä.",
+                                "Kuvioissa näytetään kaikki aluetason alueet ja korostettuna on",
+                                input$value_region_selected
+            )
+          } else if (input$value_regio_show_mode == "valittu alue ja sen naapurit"){
+            
+            region_data <- get_region_data()
+            naapurikoodit <- get_naapurikoodit(region_data = region_data,
+                                               regio_lvl = input$value_regio_level,
+                                               regio_selected = input$value_region_selected)
+            region_nms <- region_data[region_data$level %in% input$value_regio_level & region_data$region_code %in% naapurikoodit, ]$region_name
+            alt_teksti <-         paste("Muuttujan", input$value_variable, 
+                                        "arvot esitetään pylväskuviossa pylväiden pituutena ja pylvään pituutena ja karttakuviossa alueen värinä. Aluetasona näytetään",
+                                        input$value_regio_level,
+                                        "ja alueina näytetään ",
+                                        glue_collapse(region_nms, sep = ", ", last = " ja "), "korostettuna", 
+                                        input$value_region_selected
+            )
+            
+          } else if (input$value_regio_show_mode == "valitun alueen kunnat"){
+            
+            dat <- create_municipalities_within_region(varname = input$value_variable, 
+                                                       regio_level = input$value_regio_level,
+                                                       aluenimi = input$value_region_selected,
+                                                       timeseries = FALSE)
+            
+            alt_teksti <-         paste("Muuttujan ", input$value_variable, 
+                                        "arvot esitetään pylväiden pituutena ja pylvään täyttövärinä ja karttakuviossa alueen värinä kuntatasolla käsittäen kunnat jotka kuuluvat alueeseen",
+                                        input$value_region_selected, "tasolla", input$value_regio_level,
+                                        "Kuntina näytetään",
+                                        glue_collapse(unique(dat$aluenimi), sep = ", ", last = " ja ")
+            )
+            
+          }
     }))
     
     ## aikasarja ----
@@ -818,11 +1160,15 @@ server <- function(input, output) {
             #                           aes(label = aluenimi), color = "white", family = "PT Sans") +
             
             scale_x_continuous(breaks = sort(unique(df$aika)), labels = labels) +
-            theme_ipsum(base_family = "PT Sans",
-                        plot_title_family = "PT Sans",
-                        subtitle_family = "PT Sans",
-                        axis_title_size = 12,
-                        plot_title_face = "plain") +
+          theme_ipsum(base_family = "PT Sans",
+                      plot_title_family = "PT Sans",
+                      subtitle_family = "PT Sans",
+                      plot_title_face = "plain") +
+            # theme_ipsum(base_family = "PT Sans",
+            #             plot_title_family = "PT Sans",
+            #             subtitle_family = "PT Sans",
+            #             axis_title_size = 12,
+            #             plot_title_face = "plain") +
             # scale_fill_brewer(palette = "YlGnBu") +
             # scale_color_brewer(palette = "YlGnBu") +
             # scale_fill_viridis_d(option = "plasma", direction = -1, begin = .1, end = .9) +
@@ -839,10 +1185,11 @@ server <- function(input, output) {
                   panel.grid.minor.x = element_blank(),
                   panel.grid.major.y = element_blank(),
                   plot.title.position = "plot",
-                  plot.margin = unit(c(0,0,0,0), "mm"),
-                  plot.title = element_text(family = "PT Sans", size = 20),
-                  plot.subtitle = element_text(family = "PT Sans", size = 16),
-                  plot.caption = element_text(family = "PT Sans", size = 11)) -> plot1
+                  plot.margin = unit(c(0,0,0,0), "mm")#,
+                  # plot.title = element_text(family = "PT Sans", size = 20),
+                  # plot.subtitle = element_text(family = "PT Sans", size = 16),
+                  # plot.caption = element_text(family = "PT Sans", size = 11)
+                  ) -> plot1
         
         plot_gini <- plot_gini + scale_x_continuous(breaks = sort(unique(df$aika)), labels = labels) +
             theme_ipsum(base_family = "PT Sans",
@@ -864,10 +1211,11 @@ server <- function(input, output) {
                   plot.title.position = "plot",
                   axis.title.x = element_blank(),
                   plot.margin = unit(c(0,0,0,0), "mm"),
-                  axis.text.x = element_blank(),
-                  plot.title = element_text(family = "PT Sans", size = 20),
-                  plot.subtitle = element_text(family = "PT Sans", size = 16),
-                  plot.caption = element_text(family = "PT Sans", size = 11))
+                  axis.text.x = element_blank()#,
+                  # plot.title = element_text(family = "PT Sans", size = 20),
+                  # plot.subtitle = element_text(family = "PT Sans", size = 16),
+                  # plot.caption = element_text(family = "PT Sans", size = 11)
+                  )
         
         patchwork::wrap_plots(plot1,plot_gini, ncol = 1, heights = c(1,0.3))
         
@@ -1867,6 +2215,6 @@ server <- function(input, output) {
     
 }
 
-# shinyApp(ui = ui, server = server)
-shinyApp(ui = htmlTemplate("www/index.html"), server = server)
+shinyApp(ui = ui, server = server)
+# shinyApp(ui = htmlTemplate("www/index.html"), server = server)
 # 

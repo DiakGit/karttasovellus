@@ -1,3 +1,4 @@
+
 /* Sticky footer styles
 -------------------------------------------------- */
 html {
@@ -27,18 +28,48 @@ body {
 -------------------------------------------------- */
 /* Not required for template or sticky footer method. */
 
+.navbar-xyz {
+        background-color: rgb(255, 255, 255, .9);
+        border-bottom: 1px solid rgb(55, 55, 55, .4);
+      }
+.leaflet-container {
+    background: #FFF;
+    }
+.grey-background {
+      background-color: rgb(255, 255, 255, .9);
+      padding-top: 10px;
+      padding-right: 10px;
+      padding-bottom: 10px;
+      padding-left: 10px;
+      }
+.container_1280 {
+        max-width: 1280px; 
+        margin: auto;
+}
+#map {
+    margin: auto;
+  }
+
+
 body > .container {
   padding: 10px 15px 0;
 }
 
+h1 {
+  scroll-margin-top: 4em;
+}
+
 h2 {
-  padding: 45px 5px 0;
+  padding: 5px 5px 0;
   font-weight: 600 !important;
+  scroll-margin-top: 4em;
 }
 
 h3 {
-  padding: 15px 15px 0;
+  padding: 5px 15px 0;
   font-weight: 600 !important;
+  scroll-margin-top: 4em;
+
 }
 
 h4 {
@@ -67,6 +98,15 @@ code {
 .bg-light {
     background-color: rgb(248, 249, 250, .95) !important;
 }
+
+.bg-dark-diak {
+  background-color: #353535;
+}
+
+.footer-content {
+  color: #FFF !important; 
+}
+
 
 .container, .container-sm, .container-md, .container-lg, .container-xl {
     max-width: 1340px;
