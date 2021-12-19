@@ -10,13 +10,12 @@
 mod_04alueprof_ui <- function(id){
   ns <- NS(id)
   tagList(
-    tags$hr(),
     tags$div(class = "container_1280 grey-background",
              tags$div(class = "row",
                       tags$div(class = "col-lg-12",
                                tags$h2(id = "alueprofiili", "Alueprofiili"),
                                tags$p("Alueprofiilissa näet kaikki aineiston osoittimet luokan mukaan ryhmiteltynä. Kustakin osoittimesta näytetään valitun alueen lisäksi sen rajanaapurit sekä  osoittimen korkeimman ja matalimman arvon alueet. Alueet on järjestetty kunkin osoittimen kohdalla sijan mukaan."),
-                               tags$p("Valitse ensin aluetaso, sitten alue ja paina lopuksi <i>Luo alueprofiili</i> -painiketta. Alueprofiilin luominen kestää noin 30 sekuntia. Voit tallentaa profiilin laitteellesi")
+                               tags$p("Valitse ensin aluetaso, sitten alue ja paina lopuksi", tags$em("Luo alueprofiili"), "-painiketta. Alueprofiilin luominen kestää noin 30 sekuntia. Voit tallentaa profiilin laitteellesi")
                       )),
              tags$div(class = "row",
                       tags$div(class = "col-lg-6",
@@ -772,8 +771,8 @@ mod_04alueprof_server <- function(id){
     output$report <- downloadHandler(
       
       filename = function() {
-        # file_name <- glue("alueprofiili_{react_value_region_profile()}_{tolower(react_value_regio_level_profile())}{input$value_report_format}")
-        file_name <-  glue("alueprofiili{input$value_report_format}")
+        file_name <- glue("alueprofiili_{react_value_region_profile()}_{tolower(react_value_regio_level_profile())}{input$value_report_format}")
+        # file_name <-  glue("alueprofiili{input$value_report_format}")
         return(file_name)
       },
       content = function(file) {
