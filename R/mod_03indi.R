@@ -332,30 +332,7 @@ mod_03indi_server <- function(id){
         return(dat)
     }
     
-    process_data_profile_doc <- reactive({
-        
-        req(input$value_variable_class)
-        req(input$value_variable)
-        req(input$value_regio_level)
-        
-        dat <- get_dat()
-        
-        dat_1 <- dat[dat$regio_level %in% react_value_regio_level_profile() & dat$variable %in% input$value_variable,]
-        
-        reg <- readRDS(glue("./data/regio_{react_value_regio_level_profile()}.RDS"))
-        res <- left_join(reg, dat_1)
-        
-        res <- res %>%
-            select(-regio_level) %>%
-            filter(!is.na(value)) %>%
-            arrange(desc(value)) %>%
-            mutate(value = round(value, 1)) %>%
-            mutate(rank = 1:n())
-        
-        res <- sf::st_transform(x = res, crs = "+proj=longlat +datum=WGS84")
-        
-        return(res)
-    })
+    
     # get_naapurikoodit ----
     get_naapurikoodit <- function(region_data = region_data,
                                   regio_lvl = input$value_regio_level,
@@ -406,7 +383,7 @@ mod_03indi_server <- function(id){
         
         req(input$value_variable)
         tagList(
-            downloadButton("save_data_indicator", "Tallenna data csv-muodossa!", class="btn btn-dark"),
+            downloadButton(ns("save_data_indicator"), "Tallenna data csv-muodossa!", class="btn btn-dark"),
         )
     })
     
@@ -599,7 +576,7 @@ mod_03indi_server <- function(id){
                                                        aluenimi = input$value_region_selected,
                                                        timeseries = FALSE)
             
-            reg <- readRDS(glue("./data/regio_Kunnat.RDS"))
+            reg <- karttasovellus::regio_Kunnat
             res <- left_join(reg, dat) %>% 
               filter(!is.na(aluenimi))
             

@@ -41,6 +41,8 @@ usethis::use_package( "bslib" )
 usethis::use_package( "metathis" )
 usethis::use_package( "readr" )
 usethis::use_package( "patchwork" )
+usethis::use_package( "knitr" )
+
 
 
 

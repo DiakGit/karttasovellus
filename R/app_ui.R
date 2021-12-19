@@ -26,7 +26,7 @@ app_ui <- function(request) {
                                         #base_font = font_google("PT Sans"),
                                         #code_font = font_google("Space Mono")
                   ),
-      #mod_01meta_ui("meta_ui_1"),
+      # mod_01meta_ui("meta_ui_1"),
       mod_02navi_ui("02navi_ui_1"),
       mod_03indi_ui("03indi_ui_1"),
       mod_04alueprof_ui("04alueprof_ui_1"),

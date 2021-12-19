@@ -35,13 +35,15 @@ mod_04alueprof_ui <- function(id){
                       tags$div(class = "col-lg-12",
                                uiOutput(ns("region_profile_html"))
                       )
-             ))
+             )
+             )
   )
 }
     
 #' 04alueprof Server Functions
 #'
 #' @import shinycssloaders
+#' @import knitr
 #'
 #' @noRd 
 mod_04alueprof_server <- function(id){
@@ -115,6 +117,38 @@ mod_04alueprof_server <- function(id){
     
     react_value_region_profile <- eventReactive(input$button, {
       input$value_region_profile
+    })
+    
+    
+    process_data_profile_doc <- reactive({
+      
+      # req(input$value_variable_class)
+      # req(input$value_variable)
+      # req(input$value_regio_level)
+      
+      dat <- get_dat()
+      
+      dat_1 <- dat[dat$regio_level %in% react_value_regio_level_profile(),] #& dat$variable %in% input$value_variable,]
+      
+      if (input$value_regio_level_profile == "Hyvinvointialueet"){
+        reg <- karttasovellus::regio_Hyvinvointialueet
+      } else if (input$value_regio_level_profile == "Seutukunnat"){
+        reg <- karttasovellus::regio_Seutukunnat
+      } else if (input$value_regio_level_profile == "Kunnat"){
+        reg <- karttasovellus::regio_Kunnat
+      }
+      res <- left_join(reg, dat_1)
+      
+      res <- res %>%
+        select(-regio_level) %>%
+        filter(!is.na(value)) %>%
+        arrange(desc(value)) %>%
+        mutate(value = round(value, 1)) %>%
+        mutate(rank = 1:n())
+      
+      res <- sf::st_transform(x = res, crs = "+proj=longlat +datum=WGS84")
+      
+      return(res)
     })
     
     create_alueprofiili_content <- function(aluename2 = aluename, 
@@ -715,8 +749,8 @@ mod_04alueprof_server <- function(id){
         )
         ),
         tags$hr(),
-        ## ## ##
-        tags$h4("Summamuuttujat"), 
+        ## ##
+        tags$h4("Summamuuttujat"),
         ## ## ##
         uiOutput(ns("summamuuttuja_01")),
         ## ## ##
@@ -738,7 +772,8 @@ mod_04alueprof_server <- function(id){
     output$report <- downloadHandler(
       
       filename = function() {
-        file_name <- glue("alueprofiili_{react_value_region_profile()}_{tolower(react_value_regio_level_profile())}{input$value_report_format}")
+        # file_name <- glue("alueprofiili_{react_value_region_profile()}_{tolower(react_value_regio_level_profile())}{input$value_report_format}")
+        file_name <-  glue("alueprofiili{input$value_report_format}")
         return(file_name)
       },
       content = function(file) {
@@ -765,7 +800,6 @@ mod_04alueprof_server <- function(id){
                            data_aikasarja = get_dat_timeseries(),
                            spatdat = process_data_profile_doc(),
                            region_data = region_data,
-                           value_variable = input$value_variable,
                            naapurikoodit = naapurikoodit#,
                            # odt_kerroin = 1
             )
@@ -773,13 +807,15 @@ mod_04alueprof_server <- function(id){
             tempReport <- file.path(tempdir(), "report.Rmd")
             # tempReport <- file.path("~/Downloads", "report.Rmd")
             # dea("./docs/report_template.Rmd", tempReport, overwrite = TRUE)
-            lns <- readLines("./docs/report_template.Rmd") 
+            # lns <- readLines("./docs/report_template.Rmd") 
+            lns <- readLines(system.file("templates", "report_template.Rmd", package="karttasovellus"))
             
             if (input$value_report_format == ".docx"){
               # lns2 <- sub("korvaa_asiakirjamalli", "reference_docx: diak_karttasovellus.dotx", lns)
               # lns3 <- sub("korvaa_dokumenttimuoto", "word_document", lns2)
               lns3 <- lns
-              file.copy("./docs/diak_karttasovellus.dotx",
+              file.copy(system.file("templates", "diak_karttasovellus.dotx", package="karttasovellus"),
+                # "./docs/diak_karttasovellus.dotx",
                         tempdir(),
                         overwrite = TRUE)
               params[["fig_width_default"]] <- 12
@@ -790,7 +826,7 @@ mod_04alueprof_server <- function(id){
             } else {
               lns2 <- sub("reference_docx: diak_karttasovellus.dotx", "reference_odt: diak_karttasovellus.ott", lns)
               lns3 <- sub("word_document", "odt_document", lns2)
-              file.copy("./docs/diak_karttasovellus.ott",
+              file.copy(system.file("templates", "diak_karttasovellus.ott", package="karttasovellus"), #"./docs/diak_karttasovellus.ott",
                         tempdir(),
                         overwrite = TRUE)
               params[["fig_width_default"]] <- 12
@@ -825,10 +861,10 @@ mod_04alueprof_server <- function(id){
     
     output$output_save_word <- renderUI({
       
-      req(input$value_variable)
+      # req(input$value_variable)
       tagList(
-        downloadButton("report", "Tallenna alueprofiili laitteellesi!", class="btn btn-dark"),
-        radioButtons("value_report_format",
+        downloadButton(ns("report"), "Tallenna alueprofiili laitteellesi!", class="btn btn-dark"),
+        radioButtons(ns("value_report_format"),
                      "Valitse tallennettavan tiedoston tiedostomuoto",
                      choiceNames = list(#"vektorikuva (.pdf)",
                        "Word (.docx)",
@@ -840,83 +876,6 @@ mod_04alueprof_server <- function(id){
         
       )
     })
-    
-    
-    
-    output$output_save_map <- renderUI({
-      
-      req(input$value_variable)
-      
-      tagList(
-        # radioButtons("value_map_format", 
-        #              "Valitse tiedostomuoto",
-        #              choiceNames = list(#"vektorikuva (.pdf)",
-        #                                 #"vektorikuva (.svg)",
-        #                                 "bittimappikuva (.png)"),
-        #              choiceValues = list(#".pdf", 
-        #                                  #".svg", 
-        #                                  ".png"),
-        #              inline = TRUE),
-        downloadButton("save_map", "Tallenna kartta bittimappikuvana (.png)")
-      )
-    })
-    
-    output$save_map <- downloadHandler(
-      
-      filename = function() {
-        file_name <- glue("map_{janitor::make_clean_names(input$value_variable)}_{tolower(input$value_regio_level)}.png")
-        return(file_name)
-      },
-      content = function(file) {
-        
-        # shiny::withProgress(
-        # message = paste0("Piirretään karttaa"),
-        # value = 0,
-        # {
-        # shiny::incProgress(1/10)
-        # Sys.sleep(1)
-        dat <- process_data()
-        dat <- sf::st_transform(dat, crs = 3067)
-        
-        ggplot(data = dat, aes(fill = value)) +
-          geom_sf(color = alpha("white", 1/3))  +
-          scale_fill_viridis(option = "viridis", direction = -1, alpha = .5) +
-          theme_minimal(base_family = "PT Sans", base_size = 12) +
-          labs(fill = NULL,
-               title = glue("{input$value_variable}"),
-               subtitle = glue("Aluetaso: {input$value_regio_level}"),
-               caption = glue("Data: THL & Diak\n{Sys.Date()}")) -> p
-        if (input$value_regio_level != "Kunnat"){
-          p + ggrepel::geom_text_repel(data = dat %>%
-                                         sf::st_set_geometry(NULL) %>%
-                                         bind_cols(dat %>% sf::st_centroid() %>% sf::st_coordinates() %>% as_tibble()),
-                                       aes(label = paste0(aluenimi,"\n", value), x = X, y = Y), 
-                                       color = "black", #fill = alpha("black", 2/3), 
-                                       family = "PT Sans", size = 2) -> p
-        } else {
-          p + geom_text(data = dat %>%
-                          sf::st_set_geometry(NULL) %>%
-                          bind_cols(dat %>% sf::st_centroid() %>% sf::st_coordinates() %>% as_tibble()),
-                        aes(label = value, x = X, y = Y), 
-                        color = "black", 
-                        family = "PT Sans", 
-                        size = 2.2) -> p
-        }
-        p + theme(axis.text = element_blank(),
-                  axis.title = element_blank(),
-                  panel.grid = element_blank()) -> p
-        # if (input$value_map_format == ".pdf"){
-        #     ggsave(filename = file, plot = p, device = cairo_pdf, width = 8.3, height = 11.7)
-        # } else if (input$value_map_format == ".svg"){
-        #     ggsave(filename = file, plot = p, width = 8.3, height = 11.7)
-        # }  else {
-        ggsave(filename = file, plot = p, width = 8.3, height = 11.7)
-        # }
-        # shiny::incProgress(5/10)
-        # }
-        # )
-      }
-    )
     
     ## datan tallennus ----
     ## 
@@ -960,11 +919,90 @@ mod_04alueprof_server <- function(id){
     
     output$output_save_data_profile <- renderUI({
       
-      req(input$value_variable)
+      # req(input$value_variable)
       tagList(
-        downloadButton("save_data_profile", "Tallenna data csv-muodossa!", class="btn btn-dark")
+        downloadButton(ns("save_data_profile"), "Tallenna data csv-muodossa!", class="btn btn-dark")
       )
     })
+    
+    
+    
+    # output$output_save_map <- renderUI({
+    #   
+    #   req(input$value_variable)
+    #   
+    #   tagList(
+    #     # radioButtons("value_map_format", 
+    #     #              "Valitse tiedostomuoto",
+    #     #              choiceNames = list(#"vektorikuva (.pdf)",
+    #     #                                 #"vektorikuva (.svg)",
+    #     #                                 "bittimappikuva (.png)"),
+    #     #              choiceValues = list(#".pdf", 
+    #     #                                  #".svg", 
+    #     #                                  ".png"),
+    #     #              inline = TRUE),
+    #     downloadButton("save_map", "Tallenna kartta bittimappikuvana (.png)")
+    #   )
+    # })
+    
+    # output$save_map <- downloadHandler(
+    #   
+    #   filename = function() {
+    #     file_name <- glue("map_{janitor::make_clean_names(input$value_variable)}_{tolower(input$value_regio_level)}.png")
+    #     return(file_name)
+    #   },
+    #   content = function(file) {
+    #     
+    #     # shiny::withProgress(
+    #     # message = paste0("Piirretään karttaa"),
+    #     # value = 0,
+    #     # {
+    #     # shiny::incProgress(1/10)
+    #     # Sys.sleep(1)
+    #     dat <- process_data()
+    #     dat <- sf::st_transform(dat, crs = 3067)
+    #     
+    #     ggplot(data = dat, aes(fill = value)) +
+    #       geom_sf(color = alpha("white", 1/3))  +
+    #       scale_fill_viridis(option = "viridis", direction = -1, alpha = .5) +
+    #       theme_minimal(base_family = "PT Sans", base_size = 12) +
+    #       labs(fill = NULL,
+    #            title = glue("{input$value_variable}"),
+    #            subtitle = glue("Aluetaso: {input$value_regio_level}"),
+    #            caption = glue("Data: THL & Diak\n{Sys.Date()}")) -> p
+    #     if (input$value_regio_level != "Kunnat"){
+    #       p + ggrepel::geom_text_repel(data = dat %>%
+    #                                      sf::st_set_geometry(NULL) %>%
+    #                                      bind_cols(dat %>% sf::st_centroid() %>% sf::st_coordinates() %>% as_tibble()),
+    #                                    aes(label = paste0(aluenimi,"\n", value), x = X, y = Y), 
+    #                                    color = "black", #fill = alpha("black", 2/3), 
+    #                                    family = "PT Sans", size = 2) -> p
+    #     } else {
+    #       p + geom_text(data = dat %>%
+    #                       sf::st_set_geometry(NULL) %>%
+    #                       bind_cols(dat %>% sf::st_centroid() %>% sf::st_coordinates() %>% as_tibble()),
+    #                     aes(label = value, x = X, y = Y), 
+    #                     color = "black", 
+    #                     family = "PT Sans", 
+    #                     size = 2.2) -> p
+    #     }
+    #     p + theme(axis.text = element_blank(),
+    #               axis.title = element_blank(),
+    #               panel.grid = element_blank()) -> p
+    #     # if (input$value_map_format == ".pdf"){
+    #     #     ggsave(filename = file, plot = p, device = cairo_pdf, width = 8.3, height = 11.7)
+    #     # } else if (input$value_map_format == ".svg"){
+    #     #     ggsave(filename = file, plot = p, width = 8.3, height = 11.7)
+    #     # }  else {
+    #     ggsave(filename = file, plot = p, width = 8.3, height = 11.7)
+    #     # }
+    #     # shiny::incProgress(5/10)
+    #     # }
+    #     # )
+    #   }
+    # )
+    
+
     
     
   })

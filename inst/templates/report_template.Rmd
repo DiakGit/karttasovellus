@@ -1,0 +1,410 @@
+---
+title: "Alueprofiili `r params$region` (`r params$region_level`)"
+author: "Diakin karttasovellus `r params$datetime`" 
+output: 
+  word_document:
+    reference_docx: diak_karttasovellus.dotx
+params:
+  region: NA
+  region_level: NA
+  data: NA
+  data_aikasarja: NA
+  datetime: NA
+  spatdat: NA
+  region_data: NA
+  naapurikoodit: NA
+  fig_width_default: NA
+  fig_height_default: NA
+  fig_dpi: NA
+  doc_format: NA
+---
+
+```{r knitr_setup, include = FALSE, eval = TRUE}
+
+library(knitr)
+library(dplyr)
+knitr::opts_chunk$set(list(echo=FALSE, # printtaa koodi outputtiin
+                           eval=TRUE, # evaluoi kaikki kimpaleet jos ei erikseen kielletty
+                           cache=FALSE, # älä luo välimuistia (isoissa datoissa hyvin kätevä)
+                           warning=FALSE, # älä printtaa varoituksia
+                           message=FALSE, # älä printtaa pakettien viestejä
+                           fig.width = params$fig_width_default, # kuvien oletusleveys
+                           fig.height = params$fig_height_default, # kuvien oletuskorkeus
+                           out.width="100%"
+                           )) # kuvien oletuskorkeus
+
+libs <- c("dplyr","ggplot2","tidyr","hrbrthemes","knitr","patchwork","stringr","xtable","extrafont","forcats","viridis","purrr","glue")
+lapply(libs, require, character.only = TRUE)
+loadfonts(quiet=TRUE)
+```
+
+
+Tämä asiakirja on tuotettu automaattisesti [Diakin karttasovelluksen avulla](http://diak.shinyapps.io/karttasovellus) `r params$datetime`. Asiakirjan tiedot perustuvat THL:n Sotkanet-indikaattoripalvelun tietoihin, joihin on yhdistetty Tilastokeskuksen tilasto- ja paikkatietoaineistoja. Tarkempaa tieto indikaattoreista ja metodologiasta löydät sovelluksen [Lisätietoja](https://diak.shinyapps.io/karttasovellus_test/#info)-osiosta.
+
+Alueprofiili sisältää aina kaikkien osoittimien tiedot sekä valitulta alueelta että alueen rajanaapureista. Lisäksi alueprofiilissa esitetään kunkin osoittimen korkein ja matalin arvo. Tiedot esitetään taulukkoina, karttakuvioina sekä aikasarjakuvioina, joista näkee kunkin osoittimen kehityksen 2010-luvulla sekä valitulla alueella että sen naapureissa.
+
+Tässä raportissa tarkastellaan tasolla `r params$region_level` aluetta `r params$region`. Lisäksi tarkastelussa ovat rajanaapurit: `r params$region_data %>% filter(level == params$region_level) %>% filter(region_code %in% params$naapurikoodit) %>% pull(region_name) %>% glue_collapse(sep = ", ", last = " ja ")`.
+
+
+```{r general_setup, include = FALSE, eval = TRUE}
+
+
+add_line_break2 <- function(x = "very many many characters and words and sentences",
+                            n = 20){
+  y <- gsub(paste0("(.{1,",n,"})(\\s|$)"), "\\1\n", x)
+  y <- sub("\n$", "", y)
+  return(y)
+} 
+
+
+create_table <- function(df, varclass){
+
+df %>% 
+  filter(var_class == varclass) %>% 
+  select(-var_class) -> tmptbl
+  
+  vars <- unique(tmptbl$muuttuja)
+  for (vi in seq_along(vars)){
+  cat("\n\n")
+  cat(paste0("## ", vars[vi]))
+  cat("\n\n")
+  print(kable(tmptbl[tmptbl$muuttuja == vars[vi],] %>% 
+                mutate(aluenimi = paste0(aluenimi, " (", rooli, ") ")) %>%
+                arrange(sija) %>% 
+                # mutate(sija = paste0(sija, ".")) %>%
+                select(aluenimi,arvo,sija),
+                
+              format = "pipe", 
+              row.names = FALSE))
+  }
+  
+  
+
+}
+
+theme_set(
+  theme_minimal(base_family = "PT Sans", base_size = 7) +
+          theme(axis.text.y = element_blank(), 
+            panel.grid = element_blank(),
+            # strip.background = element_rect(color = "white"),
+            # plot.background = element_rect(fill = alpha(colour = "#fffff0", 1/3), color = NA),
+            plot.title = element_text(size = 9, family = "bold"),
+            plot.subtitle = element_text(size = 12, family = "bold"))
+)
+
+
+create_map_plot <- function(varclass, reglevel = params$region_level, regname = params$region, 
+                        spatdat = params$spatdat, naapurikoodit = params$naapurikoodit,
+                        ncol = 2){
+  params$data %>% 
+    filter(var_class %in% varclass,
+           regio_level == reglevel) -> dattemp
+
+dattemp %>% 
+  distinct(variable) %>% 
+    pull(variable) -> vars
+  gg_x <- list()
+for (i in 1:length(vars)){
+    
+    plot_dat <- dattemp %>% filter(variable %in% vars[i])
+
+    # spatdat <- sf::st_transform(spatdat, dat, crs = 3067)
+    dat_naapurit <- spatdat[spatdat$aluekoodi %in% naapurikoodit,] %>% select(-value)
+    dat_naapurit2 <- left_join(dat_naapurit,
+                               plot_dat %>%
+                                 select(aluekoodi,value)
+                               )
+    
+    p <- ggplot(data = dat_naapurit2, aes(fill = value, label = value)) +                    
+    geom_sf(color = alpha("white", 1/3))  +
+    theme_minimal(base_family = "PT Sans", base_size = 12) +
+      # scale_fill_viridis_c(option = "plasma") +
+      scale_fill_fermenter(palette = "YlGnBu") +
+theme(axis.text = element_blank(),
+          axis.title = element_blank(),
+      plot.title.position = "plot",
+          panel.grid = element_blank()) +
+      labs(x = NULL, y = NULL, fill = NULL,
+           title = add_line_break2(vars[i], n = 35)) +
+    geom_label(data = dat_naapurit2 %>%  
+    # ggrepel::geom_label_repel(data = dat_naapurit2 %>%
+                        sf::st_set_geometry(NULL) %>%
+                        bind_cols(dat_naapurit2 %>%
+                                    sf::st_centroid() %>%
+                                    sf::st_coordinates() %>% as_tibble()),
+                     aes(label = paste0(aluenimi, "\n",
+                                        round(value,1)), x = X, y = Y),
+                     color = "black", fill = "white", family = "PT Sans", lineheight = .8)
+
+    
+    gg_x[[i]] <- p
+}
+  
+  gg_x2 <- purrr::compact(gg_x)
+
+wrap_plots(gg_x2, ncol = ncol) +
+  plot_annotation(
+    subtitle = glue("Kuhunkin kuvioon on merkitty alueen '{regname}' lisäksi alueen rajanaapurit"),
+    theme = theme_minimal() + theme(plot.background = element_rect(fill = NA, color = alpha(colour = "dim grey", 1/6)))
+  )
+}
+
+
+create_timeseries_plot <- function(varclass, reglevel = params$region_level, regname = params$region, 
+                        spatdat = params$spatdat, naapurikoodit = params$naapurikoodit,
+                        ncol = 2){
+  params$data_aikasarja %>% 
+    filter(var_class %in% varclass,
+           regio_level == reglevel) -> dattemp
+
+dattemp %>% 
+  distinct(variable) %>% 
+    pull(variable) -> vars
+  gg_x <- list()
+for (i in 1:length(vars)){
+    
+    plot_dat <- dattemp %>% filter(variable %in% vars[i])
+
+    plotdata_tmp <- plot_dat[plot_dat$aluekoodi %in% naapurikoodit,]
+    
+        aika1 <- sort(unique(plotdata_tmp$aika)) - 1
+        aika2 <- sort(unique(plotdata_tmp$aika)) + 1
+        labels <- paste0(aika1,"-\n",aika2)
+    
+    p <- ggplot(data = plotdata_tmp,
+               aes(x = aika, y = value, color= aluenimi, fill= aluenimi)) +
+            geom_line(show.legend = FALSE) +
+            geom_point(shape = 21, color = "white", stroke = 1, size = 2.5) +
+            # ggrepel::geom_text_repel(data = plotdata_tmp %>% filter(aika == max(aika, na.rm = TRUE)),      
+            geom_text(data = plotdata_tmp %>% filter(aika == max(aika, na.rm = TRUE)),
+                                     aes(label = paste0(aluenimi, " ",round(value,1))), family = "PT Sans") +
+            # ggrepel::geom_text_repel(data = plotdata_tmp %>% filter(aika == max(aika, na.rm = TRUE)-1),
+            #                          aes(label = aluenimi), family = "PT Sans", nudge_x = -1) +
+            scale_x_continuous(breaks = sort(unique(plotdata_tmp$aika)), labels = labels) +
+            theme_ipsum(base_family = "PT Sans", 
+                        base_size = 12, 
+                        plot_title_size = 14,
+                        plot_title_family = "PT Sans",
+                        subtitle_family = "PT Sans"#,
+                        # grid_col = "white"
+                        ) +
+            theme(legend.position = "none",
+                  plot.title.position = "plot",
+                  panel.grid.major.x = element_line(),
+                  panel.grid.minor.x = element_blank(),
+                  panel.grid.major.y = element_blank(),
+                  axis.text.x = element_text(size = 9)) +
+                # scale_fill_viridis_d(option = "viridis", direction = -1, begin = .1, end = .9) +
+                # scale_color_viridis_d(option = "viridis", direction = -1, begin = .1, end = .9) +
+            labs(y = NULL, x = NULL,
+                 title = add_line_break2(vars[i], n = 35))
+
+    
+    gg_x[[i]] <- p
+}
+  
+  gg_x2 <- purrr::compact(gg_x)
+
+wrap_plots(gg_x2, ncol = ncol) +
+  plot_annotation(
+    subtitle = glue("Kuhunkin kuvioon on merkitty alueen '{regname}' lisäksi alueen rajanaapurit"),
+    theme = theme_minimal() + theme(plot.background = element_rect(fill = NA, color = alpha(colour = "dim grey", 1/6)))
+  )
+}
+
+```
+
+
+
+
+
+
+
+```{r data, eval = TRUE}
+dat <- params$data
+dat[dat$regio_level %in% params$region_level & dat$aluenimi %in% params$region,] %>% 
+  select(aluenimi,var_class,variable,value) %>% 
+  mutate(rooli = "valittu") -> tmpdat1
+dat[dat$regio_level %in% params$region_level & dat$aluekoodi %in% params$naapurikoodit,] %>% 
+  filter(!aluenimi %in% params$region) %>% 
+  select(aluenimi,var_class,variable,value) %>% 
+  mutate(rooli = "naapuri")-> tmpdat2
+tmpdat <- bind_rows(tmpdat1,tmpdat2)
+
+## 
+dat[dat$regio_level %in% params$region_level,] %>% 
+  group_by(var_class,variable) %>% 
+  arrange(desc(value)) %>% 
+  slice(1) %>% 
+  ungroup() %>% 
+  # mutate(maksimi = glue("{round(value, 1)} ({ifelse(nchar(aluenimi) > 10, paste0(substr(aluenimi, 1, 10),'...'), aluenimi)})")) %>% 
+  mutate(rooli = "korkein arvo") %>%
+  select(aluenimi,var_class,variable,value,rooli) -> max_dat
+
+dat[dat$regio_level %in% params$region_level,] %>% 
+  group_by(var_class,variable) %>% 
+  arrange(value) %>% 
+  slice(1) %>% 
+  ungroup() %>% 
+  # mutate(minimi = glue("{round(value, 1)} ({ifelse(nchar(aluenimi) > 10, paste0(substr(aluenimi, 1, 10),'...'), aluenimi)})")) %>% 
+  mutate(rooli = "matalin arvo") %>% 
+  select(aluenimi,var_class,variable,value,rooli) -> min_dat
+
+dat[dat$regio_level %in% params$region_level,] %>% 
+    group_by(variable) %>% 
+    arrange(desc(value)) %>%
+    mutate(sija = 1:n(),
+           n = n()) %>% 
+    ungroup() %>% 
+    # filter(aluenimi %in% aluename2) %>% 
+    select(aluenimi,variable,sija) -> rank_dat
+
+bind_rows(tmpdat,max_dat,min_dat) %>% 
+    left_join(rank_dat) %>% 
+    mutate(value = round(value, 1)) %>% 
+    rename(muuttuja = variable,
+           arvo = value) %>% 
+    filter(!is.na(arvo)) %>% 
+    select(muuttuja,arvo,sija,everything()) %>% 
+    distinct() -> tabdat
+```
+
+
+```{r kartta}
+dat <- params$spatdat
+dat <- sf::st_transform(dat, crs = 3067)
+dat_region <- dat[dat$aluenimi == params$region,]
+dat_naapurit <- dat[dat$aluekoodi %in% params$naapurikoodit,]
+
+ggplot(data = dat) +                    
+# ggplot(data = dat, aes(fill = value)) +
+    geom_sf(color = alpha("black", 1/8), fill = NA)  +
+    theme_minimal(base_family = "PT Sans", base_size = 12) +
+    labs(fill = NULL,
+         title = NULL,
+         subtitle = NULL,
+         caption = NULL) +
+  geom_sf(data = dat_naapurit, fill = alpha("#3b0083", 1/6), color = NA) +
+  geom_sf(data = dat_region, fill = alpha("#3b0083", 1/3), color = NA) +
+ theme(axis.text = element_blank(),
+          axis.title = element_blank(),
+          panel.grid = element_blank(), 
+          legend.position = "none")
+```
+
+
+
+# Summamuuttujat
+
+```{r info_summa, include = FALSE}
+muuttujaluokka = "Summamuuttujat"
+varn <- tabdat %>% filter(var_class == muuttujaluokka) %>% distinct(muuttuja) %>% nrow()
+figu_height <- NA
+ncol = 2
+figu_height[varn <= 4] <- 9
+figu_height[varn > 4 & varn <= 6] <- 11
+figu_height[varn > 6 & varn <= 9] <- 13.3
+figu_height[varn > 9] <- 13.3
+ncol[varn > 9] <- 3
+# if (params$doc_format == "odt") figu_height <- figu_height/odt_kerroin
+```
+
+```{r summa_kartta, fig.height = figu_height}
+create_map_plot(varclass = muuttujaluokka, ncol = ncol)
+```
+
+```{r summa_tbl, results = "asis"}
+create_table(tabdat, muuttujaluokka)
+```
+
+```{r summa_kuva, fig.height = figu_height}
+create_timeseries_plot(varclass = muuttujaluokka, ncol = ncol)
+```
+
+
+
+# Inhimillinen huono-osaisuus
+
+
+```{r info_inhim, include = FALSE}
+muuttujaluokka = "Inhimillinen huono-osaisuus"
+varn <- tabdat %>% filter(var_class == muuttujaluokka) %>% distinct(muuttuja) %>% nrow()
+ncol = 2
+figu_height[varn <= 4] <- 9
+figu_height[varn > 4 & varn <= 6] <- 11
+figu_height[varn > 6 & varn <= 9] <- 13.3
+figu_height[varn > 9] <- 13.3
+ncol[varn > 9] <- 3
+# if (params$doc_format == "odt") figu_height <- figu_height/odt_kerroin
+```
+
+
+```{r inhim_kartta,  fig.height = figu_height}
+create_map_plot(varclass = muuttujaluokka, ncol = ncol)
+```
+
+```{r inhim_tbl, results = "asis"}
+create_table(tabdat, muuttujaluokka)
+```
+
+```{r inhim_kuva, fig.height = figu_height}
+create_timeseries_plot(varclass = muuttujaluokka, ncol = ncol)
+```
+
+
+# Huono-osaisuuden sosiaaliset seuraukset
+
+```{r info_huono, include = FALSE}
+muuttujaluokka = "Huono-osaisuuden sosiaaliset seuraukset"
+varn <- tabdat %>% filter(var_class == muuttujaluokka) %>% distinct(muuttuja) %>% nrow()
+ncol = 2
+figu_height[varn <= 4] <- 9
+figu_height[varn > 4 & varn <= 6] <- 11
+figu_height[varn > 6 & varn <= 9] <- 13.3
+figu_height[varn > 9] <- 13.3
+ncol[varn > 9] <- 3
+# if (params$doc_format == "odt") figu_height <- figu_height/odt_kerroin
+```
+
+```{r  sosial_kartta,  fig.height = figu_height}
+create_map_plot(varclass = muuttujaluokka, ncol = ncol)
+```
+
+```{r sosial_taulukko, results = "asis"}
+create_table(tabdat, muuttujaluokka)
+```
+
+```{r sosial_kuva, fig.height = figu_height}
+create_timeseries_plot(varclass = muuttujaluokka, ncol = ncol)
+```
+
+
+# Huono-osaisuuden taloudelliset yhteydet
+
+```{r info_talous, include = FALSE}
+muuttujaluokka = "Huono-osaisuuden taloudelliset yhteydet"
+figu_height <- tabdat %>% filter(var_class == muuttujaluokka) %>% distinct(muuttuja) %>% nrow()
+varn <- tabdat %>% filter(var_class == muuttujaluokka) %>% distinct(muuttuja) %>% nrow()
+ncol = 2
+figu_height[varn <= 4] <- 9
+figu_height[varn > 4 & varn <= 6] <- 11
+figu_height[varn > 6 & varn <= 9] <- 13.3
+figu_height[varn > 9] <- 13.3
+ncol[varn > 9] <- 3
+# if (params$doc_format == "odt") figu_height <- figu_height/odt_kerroin
+```
+
+
+```{r talous_kartta,  fig.height = figu_height}
+create_map_plot(varclass = muuttujaluokka, ncol = ncol)
+```
+
+
+```{r talous_tbl, results = "asis"}
+create_table(tabdat, muuttujaluokka)
+```
+
+```{r talous_kuva, fig.height = figu_height}
+create_timeseries_plot(varclass = muuttujaluokka, ncol = ncol)
+```
+
