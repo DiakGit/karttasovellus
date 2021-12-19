@@ -1,0 +1,153 @@
+
+/* Sticky footer styles
+-------------------------------------------------- */
+html {
+  position: relative;
+  min-height: 100%;
+  scroll-behavior: smooth;
+}
+
+body {
+  /* Margin bottom by footer height */
+  margin-bottom: 70px;
+}
+.footer {
+  position: absolute;
+  bottom: 0;
+  width: 100%;
+  /* Set the fixed height of the footer here */
+  height: 70px;
+  line-height: 70px; /* Vertically center the text there */
+  background-color: #f5f5f5;
+}
+
+.leaflet-container { background: #ffffff !important; }
+
+
+/* Custom page CSS
+-------------------------------------------------- */
+/* Not required for template or sticky footer method. */
+
+.navbar-xyz {
+        background-color: rgb(255, 255, 255, .9);
+        border-bottom: 1px solid rgb(55, 55, 55, .4);
+      }
+.leaflet-container {
+    background: #FFF;
+    }
+.grey-background {
+      background-color: rgb(255, 255, 255, .9);
+      padding-top: 10px;
+      padding-right: 10px;
+      padding-bottom: 10px;
+      padding-left: 10px;
+      }
+.container_1280 {
+        max-width: 1280px; 
+        margin: auto;
+}
+#map {
+    margin: auto;
+  }
+
+
+body > .container {
+  padding: 10px 15px 0;
+}
+
+h1 {
+  scroll-margin-top: 4em;
+}
+
+h2 {
+  padding: 5px 5px 0;
+  font-weight: 600 !important;
+  scroll-margin-top: 4em;
+}
+
+h3 {
+  padding: 5px 15px 0;
+  font-weight: 600 !important;
+  scroll-margin-top: 4em;
+
+}
+
+h4 {
+  padding-top: 25px;
+  font-weight: 600 !important;
+}
+
+h5 {
+  padding: 15px 45px 0;
+  font-size: 1.3em;
+  font-weight: 500 !important;
+}
+
+
+.footer > .container {
+  padding-right: 15px;
+  padding-left: 15px;
+}
+
+code {
+  font-size: 80%;
+}
+
+/*DIAK-kustomoinnit*/
+
+.bg-light {
+    background-color: rgb(248, 249, 250, .95) !important;
+}
+
+.bg-dark-diak {
+  background-color: #353535;
+}
+
+.footer-content {
+  color: #FFF !important; 
+}
+
+
+.container, .container-sm, .container-md, .container-lg, .container-xl {
+    max-width: 1340px;
+}
+
+.shiny-plot-output {
+    margin-top: 4px;
+    margin-bottom: 4px;
+    height: auto;
+    border: 2px solid #fff;
+    box-shadow: 2px 2px 3px #ccc;
+    -moz-box-shadow: 2px 2px 3px #ccc;
+    -webkit-box-shadow: 2px 2px 3px #ccc;
+    -khtml-box-shadow: 2px 2px 3px #ccc;
+}
+
+.navbar-light .navbar-nav .nav-link {
+    color: rgba(0, 0, 0, 0.9) !important;
+}
+
+a {
+    color: #1A5699 !important;
+    text-decoration: none;
+    background-color: transparent;
+}
+
+code {
+    font-size: 87.5%;
+    color: #A52B63 !important;
+    word-wrap: break-word;
+}
+
+.btn-primary {
+    color: #fff;
+    background-color: #1A5699;
+    border-color: #1A5699;
+}
+
+.btn-dark {
+    color: #fff !important;
+    background-color: #373a3c;
+    border-color: #373a3c;
+}
+

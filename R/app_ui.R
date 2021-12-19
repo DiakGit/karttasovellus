@@ -10,7 +10,28 @@ app_ui <- function(request) {
     golem_add_external_resources(),
     # Your application UI logic 
     fluidPage(
-      h1("karttasovellus")
+      meta() %>% 
+                    meta_description(description = "DIAK: Huono-osaisuus Suomessa -verkkosovellus") %>% 
+                    meta_social(
+                        title = "DIAK: Huono-osaisuus Suomessa -verkkosovellus",
+                        description = "Sovelluksessa voit tarkastella erilaisia huono-osaisuuden osoittimia sekä luoda profiileja alueista",
+                        url = "",
+                        image = "logo_650x650.jpg",
+                        image_alt = "An image for social media cards",
+                        twitter_creator = "@muuankarski",
+                        twitter_card_type = "summary_large_image",
+                        twitter_site = "@muuankarski"
+                    ),
+                theme = bslib::bs_theme(#bootswatch = "cosmo",
+                                        #base_font = font_google("PT Sans"),
+                                        #code_font = font_google("Space Mono")
+                  ),
+      #mod_01meta_ui("meta_ui_1"),
+      mod_02navi_ui("02navi_ui_1"),
+      mod_03indi_ui("03indi_ui_1"),
+      mod_04alueprof_ui("04alueprof_ui_1"),
+      mod_05etc_ui("05etc_ui_1")
+
     )
   )
 }
@@ -34,9 +55,21 @@ golem_add_external_resources <- function(){
     bundle_resources(
       path = app_sys('app/www'),
       app_title = 'karttasovellus'
-    )
+    ),
     # Add here other external resources
     # for example, you can add shinyalert::useShinyalert() 
+                      # tags$link(rel="shortcut icon", href="favicon.ico"),
+    tags$link(rel="stylesheet", href="custom.css"),
+    # # **<!-- CSS only -->**
+      tags$link(rel="stylesheet",
+                href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.2/dist/css/bootstrap.min.css",
+                integrity="sha384-uWxY/CJNBR+1zjPWmfnSnVxwRheevXITnMqoEIeG1LJrdI0GlVs/9cVSyPYXdcSF",
+                crossorigin="anonymous"),
+    #   # **<!-- JavaScript Bundle with Popper -->**
+      tags$script(src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.2/dist/js/bootstrap.bundle.min.js",
+                  integrity="sha384-kQtW33rZJAHjgefvhyyzcGF3C5TFyBQBA13V1RKPf4uH+bwyzQxZ6CmMZHmNBEfJ",
+                  crossorigin="anonymous")
+
   )
 }
 
