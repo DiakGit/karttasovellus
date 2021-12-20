@@ -11,40 +11,110 @@ mod_02navi_ui <- function(id){
   ns <- NS(id)
   tagList(
     HTML('<a class="sr-only sr-only-focusable" href="#maincontent">Skip to main</a>'),
-        tags$nav(class = "navbar navbar-expand-lg navbar-light navbar-xyz sticky-top grey-background container_1280", 
-             tags$a(class="navbar-brand", role="brand", href = "#",
-                  tags$img(src = "https://www.diak.fi/wp-content/themes/diak/dist/images/diak-logo-1.svg", 
-                           style = "height: 40px; padding-right: 0px;", 
-                           alt = "logo")
-                           ),
-                 tags$div(class = "lead", "Huono-osaisuus Suomessa"),
-                         # HTML('<button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Avaa valikko" aria-label="Toggle navigation">
-                         #          <span class="navbar-toggler-icon"></span>
-                         #      </button>'),
-                 HTML('<button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarResponsive" aria-controls="navbarResponsive" aria-expanded="false" aria-label="Avaa valikko">
-                          <span class="navbar-toggler-icon"></span>
-                      </button>'),
-                         tags$div(role = "navigation", class = "collapse navbar-collapse justify-content-between", id="navbarResponsive",
-                                  tags$ul(class = "navbar-nav ml-auto",
-                                          tags$li(class = "nav-item",
-                                                  tags$a(class="nav-link", href="#ohje", "Ohje")
-                                                  ),
-                                          tags$li(class = "nav-item",
-                                                  tags$a(class="nav-link", href="#indikaattorivertailu", "Indikaattorivertailu")
-                                          ),
-                                          tags$li(class = "nav-item",
-                                                  tags$a(class="nav-link", href="#alueprofiili", "Luo alueprofiili")
-                                          ),
-                                          tags$li(class = "nav-item",
-                                                  tags$a(class="nav-link", href="#info", "Lisätietoja")
-                                          ),
-                                          tags$li(class = "nav-item",
-                                                  tags$a(class="nav-link", href="#saavutettavuus", "Saavutettavuusseloste")
-                                          )
-                                          ))
-                  
-                ),
-                                tags$html(HTML('<main id="maincontent">')),
+    tags$header(
+      tags$div(class = "navbar navbar-expand-lg  navbar-light navbar-fixed-top navbar-xyz navbar-light", role="navigation",
+               tags$div(class = "container",
+                        # tags$div(class = "navbar-header",
+                        #          tags$div(class = "navbar-brand-container",
+                        #                   tags$a(class="navbar-brand ", role="brand", href = "#",
+                        #                           tags$img(src = "https://www.diak.fi/wp-content/themes/diak/dist/images/diak-logo-1.svg",
+                        #                                    style = "height: 40px; padding-right: 0px;",
+                        #                                    alt = "logo")
+                        #                                    ),
+                        #                   tags$div(class = "lead", "Huono-osaisuus Suomessa"),
+                        #                   HTML('<button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarResponsive" aria-controls="navbarResponsive" aria-expanded="false" aria-label="Avaa valikko">
+                        #                 <span class="navbar-toggler-icon"></span>
+                        #               </button>')
+                        #                   ),
+                        #          ),
+                        tags$a(class="navbar-brand ", role="brand", href = "#",
+                                             tags$img(src = "https://www.diak.fi/wp-content/themes/diak/dist/images/diak-logo-1.svg",
+                                                      style = "height: 40px; padding-right: 0px;",
+                                                      alt = "logo")
+                                                      ),
+                                            tags$div(class = "lead", "Huono-osaisuus Suomessa"),
+                                                    # HTML('<button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Avaa valikko" aria-label="Toggle navigation">
+                                                    #          <span class="navbar-toggler-icon"></span>
+                                                    #      </button>'),
+                                            HTML('<button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarResponsive" aria-controls="navbarResponsive" aria-expanded="false" aria-label="Avaa valikko">
+                                                     <span class="navbar-toggler-icon"></span>
+                                                 </button>'),
+                                             tags$div(role = "navigation", class = "collapse navbar-collapse justify-content-between", id="navbarResponsive",
+                                                      tags$ul(class = "navbar-nav ml-auto",
+                                                              tags$li(class = "nav-item",
+                                                                      tags$a(class="nav-link", href="#ohje", "Ohje")
+                                                                      ),
+                                                              tags$li(class = "nav-item",
+                                                                      tags$a(class="nav-link", href="#indikaattorivertailu", "Indikaattorivertailu")
+                                                              ),
+                                                              tags$li(class = "nav-item",
+                                                                      tags$a(class="nav-link", href="#alueprofiili", "Luo alueprofiili")
+                                                              ),
+                                                              tags$li(class = "nav-item",
+                                                                      tags$a(class="nav-link", href="#info", "Lisätietoja")
+                                                              ),
+                                                              tags$li(class = "nav-item",
+                                                                      tags$a(class="nav-link", href="#saavutettavuus", "Saavutettavuusseloste")
+                                                              )
+                                                              )
+                        ))
+    )),
+#     HTML('<header>
+# 
+#       <div class="navbar-brand-container">
+#         <a class="navbar-brand" href="index.html">dplyr</a>
+#         <div class="info hidden-xs hidden-sm">
+#           <span class="partof">part of the <a href="https://tidyverse.org">tidyverse</a></span>
+#           <span class="version version-default" data-toggle="tooltip" data-placement="bottom" title="Released version">1.0.7</span>
+#         </div>
+#       </div>
+#     </div>
+#     <div id="navbar" class="navbar-collapse collapse">
+#       <ul class="nav navbar-nav navbar-right">
+# <li>
+#   <a href="articles/dplyr.html">Get started</a>
+# </li>
+#       </ul>
+#     </div>
+#   </div>
+# </div>
+#       </header>'),
+    # tags$header(
+    # tags$nav(class = "navbar navbar-xyz headroom headroom--not-top headroom--not-bottom headroom--pinned",    
+    # # tags$nav(class = "navbar navbar-expand-lg headroom headroom--not-top headroom--not-bottom headroom--pinned navbar-light navbar-xyz sticky-top grey-background", 
+    #          tags$a(class="navbar-brand ", role="brand", href = "#",
+    #               tags$img(src = "https://www.diak.fi/wp-content/themes/diak/dist/images/diak-logo-1.svg", 
+    #                        style = "height: 40px; padding-right: 0px;", 
+    #                        alt = "logo")
+    #                        ),
+    #              tags$div(class = "lead", "Huono-osaisuus Suomessa"),
+    #                      # HTML('<button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Avaa valikko" aria-label="Toggle navigation">
+    #                      #          <span class="navbar-toggler-icon"></span>
+    #                      #      </button>'),
+    #              HTML('<button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarResponsive" aria-controls="navbarResponsive" aria-expanded="false" aria-label="Avaa valikko">
+    #                       <span class="navbar-toggler-icon"></span>
+    #                   </button>'),
+    #                      tags$div(role = "navigation", class = "collapse navbar-collapse justify-content-between", id="navbarResponsive",
+    #                               tags$ul(class = "navbar-nav ml-auto",
+    #                                       tags$li(class = "nav-item",
+    #                                               tags$a(class="nav-link", href="#ohje", "Ohje")
+    #                                               ),
+    #                                       tags$li(class = "nav-item",
+    #                                               tags$a(class="nav-link", href="#indikaattorivertailu", "Indikaattorivertailu")
+    #                                       ),
+    #                                       tags$li(class = "nav-item",
+    #                                               tags$a(class="nav-link", href="#alueprofiili", "Luo alueprofiili")
+    #                                       ),
+    #                                       tags$li(class = "nav-item",
+    #                                               tags$a(class="nav-link", href="#info", "Lisätietoja")
+    #                                       ),
+    #                                       tags$li(class = "nav-item",
+    #                                               tags$a(class="nav-link", href="#saavutettavuus", "Saavutettavuusseloste")
+    #                                       )
+    #                                       ))
+    #               
+    #             )),
+          tags$html(HTML('<main id="maincontent">')),
                 tags$h2("", id = "alku"),
                 tags$div(class = "container_1280", 
                          tags$div(class = "row",
