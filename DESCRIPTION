@@ -1,10 +1,13 @@
 Package: karttasovellus
 Title: Huono-osaisuus Suomessa
-Version: 0.0.0.9000
-Authors@R: person('Markus', 'Kainu', email = 'markus.kainu@kapsi.fi', role = c('cre', 'aut'))
-Description: Sovelluksessa voit tarkastella erilaisia huono-osaisuuden osoittimia sekä luoda profiileja alueista.
+Version: 0.0.0.9001
+Authors@R: c(person(given = 'Diakonia-ammattikorkeakoulu', role = c('cre', 'aut'), email = "sakari.kainulainen@diak.fi"),
+             person(given = 'Markus', family = 'Kainu',  role = c('aut'), email = "markus.kainu@kapsi.fi", comment = c(ORCID = "0000-0003-1376-503X"))
+             )
+Description: Huono-osaisuus Suomessa on verkkosovellus, joka tuottaa eriteltyä tietoa huono-osaisuudesta maakunnittain, seutukunnittain tai kunnittain.
 License: MIT + file LICENSE
 Imports: 
+    acid,
     attempt,
     bslib,
     config (>= 0.3.1),

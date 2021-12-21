@@ -31,7 +31,7 @@ mod_03indi_ui <- function(id){
                   ),
 tags$div(class = "row",
          tags$div(class = "col-lg-12",
-                  plotOutput(ns("timeseries_plot"), width = "100%", height = "550px")
+                  plotOutput(ns("timeseries_plot"), width = "100%", height = "900px")
          )
 )),
 tags$hr()
@@ -737,12 +737,33 @@ mod_03indi_server <- function(id){
         df <- dat[dat$variable == input$value_variable &
                       dat$regio_level == input$value_regio_level,] #%>% 
         # mutate(color = ifelse(aluenimi %in% input$value_region_selected, TRUE, FALSE))
-        df_gini <- df %>% group_by(aika) %>% 
-            mutate(gini = round(ineq::Gini(value),2)) %>% 
-            ungroup()
+        
+        # df <- karttasovellus::df_v20211104_aikasarja %>% 
+        #   filter(variable == "Huono-osaisuus yhteensä", 
+        #          regio_level == "Hyvinvointialueet")
+        
+        # df_gini <- df %>% 
+        #   left_join(karttasovellus::pop_data) %>% 
+        #   group_by(aika) %>% 
+        #     mutate(gini = round(ineq::Gini(value),2),
+        #            gini_w = round(acid::weighted.gini(x = value, w = pop)$Gini[1],2)#,
+        #            # gini_w2 = acid::weighted.gini(x = value, w = pop)$bcGini,
+        #            # gini_w3 = acid::weighted.gini(x = value, w = pop)$bcwGini
+        #            ) %>% 
+        #     ungroup() %>% 
+        #   pivot_longer(names_to = "gini_type", values_to = "gini", 10:11)
+        
+        df_gini <- karttasovellus::ineq_data
+        df_gini <- df_gini[df_gini$variable == input$value_variable &
+                  df_gini$regio_level == input$value_regio_level,]
+        # df2 <- df_gini[df_gini$regio_level == $aluekoodi %in% naapurikoodit,] %>% 
+        #   filter(!aluenimi %in% input$value_region_selected)
         
         df2 <- df[df$aluekoodi %in% naapurikoodit,] %>% 
-            filter(!aluenimi %in% input$value_region_selected)
+          filter(!aluenimi %in% input$value_region_selected)
+        
+        df_gini2 <- df_gini[df_gini$aluekoodi %in% naapurikoodit,] #%>% 
+          # filter(!aluenimi %in% input$value_region_selected)
         
         
         aika1 <- sort(unique(df$aika)) - 1
@@ -761,7 +782,7 @@ mod_03indi_server <- function(id){
         if (input$value_regio_show_mode == "kaikki tason alueet"){
             
             plot0 <- plot0 + 
-                geom_line(data = df, aes(x = aika, y = value, color= aluenimi, fill= aluenimi), show.legend = FALSE) +
+                geom_line(data = df, aes(x = aika, y = value, color= aluenimi), show.legend = FALSE) +
                 geom_line(data = df_selected_ts, aes(x = aika, y = value), color = "black") +
                 geom_point(data = df_selected_ts, aes(x = aika, y =  value),
                            fill = "black", 
@@ -779,9 +800,15 @@ mod_03indi_server <- function(id){
                           nudge_x = .3)
             
             # gini
+            # plot_gini <- ggplot() + 
+            #     geom_line(data = df_gini, aes(x = aika, y = gini, color = aluenimi)) +
+            #     geom_text(data = df_gini, aes(x = aika, y = gini, label = gini, color = aluenimi))
             plot_gini <- ggplot() + 
-                geom_line(data = df_gini, aes(x = aika, y = gini), color = "#CD5C5C") +
-                geom_text(data = df_gini, aes(x = aika, y = gini, label = gini), color = "#CD5C5C")
+              geom_line(data = df_gini, aes(x = aika, y = gini, color = aluenimi)) +
+              ggrepel::geom_text_repel(data = df_gini %>% filter(aika == max(aika, na.rm = TRUE)),
+                                       aes(x = aika, y = gini, color= aluenimi, label = paste(aluenimi, round(gini,2))), nudge_x = .2, family = "PT Sans")
+            
+            
             # gini
             
         } else if (input$value_regio_show_mode == "valittu alue ja sen naapurit"){
@@ -789,7 +816,7 @@ mod_03indi_server <- function(id){
             # alfa = ifelse(input$value_regio_level == "Kunnat", .1, .2)
             
             plot0 <- plot0 + 
-                geom_line(data = df2,aes(x = aika, y = value, color= aluenimi, fill= aluenimi), show.legend = FALSE) +
+                geom_line(data = df2,aes(x = aika, y = value, color= aluenimi), show.legend = FALSE) +
                 geom_line(data = df,
                           aes(x = aika, y = value, group = aluenimi),
                           color = "dim grey", alpha = .1) +
@@ -817,8 +844,12 @@ mod_03indi_server <- function(id){
             #                          family = "PT Sans")
             # gini
             plot_gini <- ggplot() + 
-                geom_line(data = df_gini, aes(x = aika, y = gini), color = "#CD5C5C") +
-                geom_text(data = df_gini, aes(x = aika, y = gini, label = gini), color = "#CD5C5C")
+              geom_line(data = df_gini2, aes(x = aika, y = gini, color = aluenimi)) +
+              geom_line(data = df_gini, aes(x = aika, y = gini, color = aluenimi), alpha = .1) +
+              ggrepel::geom_text_repel(data = df_gini2 %>% filter(aika == max(aika, na.rm = TRUE)),
+                                       aes(x = aika, y = gini, color= aluenimi, 
+                                           label = paste(aluenimi, round(gini,1))), 
+                                       family = "PT Sans", nudge_x = .3)
             # gini
             
             
@@ -834,17 +865,22 @@ mod_03indi_server <- function(id){
                 ungroup()
             
             plot0 <- plot0 + 
-                geom_line(data = dat2,aes(x = aika, y = value, color= aluenimi, fill= aluenimi), show.legend = FALSE) +
+                geom_line(data = dat2,aes(x = aika, y = value, color= aluenimi), show.legend = FALSE) +
                 geom_point(shape = 21, color = "white", stroke = 1, size = 2.5) +
                 ggrepel::geom_text_repel(data = dat2 %>% filter(aika == max(aika, na.rm = TRUE)),
                                          aes(x = aika, y = value, color= aluenimi, label = paste(aluenimi, round(value,1))), nudge_x = .2, family = "PT Sans")
             
             # gini
-            plot_gini <- ggplot() + 
-                geom_line(data = dat2_gini, aes(x = aika, y = gini), color = "#CD5C5C") +
-                geom_text(data = dat2_gini, aes(x = aika, y = gini, label = gini), color = "#CD5C5C")
-            # gini
             
+            df_gini2 <- df_gini[df_gini$aluenimi %in% input$value_region_selected,]
+
+            plot_gini <- ggplot() + 
+              geom_line(data = df_gini2, aes(x = aika, y = gini, color = aluenimi)) +
+              geom_line(data = df_gini, aes(x = aika, y = gini, color = aluenimi), alpha = .1) +
+              ggrepel::geom_text_repel(data = df_gini2 %>% filter(aika == max(aika, na.rm = TRUE)),
+                                       aes(x = aika, y = gini, color= aluenimi, 
+                                           label = paste(aluenimi, round(gini,1))), 
+                                       family = "PT Sans", nudge_x = .3)
         }
         
         
@@ -866,6 +902,7 @@ mod_03indi_server <- function(id){
           theme_ipsum(base_family = "PT Sans",
                       plot_title_family = "PT Sans",
                       subtitle_family = "PT Sans",
+                      base_size = 14,
                       plot_title_face = "plain") +
             # theme_ipsum(base_family = "PT Sans",
             #             plot_title_family = "PT Sans",
@@ -880,8 +917,7 @@ mod_03indi_server <- function(id){
                  x = NULL,
                  y = paste0(add_line_break2(input$value_variable, 50), "\n(suhdeluku)"),
                  title = glue("{input$value_variable}"),
-                 subtitle = kuvan_subtitle,
-                 caption = glue("Huono-osaisuus Suomessa -karttasovellus (Diak)\nData: THL (perusdata) & Diak (mediaanisuhteutus)\nTiedot haettu:{Sys.Date()}")
+                 subtitle = kuvan_subtitle
             )  +
             theme(legend.position = "none",
                   panel.grid.major.x = element_line(),
@@ -898,7 +934,7 @@ mod_03indi_server <- function(id){
             theme_ipsum(base_family = "PT Sans",
                         plot_title_family = "PT Sans",
                         subtitle_family = "PT Sans",
-                        axis_title_size = 12,
+                        base_size = 14,
                         plot_title_face = "plain") +
             # scale_fill_brewer(palette = "YlGnBu") +
             # scale_color_brewer(palette = "YlGnBu") +
@@ -906,21 +942,22 @@ mod_03indi_server <- function(id){
             # scale_color_viridis_d(option = "plasma", direction = -1, begin = .1, end = .9) +
             labs(fill = NULL,
                  x = NULL,
-                 subtitle = "Eriarvoisuuden gini-kerroin")  +
+                 subtitle = paste0("Indikaattorin ", add_line_break2(input$value_variable, 50), "\neriarvoisuuden kuntatason gini-kerroin aluetasolla: ", input$value_regio_level),
+                 caption = glue("Huono-osaisuus Suomessa -karttasovellus (Diak)\nData: THL (perusdata) & Diak (mediaanisuhteutus)\nTiedot haettu:{Sys.Date()}"))  +
             theme(legend.position = "none",
                   panel.grid.major.x = element_line(),
                   panel.grid.minor.x = element_blank(),
                   panel.grid.major.y = element_blank(),
                   plot.title.position = "plot",
                   axis.title.x = element_blank(),
-                  plot.margin = unit(c(0,0,0,0), "mm"),
+                  plot.margin = unit(c(10,0,0,0), "mm"),
                   axis.text.x = element_blank()#,
                   # plot.title = element_text(family = "PT Sans", size = 20),
                   # plot.subtitle = element_text(family = "PT Sans", size = 16),
                   # plot.caption = element_text(family = "PT Sans", size = 11)
                   )
         
-        patchwork::wrap_plots(plot1,plot_gini, ncol = 1, heights = c(1,0.3))
+        patchwork::wrap_plots(plot1,plot_gini, ncol = 1, heights = c(1,1))
         
     }, alt = reactive({
         

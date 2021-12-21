@@ -42,7 +42,9 @@ usethis::use_package( "metathis" )
 usethis::use_package( "readr" )
 usethis::use_package( "patchwork" )
 usethis::use_package( "knitr" )
-
+usethis::use_package( "acid" )
+usethis::use_package( "hunspell" )
+usethis::use_package( "spelling" )
 
 
 

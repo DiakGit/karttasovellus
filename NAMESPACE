@@ -2,6 +2,7 @@
 
 export(add_line_break)
 export(add_line_break2)
+export(document_data)
 export(run_app)
 import(bslib)
 import(dplyr)

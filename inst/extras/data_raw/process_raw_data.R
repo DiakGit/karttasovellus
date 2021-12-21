@@ -177,9 +177,9 @@ save(region_data, file = here::here("data/region_data.rda"),
      compress = "bzip2")
 
 ## AIKASARJADATA ----
-dd <- read_excel("./data_raw/Aikasarjadata KORJATTU.xlsx")
-fs::file_copy("../data_storage/v20211104/aikasarjadata_20211104.xlsx", 
-              "./data_raw/")
+# dd <- read_excel("./data_raw/Aikasarjadata KORJATTU.xlsx")
+# fs::file_copy("../data_storage/v20211104/aikasarjadata_20211104.xlsx", 
+#               "./data_raw/")
 dd <- read_excel("./data_raw/aikasarjadata_20211104.xlsx")
 
 df_tmp <- dd %>%
@@ -252,6 +252,49 @@ df_v20211104_aikasarja <- left_join(df,sk_names) %>%
 save(df_v20211104_aikasarja, file = here::here("data/df_v20211104_aikasarja.rda"),
      compress = "bzip2")
 
+# lasketaan kuntatason eriarvoisuus
+dat_gini_raw <- df_v20211104_aikasarja %>% 
+  filter(regio_level == "Kunnat") %>% 
+  left_join(karttasovellus::pop_data) %>% 
+  left_join(geofi::municipality_key_2021 %>% 
+               select(municipality_name_fi,
+                      seutukunta_name_fi,
+                      hyvinvointialue_name_fi), 
+             by = c("aluenimi" = "municipality_name_fi")) %>% 
+  mutate(hyvinvointialue_name_fi = sub("hyvinvointialue", "HVA", hyvinvointialue_name_fi))
+
+ineq_data <- bind_rows(
+  dat_gini_raw %>% 
+  group_by(seutukunta_name_fi,var_class,variable,aika) %>% 
+  summarise(gini = round(acid::weighted.gini(x = value, w = pop)$Gini[1],2)) %>% 
+  mutate(regio_level = "Seutukunnat") %>% 
+  ungroup() %>% 
+  rename(aluenimi = seutukunta_name_fi),
+dat_gini_raw %>% 
+  group_by(hyvinvointialue_name_fi,var_class,variable,aika) %>% 
+  summarise(gini = round(acid::weighted.gini(x = value, w = pop)$Gini[1],2)) %>% 
+  mutate(regio_level = "Hyvinvointialueet") %>% 
+  ungroup() %>% 
+  rename(aluenimi = hyvinvointialue_name_fi),
+# Kuntatasolla lasketaan kaikkien kuntien välinen eriarvoisuus per indikaattori/vuosi
+dat_gini_raw %>% 
+  group_by(var_class,variable,aika) %>% 
+  summarise(gini = round(acid::weighted.gini(x = value, w = pop)$Gini[1],2)) %>% 
+  mutate(regio_level = "Kunnat") %>% 
+  ungroup() %>% 
+  mutate(aluenimi = "kaikkien kuntien välinen eriarvoisuus")
+) %>% 
+  # aluekoodit vielä
+  left_join(
+    karttasovellus::df_v20211104 %>% 
+      distinct(regio_level,aluekoodi,aluenimi))
+
+save(ineq_data, file = here::here("data/ineq_data.rda"),
+     compress = "bzip2")
+
+document_data(dat = ineq_data, 
+                              neim = "ineq_data", 
+                              description = "municipality level weighted ginis for all indicators at various regional breakdowns")
 
 # Muuttujakuvaukset ----
 muuttujakuvaukset <- readxl::read_excel("./data_raw/Muuttujakuvaukset_20201102.xlsx") %>% 
@@ -271,22 +314,7 @@ if (F){
   # dokumentoidaan datat
   setwd(here::here())
   
-  document_data <- function(dat, neim, description = "Data is data"){
-    
-    rivit <- vector()
-    rivit <- c(rivit,
-               neim,"",
-               description,"",
-               paste0("@format A data frame with ",nrow(dat)," rows and ",ncol(dat)," variables:"),
-               "\\describe{")
-    nms <- names(dat)
-    nms_rivit <- vector()
-    for (i in seq_along(nms)) nms_rivit <- c(nms_rivit,paste0("\\item{",nms[i],"}{",nms[i],"}"))
-    rivit <- c(rivit,nms_rivit,"}")
-    rivit <- paste0("#' ", rivit)
-    rivit <- c(rivit,paste0('"',neim,'"'))
-    cat(rivit, sep = "\n")
-  }
+  
   
   sub("./data/", "", dir_ls(path = "./data"))
   # df_v20211104.rda
@@ -309,6 +337,64 @@ if (F){
   
   }
 
+# Väestömäärät eri tasoilla!
+library(pxweb)
+library(dplyr)
+library(janitor)
+pxweb_query_list <- list("Alue 2021"=c("*"), "Tiedot"=c("M411"),"Vuosi"=c("*"))
+# Download data 
+px_data <- pxweb_get(url = "https://pxnet2.stat.fi/PXWeb/api/v1/fi/Kuntien_avainluvut/2021/kuntien_avainluvut_2021_aikasarja.px",
+                     query = pxweb_query_list)
+px_tibble <- as.data.frame(px_data, 
+                           column.name.type = "text", 
+                           variable.value.type = "text") %>% 
+  as_tibble() %>% 
+  mutate(Vuosi = as.integer(Vuosi)) %>% 
+  filter(Vuosi >= 2011)
+pop_data_orig <- clean_names(px_tibble)
+names(pop_data_orig) <- c("aluenimi","aika","pop")
+# valitaan vaan kunnat
+pop_data_raw <- pop_data_orig %>% 
+  right_join(geofi::municipality_key_2021 %>% 
+               select(municipality_name_fi,
+                      seutukunta_name_fi,
+                      hyvinvointialue_name_fi), 
+             by = c("aluenimi" = "municipality_name_fi"))
+
+pop_data <- bind_rows(
+  # kuntataso
+  pop_data_raw %>% 
+    mutate(regio_level = "Kunnat") %>% 
+    select(regio_level,aluenimi,aika,pop),
+# seutukuntataso  
+pop_data_raw %>% 
+  group_by(seutukunta_name_fi,aika) %>% 
+  summarise(pop = sum(pop, na.rm = TRUE)) %>% 
+  ungroup() %>% 
+  rename(aluenimi = seutukunta_name_fi) %>% 
+  mutate(regio_level = "Seutukunnat") %>% 
+  select(regio_level,aluenimi,aika,pop),
+# hyvinvointialuetaso
+pop_data_raw %>% 
+  group_by(hyvinvointialue_name_fi,aika) %>% 
+  summarise(pop = sum(pop, na.rm = TRUE)) %>% 
+  ungroup() %>% 
+  rename(aluenimi = hyvinvointialue_name_fi) %>% 
+  mutate(regio_level = "Hyvinvointialueet") %>% 
+  select(regio_level,aluenimi,aika,pop)
+) %>% mutate(aluenimi = ifelse(grepl("hyvinvointialue", aluenimi), 
+                           sub("hyvinvointialue", "HVA", aluenimi),
+                           aluenimi)) %>% 
+  # aluekoodit vielä
+  left_join(
+    karttasovellus::df_v20211104 %>% 
+      distinct(regio_level,aluekoodi,aluenimi)    
+  )
+
+save(pop_data, file = here::here("data/pop_data.rda"),
+     compress = "bzip2")
+
+document_data(dat = pop_data, neim = "pop_data", description = "Population data for computing population weighted gini coefficients")
 
 if (F){
   
@@ -323,5 +409,7 @@ if (F){
   writexl::write_xlsx(x = dada, path = "./data/muuttujakuvaukset.xlsx")
   
 }
+
+
 
 

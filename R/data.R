@@ -102,3 +102,33 @@
 #' }
 "region_data"
 
+#' pop_data
+#' 
+#' Population data for computing population weighted gini coefficients
+#' 
+#' @format A data frame with 4010 rows and 5 variables:
+#' \describe{
+#' \item{regio_level}{regio_level}
+#' \item{aluenimi}{aluenimi}
+#' \item{aika}{aika}
+#' \item{pop}{pop}
+#' \item{aluekoodi}{aluekoodi}
+#' }
+"pop_data"
+
+#' ineq_data
+#' 
+#' municipality level weighted ginis for all indicators at various regional breakdowns
+#' 
+#' @format A data frame with 17087 rows and 7 variables:
+#' \describe{
+#' \item{aluenimi}{aluenimi}
+#' \item{var_class}{var_class}
+#' \item{variable}{variable}
+#' \item{aika}{aika}
+#' \item{gini}{gini}
+#' \item{regio_level}{regio_level}
+#' \item{aluekoodi}{aluekoodi}
+#' }
+"ineq_data"
+
