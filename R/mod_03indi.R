@@ -11,9 +11,9 @@
 mod_03indi_ui <- function(id){
   ns <- NS(id)
   tagList(
- tags$div(class = "container_1280 grey-background",
+ tags$div(class = "container_1280",
          tags$div(class = "row",
-                  tags$div(class = "col-lg-3",
+                  tags$div(class = "col-lg-3 grey-background",
                                     tags$h2(id = "indikaattorivertailu", "Indikaattorivertailu"),
                                     uiOutput(ns("output_indicator_class")),
                                     uiOutput(ns("output_indicator")),

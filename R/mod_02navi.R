@@ -29,10 +29,10 @@ mod_02navi_ui <- function(id){
                         #          ),
                         tags$a(class="navbar-brand ", role="brand", href = "#",
                                              tags$img(src = "https://www.diak.fi/wp-content/themes/diak/dist/images/diak-logo-1.svg",
-                                                      style = "height: 40px; padding-right: 0px;",
+                                                      style = "height: 20px; padding-right: 0px;",
                                                       alt = "logo")
                                                       ),
-                                            tags$div(class = "lead", "Huono-osaisuus Suomessa"),
+                                            # tags$div(class = "lead", "Huono-osaisuus Suomessa"),
                                                     # HTML('<button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Avaa valikko" aria-label="Toggle navigation">
                                                     #          <span class="navbar-toggler-icon"></span>
                                                     #      </button>'),
