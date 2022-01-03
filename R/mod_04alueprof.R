@@ -748,12 +748,12 @@ mod_04alueprof_server <- function(id){
                         tags$h3(glue("{aluename} ({aluetaso1})")),
                         tags$p("Analyysissä mukana naapurit: ", glue_collapse(unique(tabdat[tabdat$rooli == "naapuri",]$aluenimi), sep = ", ", last = " ja "))
         ),
-        column(width = 4,
+        column(width = 6,
                withSpinner(uiOutput(ns("output_save_word")), proxy.height = "100px")
-        ),
-        column(width = 2,
-               uiOutput(ns("output_save_data_profile"))
-        )
+        )#,
+        # column(width = 2,
+        #        uiOutput(ns("output_save_data_profile"))
+        # )
         ),
         tags$hr(),
         ## ##
