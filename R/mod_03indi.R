@@ -19,8 +19,8 @@ mod_03indi_ui <- function(id){
                                     uiOutput(ns("output_indicator")),
                                     uiOutput(ns("output_regio_level")),
                                     uiOutput(ns("output_regio_select")),
-                                    uiOutput(ns("output_regio_show_mode")),
-                                    uiOutput(ns("output_save_data_indicator"))
+                                    uiOutput(ns("output_regio_show_mode"))#,
+                                    # uiOutput(ns("output_save_data_indicator"))
                                     ),
                   tags$div(class = "col-lg-5",
                            plotOutput(ns("map_plot"), width = "100%", height = "800px")
@@ -487,7 +487,7 @@ mod_03indi_server <- function(id){
                   plot.title.position = "plot") +
             scale_color_manual(values = c("white","black")) + 
             geom_col(aes(color = color, fill = value), show.legend = FALSE, size = 1.1) +
-          scale_fill_fermenter(palette = "YlGnBu", type = "seq") -> plot
+          scale_fill_fermenter(palette = "YlGnBu", type = "seq", direction = 1) -> plot
 
             plot <- plot + geom_text(aes(label = value), 
                                      color = "black", 
@@ -598,7 +598,7 @@ mod_03indi_server <- function(id){
           ggplot(data = dat, aes(fill = value)) +
             geom_sf(color = alpha("white", 1/3))  +
             geom_sf(aes(color = color), fill = NA, show.legend = FALSE)  +    
-            scale_fill_fermenter(palette = "YlGnBu", type = "seq") +
+            scale_fill_fermenter(palette = "YlGnBu", type = "seq", direction = 1) +
             scale_color_manual(values = c(alpha("white", 1/3), "black")) +
             theme_ipsum(base_family = "PT Sans",
                         plot_title_family = "PT Sans",
