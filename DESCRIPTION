@@ -25,6 +25,7 @@ Imports:
     ineq,
     janitor,
     kableExtra,
+    leaflet,
     magrittr,
     metathis,
     patchwork,

@@ -15,36 +15,36 @@
 
 ## Dependencies ----
 ## Add one line by package you want to add as dependency
-usethis::use_package( "shiny" )
-usethis::use_package( "shinycssloaders" )
+usethis::use_package( "acid" )
+usethis::use_package( "bslib" )
 usethis::use_package( "dplyr" )
+usethis::use_package( "forcats" )
 usethis::use_package( "geofi" )
 usethis::use_package( "ggplot2" )
-usethis::use_package( "tidyr" )
-usethis::use_package( "sf" )
 usethis::use_package( "ggrepel" )
 usethis::use_package( "glue" )
-usethis::use_package( "magrittr" )
-usethis::use_package( "hunspell" )
-usethis::use_package( "stringr" )
-usethis::use_package( "xtable" )
-usethis::use_package( "spelling" )
-usethis::use_package( "forcats" )
-usethis::use_package( "ineq" )
-usethis::use_package( "kableExtra" )
-usethis::use_package( "htmltools" )
-usethis::use_package( "janitor" )
-usethis::use_package( "hrbrthemes" )
 usethis::use_package( "gt" )
-usethis::use_package( "svglite" )
-usethis::use_package( "bslib" )
-usethis::use_package( "metathis" )
-usethis::use_package( "readr" )
-usethis::use_package( "patchwork" )
-usethis::use_package( "knitr" )
-usethis::use_package( "acid" )
+usethis::use_package( "hrbrthemes" )
+usethis::use_package( "htmltools" )
 usethis::use_package( "hunspell" )
+usethis::use_package( "ineq" )
+usethis::use_package( "janitor" )
+usethis::use_package( "kableExtra" )
+usethis::use_package( "knitr" )
+usethis::use_package( "leaflet" )
+usethis::use_package( "magrittr" )
+usethis::use_package( "metathis" )
+usethis::use_package( "patchwork" )
+usethis::use_package( "readr" )
+usethis::use_package( "sf" )
+usethis::use_package( "shiny" )
+usethis::use_package( "shinycssloaders" )
 usethis::use_package( "spelling" )
+usethis::use_package( "spelling" )
+usethis::use_package( "stringr" )
+usethis::use_package( "svglite" )
+usethis::use_package( "tidyr" )
+usethis::use_package( "xtable" )
 
 
 
@@ -54,7 +54,9 @@ golem::add_module( name = "01meta" ) #
 golem::add_module( name = "02navi" ) #
 golem::add_module( name = "03indi" ) #
 golem::add_module( name = "04alueprof" ) #
+golem::add_module( name = "041zipcode" ) #
 golem::add_module( name = "05etc" ) #
+
 
 ## Add helper functions ----
 ## Creates fct_* and utils_*
