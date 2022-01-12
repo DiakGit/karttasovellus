@@ -132,3 +132,59 @@
 #' }
 "ineq_data"
 
+#' regio_Postinumeroalueet
+#' 
+#' Zipcode sf data from 2021 including zipcode and municipality number
+#' 
+#' @format A data frame with 3027 rows and 4 variables:
+#' \describe{
+#' \item{region_code}{region_code}
+#' \item{region_name}{region_name}
+#' \item{kuntanro}{kuntanro}
+#' \item{geom}{geom}
+#' }
+"regio_Postinumeroalueet"
+
+#' dfzip_v20220105
+#' 
+#' Cross-sectional zipcode level attribute data
+#' 
+#' @format A data frame with 11976 rows and 5 variables:
+#' \describe{
+#' \item{regio_level}{regio_level}
+#' \item{aluekoodi}{aluekoodi}
+#' \item{aluenimi}{aluenimi}
+#' \item{variable}{variable}
+#' \item{value}{value}
+#' }
+"dfzip_v20220105"
+
+#' dfzip_v20220105_aikasarja
+#' 
+#' Time-series zipcode level attribute data
+#' 
+#' @format A data frame with 71856 rows and 6 variables:
+#' \describe{
+#' \item{regio_level}{regio_level}
+#' \item{aluekoodi}{aluekoodi}
+#' \item{aluenimi}{aluenimi}
+#' \item{aika}{aika}
+#' \item{variable}{variable}
+#' \item{value}{value}
+#' }
+"dfzip_v20220105_aikasarja"
+
+#' region_data_zip
+#' 
+#' Zipcode sf with neighbours from 2021
+#' 
+#' @format A data frame with 3027 rows and 6 variables:
+#' \describe{
+#' \item{region_code}{region_code}
+#' \item{region_name}{region_name}
+#' \item{kuntanro}{kuntanro}
+#' \item{neigbours}{neigbours}
+#' \item{geom}{geom}
+#' \item{level}{level}
+#' }
+"region_data_zip"
