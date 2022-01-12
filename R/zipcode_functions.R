@@ -1,0 +1,297 @@
+#' Process cross-sectional zipcode data
+#' 
+#' @param varname A string.
+#'
+#' @export
+process_zipdata <- function(varname = "Kokonaislukema"){
+  dtmp <- karttasovellus::dfzip_v20220105[karttasovellus::dfzip_v20220105$variable == varname, ]
+  return(dtmp)
+}
+
+# dd2 <- process_zipdata()
+
+#' Process time-series zipcode data
+#' 
+#' @param varname A string.
+#'
+#' @export
+process_zipdata_timeseries <- function(varname = "Kokonaislukema"){
+  # dtmp <- karttasovellus::dfzip_v20220105_aikasarja[karttasovellus::dfzip_v20220105_aikasarja$variable == varname & karttasovellus::dfzip_v20220105_aikasarja$aika == year, ]
+  dtmp <- karttasovellus::dfzip_v20220105_aikasarja[karttasovellus::dfzip_v20220105_aikasarja$variable == varname, ]
+  return(dtmp)
+}
+
+# dd3 <- process_zipdata_timeseries()
+
+#' Get zipcode region data
+#' 
+#' @export
+get_region_zipdata <- function(){
+  karttasovellus::region_data_zip
+}
+
+# dd4 <- get_region_zipdata()
+
+#' Process time-series zipcode data
+#' 
+#' @param region_data A data.frame
+#' @param regio_selected A string
+#'
+#' @export
+get_naapurikoodit_zip <- function(region_data = region_data,
+                                  regio_selected = "Veteli Keskus"){
+  neigh <- region_data[region_data$region_name == regio_selected,]$neigbours[[1]]
+  return(neigh)
+}
+
+
+# create_muninames <- reactive({
+#   
+#   
+#   req(input$map_bounds)
+#   muni <- readRDS("./extras/muni.RDS")
+#   bounds <- input$map_bounds
+#   bboxi <- tibble(name = c("topleft","bottomleft","topright","bottomright"),
+#                   lat = c(bounds$north,bounds$south,bounds$north,bounds$south), 
+#                   lon = c(bounds$west,bounds$west,bounds$east,bounds$east)) %>% 
+#     st_as_sf(., 
+#              coords = c("lon","lat"), 
+#              crs = "+proj=longlat +datum=WGS84 +no_defs")
+#   bounding_box_polygon <- st_as_sfc(st_bbox(bboxi))
+#   # 
+#   kuntanimet <- st_intersection(muni,bounding_box_polygon) %>% pull(municipality_name_fi)  
+#   return(kuntanimet)
+# })
+
+#' Create zipcode map
+#' 
+#' @param input_value_region_selected A string
+#' @param input_value_regio_show_mode A string
+#' @param input_value_variable A string
+#' @param leaflet A logical
+#'
+#' @import leaflet
+#'
+#' @export
+map_zipcodes <- function(input_value_region_selected = "Veteli Keskus",
+                         # input_value_regio_show_mode = "kaikki tason alueet"
+                         input_value_regio_show_mode = "kaikki tason alueet",
+                         input_value_variable = "Kokonaislukema",
+                         leaflet = FALSE){
+  
+  
+  input_value_regio_level <- "Postinumeroalueet"
+  region_data <- get_region_zipdata()
+  dat <- process_zipdata(varname = input_value_variable)
+  dat <- left_join(region_data,dat,by = c("region_name" = "aluenimi"), keep = TRUE) 
+  
+  
+  naapurikoodit <- get_naapurikoodit_zip(region_data = region_data, 
+                                         regio_selected = input_value_region_selected)
+  dat <- dat %>% 
+    mutate(color = ifelse(aluenimi %in% input_value_region_selected, TRUE, FALSE))
+  
+  if (input_value_regio_show_mode == "kaikki tason alueet"){
+    dat <- dat
+  } else if (input_value_regio_show_mode == "valittu alue ja sen naapurit"){
+    dat <- dat %>% filter(aluekoodi %in% naapurikoodit)
+  }
+  
+  # luodaan alaotsikko
+  kuvan_subtitle <- glue("Aluetaso: {input_value_regio_level}")
+  
+  if (!leaflet){
+    
+    ggplot(data = dat, aes(fill = value)) +
+      geom_sf(color = alpha("white", 1/3))  +
+      geom_sf(aes(color = color), fill = NA, show.legend = FALSE)  +    
+      scale_fill_fermenter(palette = "YlGnBu", type = "seq", direction = 1) +
+      scale_color_manual(values = c(alpha("white", 1/3), "black")) +
+      theme_ipsum(base_family = "PT Sans",
+                  plot_title_family = "PT Sans",
+                  subtitle_family = "PT Sans",
+                  grid_col = "white",
+                  plot_title_face = "plain") -> p
+    
+    if (input_value_regio_show_mode == "kaikki tason alueet"){
+      p <- p + geom_sf_label(data = dat %>% filter(aluenimi == input_value_region_selected),
+                             aes(label = paste(aluenimi, value)),
+                             fill = "white", color = "black", family = "PT Sans")
+      
+    } else if (input_value_regio_show_mode == "valittu alue ja sen naapurit"){
+      p + geom_sf_label(data = dat,
+                        aes(label = paste(aluenimi, round(value, 1))),
+                        fill = "white", color = "black", family = "PT Sans") -> p
+    }
+    p + theme(axis.text.x = element_blank(),
+              axis.text.y = element_blank(),
+              axis.title.x = element_blank(),
+              axis.title.y = element_blank(),
+              panel.grid.major = element_blank(),
+              panel.grid.minor = element_blank(),
+              legend.position = c(0.1, 0.5),
+              plot.title.position = "plot") +
+      labs(title = glue("{input_value_variable}"),
+           subtitle = kuvan_subtitle,
+           caption = glue("Huono-osaisuus Suomessa -karttasovellus (Diak)\nData: Tilastokeskus Paavo (perusdata) & Diak (mediaanisuhteutus)\nTiedot haettu:{Sys.Date()}"),
+           fill = paste0(add_line_break2(input_value_variable, 20), "\n(suhdeluku)"))
+  } else {
+    dat_wgs84 <- sf::st_transform(x = dat, crs = "+proj=longlat +datum=WGS84")
+    
+    pal <- leaflet::colorNumeric(palette = "YlGnBu", domain = dat_wgs84$value)
+    
+    labels <- sprintf(
+      "<italic>%s</italic><br/><strong>%s</strong>",
+      dat_wgs84$region_name, round(dat_wgs84$value,1)
+    ) %>% lapply(htmltools::HTML)
+    
+    
+    base <- leaflet(data = dat_wgs84) %>% 
+      addTiles(urlTemplate = "http://tiles.kartat.kapsi.fi/taustakartta/{z}/{x}/{y}.jpg",
+               #urlTemplate = "https://beta-karttakuva.maanmittauslaitos.fi/vectortiles/v20/{z}/{x}/{y}.jpg",
+               
+               # https://beta-karttakuva.maanmittauslaitos.fi/vectortiles/v20/#9.51/61.6445/27.3462
+               options = tileOptions(opacity = .4))
+    if (input_value_regio_show_mode == "kaikki tason alueet") base <- base %>% setView(zoom = 12, lng = 25.5745, lat = 64.103)
+    
+    base %>%   
+      addPolygons(fillColor = ~pal(value),
+                  color = "white",
+                  weight = 2,
+                  opacity = 0,
+                  dashArray = "3",
+                  fillOpacity = 0.7,
+                  highlight = highlightOptions(
+                    weight = 2,
+                    color = "#666",
+                    dashArray = "",
+                    fillOpacity = 0.4,
+                    bringToFront = TRUE),
+                  label = labels,
+                  labelOptions = labelOptions(opacity = .7,
+                                              style = list("font-weight" = "normal",
+                                                           padding = "2px 4px"),
+                                              textsize = "12px",
+                                              direction = "auto")
+      ) %>% 
+      addLegend(pal = pal, values = ~value, 
+                opacity = 0.7, 
+                title = input_value_variable,
+                position = "bottomright")
+  }
+}
+
+#' Create zipcode bar chart
+#' 
+#' @param input_value_region_selected A string
+#' @param input_value_regio_show_mode A string
+#' @param input_value_variable A string
+#'
+#' @export
+plot_zipcodes_bar <- function(input_value_region_selected = "Veteli Keskus",
+                              # input_value_regio_show_mode = "kaikki tason alueet"
+                              input_value_regio_show_mode = "kaikki tason alueet",
+                              input_value_variable = "Kokonaislukema"){
+  
+  input_value_regio_level <- "Postinumeroalueet"
+  region_data <- get_region_zipdata()
+  dat <- process_zipdata(varname = input_value_variable)
+  
+  naapurikoodit <- get_naapurikoodit_zip(region_data = region_data, 
+                                         regio_selected = input_value_region_selected)
+  dat <- dat %>% 
+    mutate(color = ifelse(aluenimi %in% input_value_region_selected, TRUE, FALSE))
+  
+  if (input_value_regio_show_mode == "kaikki tason alueet"){
+    dat <- dat
+  } else if (input_value_regio_show_mode == "valittu alue ja sen naapurit"){
+    dat <- dat %>% filter(aluekoodi %in% naapurikoodit)
+  }
+  
+  # luodaan alaotsikko
+  kuvan_subtitle <- glue("Aluetaso: {input_value_regio_level}")
+  
+  ggplot(data = dat, aes(y = reorder(aluenimi, value), 
+                         x = value, 
+                         fill = value)) +
+    geom_col() +
+    scale_fill_fermenter(palette = "YlGnBu", type = "seq", direction = 1) +
+    scale_color_fermenter(palette = "YlGnBu", type = "seq", direction = 1) +
+    theme_ipsum(base_family = "PT Sans",
+                plot_title_family = "PT Sans",
+                subtitle_family = "PT Sans",
+                grid_col = "white",
+                plot_title_face = "plain") -> p
+  
+  # if (input_value_regio_show_mode == "kaikki tason alueet"){
+  #   p <- p + geom_sf_label(data = dat %>% filter(aluenimi == input_value_region_selected),
+  #                          aes(label = paste(aluenimi, value)),
+  #                          fill = "white", color = "black", family = "PT Sans")
+  #   
+  # } else if (input_value_regio_show_mode == "valittu alue ja sen naapurit"){
+  #   p + geom_sf_label(data = dat,
+  #                     aes(label = paste(aluenimi, round(value, 1))),
+  #                     fill = "white", color = "black", family = "PT Sans") -> p
+  # }
+  p + theme(plot.title.position = "plot") +
+    labs(title = glue("{input_value_variable}"),
+         subtitle = kuvan_subtitle,
+         caption = glue("Huono-osaisuus Suomessa -karttasovellus (Diak)\nData: Tilastokeskus Paavo (perusdata) & Diak (mediaanisuhteutus)\nTiedot haettu:{Sys.Date()}"),
+         fill = paste0(add_line_break2(input_value_variable, 20), "\n(suhdeluku)"))
+}
+
+#' Create zipcode line chart
+#' 
+#' @param input_value_region_selected A string
+#' @param input_value_regio_show_mode A string
+#' @param input_value_variable A string
+#'
+#' @export
+plot_zipcodes_line <- function(input_value_region_selected = "Veteli Keskus",
+                               # input_value_regio_show_mode = "kaikki tason alueet"
+                               input_value_regio_show_mode = "kaikki tason alueet",
+                               input_value_variable = "Kokonaislukema"){
+  
+  input_value_regio_level <- "Postinumeroalueet"
+  region_data <- get_region_zipdata()
+  dat <- process_zipdata_timeseries(varname = input_value_variable)
+  
+  naapurikoodit <- get_naapurikoodit_zip(region_data = region_data, 
+                                         regio_selected = input_value_region_selected)
+  dat <- dat %>% 
+    mutate(color = ifelse(aluenimi %in% input_value_region_selected, TRUE, FALSE))
+  
+  if (input_value_regio_show_mode == "kaikki tason alueet"){
+    dat <- dat
+  } else if (input_value_regio_show_mode == "valittu alue ja sen naapurit"){
+    dat <- dat %>% filter(aluekoodi %in% naapurikoodit)
+  }
+  
+  # luodaan alaotsikko
+  kuvan_subtitle <- glue("Aluetaso: {input_value_regio_level}")
+  
+  ggplot(data = dat, aes(y = value, 
+                         x = aika, 
+                         color = aluenimi,
+                         group = aluenimi)) +
+    geom_line() +
+    # scale_fill_fermenter(palette = "YlGnBu", type = "seq", direction = 1) +
+    # scale_color_fermenter(palette = "YlGnBu", type = "seq", direction = 1) +
+    theme_ipsum(base_family = "PT Sans",
+                plot_title_family = "PT Sans",
+                subtitle_family = "PT Sans",
+                grid_col = "white",
+                plot_title_face = "plain") -> p
+  
+  if (input_value_regio_show_mode == "kaikki tason alueet"){
+    p <- p + theme(legend.position = "none")
+    
+  } else if (input_value_regio_show_mode == "valittu alue ja sen naapurit"){
+    p <- p + theme(legend.position = "right")
+  }
+  p + theme(plot.title.position = "plot") +
+    labs(title = glue("{input_value_variable}"),
+         subtitle = kuvan_subtitle,
+         caption = glue("Huono-osaisuus Suomessa -karttasovellus (Diak)\nData: Tilastokeskus Paavo (perusdata) & Diak (mediaanisuhteutus)\nTiedot haettu:{Sys.Date()}"),
+         fill = paste0(add_line_break2(input_value_variable, 20), "\n(suhdeluku)"))
+}
