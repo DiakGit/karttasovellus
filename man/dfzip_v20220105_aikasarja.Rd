@@ -3,8 +3,22 @@
 \docType{data}
 \name{dfzip_v20220105_aikasarja}
 \alias{dfzip_v20220105_aikasarja}
-\title{dfzip_v20220105_aikasarja}
+\title{dfzip_v20220105}
 \format{
+A data frame with 11976 rows and 7 variables:
+\describe{
+\item{regio_level}{regio_level}
+\item{aluekoodi}{aluekoodi}
+\item{aluenimi}{aluenimi}
+\item{kuntanro}{kuntanro}
+\item{kuntanimi}{kuntanimi}
+\item{variable}{variable}
+\item{value}{value}
+}
+dfzip_v20220105_aikasarja
+
+Time-series zipcode level attribute data
+
 A data frame with 71856 rows and 6 variables:
 \describe{
 \item{regio_level}{regio_level}
@@ -14,11 +28,27 @@ A data frame with 71856 rows and 6 variables:
 \item{variable}{variable}
 \item{value}{value}
 }
+
+A data frame with 71856 rows and 8 variables:
+\describe{
+\item{regio_level}{regio_level}
+\item{aluekoodi}{aluekoodi}
+\item{aluenimi}{aluenimi}
+\item{kuntanro}{kuntanro}
+\item{kuntanimi}{kuntanimi}
+\item{aika}{aika}
+\item{variable}{variable}
+\item{value}{value}
+}
 }
 \usage{
 dfzip_v20220105_aikasarja
+
+dfzip_v20220105_aikasarja
 }
 \description{
+Cross-sectional zipcode level attribute data
+
 Time-series zipcode level attribute data
 }
 \keyword{datasets}

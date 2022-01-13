@@ -455,10 +455,12 @@ dd <- read_excel("./data_raw/uusin_postinumerodata.xlsx", skip = 4)
 
 dfzip_v20220105 <- dd %>%
   rename(aluekoodi = Postinumeroalue,
-         aluenimi = `Postinumeroalueen nimi`) %>% 
-  select(-Kuntakoodi,-`Kunnan nimi`) %>% 
-  pivot_longer(names_to = "variable", values_to = "value", cols = 3:ncol(.)) %>% 
-  mutate(regio_level = "Postinumeroalueet") %>% 
+         aluenimi = `Postinumeroalueen nimi`,
+         kuntanimi = `Kunnan nimi`,
+         kuntanro = Kuntakoodi) %>% 
+  pivot_longer(names_to = "variable", values_to = "value", cols = 5:ncol(.)) %>% 
+  mutate(regio_level = "Postinumeroalueet",
+         kuntanro = as.integer(kuntanro)) %>% 
   select(regio_level,everything())
 
 save(dfzip_v20220105, file = here::here("data/dfzip_v20220105.rda"),
@@ -475,10 +477,12 @@ dd <- read_excel("./data_raw/postinumeroaikasarjat.xlsx", skip = 2)
 dfzip_v20220105_aikasarja <- dd %>%
   rename(aluekoodi = Postinumeroalue,
          aluenimi = `Postinumeroalueen nimi`,
-         aika = Vuosi) %>% 
-  select(-Kuntakoodi,-`Kunnan nimi`) %>% 
-  pivot_longer(names_to = "variable", values_to = "value", cols = 4:ncol(.)) %>% 
+         aika = Vuosi,
+         kuntanimi = `Kunnan nimi`,
+         kuntanro = Kuntakoodi) %>% 
+  pivot_longer(names_to = "variable", values_to = "value", cols = 6:ncol(.)) %>% 
   mutate(regio_level = "Postinumeroalueet",
+         kuntanro = as.integer(kuntanro),
          aika = as.integer(sub("-.+$", "", aika))+1) %>% 
   select(regio_level,everything())
 

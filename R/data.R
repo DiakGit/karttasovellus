@@ -149,15 +149,16 @@
 #' 
 #' Cross-sectional zipcode level attribute data
 #' 
-#' @format A data frame with 11976 rows and 5 variables:
+#' @format A data frame with 11976 rows and 7 variables:
 #' \describe{
 #' \item{regio_level}{regio_level}
 #' \item{aluekoodi}{aluekoodi}
 #' \item{aluenimi}{aluenimi}
+#' \item{kuntanro}{kuntanro}
+#' \item{kuntanimi}{kuntanimi}
 #' \item{variable}{variable}
 #' \item{value}{value}
 #' }
-"dfzip_v20220105"
 
 #' dfzip_v20220105_aikasarja
 #' 
@@ -174,17 +175,20 @@
 #' }
 "dfzip_v20220105_aikasarja"
 
-#' region_data_zip
+#' dfzip_v20220105_aikasarja
 #' 
-#' Zipcode sf with neighbours from 2021
+#' Time-series zipcode level attribute data
 #' 
-#' @format A data frame with 3027 rows and 6 variables:
+#' @format A data frame with 71856 rows and 8 variables:
 #' \describe{
-#' \item{region_code}{region_code}
-#' \item{region_name}{region_name}
+#' \item{regio_level}{regio_level}
+#' \item{aluekoodi}{aluekoodi}
+#' \item{aluenimi}{aluenimi}
 #' \item{kuntanro}{kuntanro}
-#' \item{neigbours}{neigbours}
-#' \item{geom}{geom}
-#' \item{level}{level}
+#' \item{kuntanimi}{kuntanimi}
+#' \item{aika}{aika}
+#' \item{variable}{variable}
+#' \item{value}{value}
 #' }
-"region_data_zip"
+"dfzip_v20220105_aikasarja"
+

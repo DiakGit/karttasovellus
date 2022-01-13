@@ -5,13 +5,13 @@
 \title{Create zipcode bar chart}
 \usage{
 plot_zipcodes_bar(
-  input_value_region_selected = "Veteli Keskus",
-  input_value_regio_show_mode = "kaikki tason alueet",
+  input_value_region_selected = 924,
+  input_value_regio_show_mode = "valittu alue",
   input_value_variable = "Kokonaislukema"
 )
 }
 \arguments{
-\item{input_value_region_selected}{A string}
+\item{input_value_region_selected}{A numeric}
 
 \item{input_value_regio_show_mode}{A string}
 

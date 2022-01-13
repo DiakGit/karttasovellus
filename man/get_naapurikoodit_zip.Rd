@@ -4,15 +4,12 @@
 \alias{get_naapurikoodit_zip}
 \title{Process time-series zipcode data}
 \usage{
-get_naapurikoodit_zip(
-  region_data = region_data,
-  regio_selected = "Veteli Keskus"
-)
+get_naapurikoodit_zip(regio_selected = 5)
 }
 \arguments{
-\item{region_data}{A data.frame}
-
 \item{regio_selected}{A string}
+
+\item{region_data}{A data.frame}
 }
 \description{
 Process time-series zipcode data

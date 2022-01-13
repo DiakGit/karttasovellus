@@ -47,16 +47,18 @@ get_region_zipdata <- function(){
 
 dd4 <- get_region_zipdata()
 
-get_naapurikoodit_zip <- function(region_data = region_data,
-                                  regio_selected = "Veteli Keskus"){
-  neigh <- region_data[region_data$region_name == regio_selected,]$neigbours[[1]]
+get_naapurikoodit_zip <- function(regio_selected = 924){
+  region_data <- karttasovellus::region_data_zip
+  neight_muni <- karttasovellus::region_data[karttasovellus::region_data$region_code == regio_selected,][["neigbours"]][[1]]
+  neigh_list <- region_data[region_data$kuntanro %in% neight_muni,]$neigbours
+  neigh <- unique(do.call("c", neigh_list))
   return(neigh)
   }
 
 
-map_zipcodes <- function(input_value_region_selected = "Veteli Keskus",
+map_zipcodes <- function(input_value_region_selected = 924,
                          # input_value_regio_show_mode = "kaikki tason alueet"
-                         input_value_regio_show_mode = "kaikki tason alueet",
+                         input_value_regio_show_mode = "valittu alue ja sen naapurit",
                          input_value_variable = "Kokonaislukema",
                          leaflet = FALSE){
           
@@ -67,14 +69,16 @@ map_zipcodes <- function(input_value_region_selected = "Veteli Keskus",
           dat <- left_join(region_data,dat,by = c("region_name" = "aluenimi"), keep = TRUE) 
           
           
-          naapurikoodit <- get_naapurikoodit_zip(region_data = region_data, 
-                                                 regio_selected = input_value_region_selected)
+          naapurikoodit <- get_naapurikoodit_zip(regio_selected = input_value_region_selected)
           dat <- dat %>% 
             mutate(color = ifelse(aluenimi %in% input_value_region_selected, TRUE, FALSE))
           
           if (input_value_regio_show_mode == "kaikki tason alueet"){
             dat <- dat
           } else if (input_value_regio_show_mode == "valittu alue ja sen naapurit"){
+            dat <- dat %>% filter(aluekoodi %in% naapurikoodit)
+          }  else if (input_value_regio_show_mode == "valittu alue"){
+            naapurikoodit <- karttasovellus::region_data_zip[karttasovellus::region_data_zip$kuntanro == input_value_region_selected,]$region_code
             dat <- dat %>% filter(aluekoodi %in% naapurikoodit)
           }
 
@@ -99,7 +103,7 @@ map_zipcodes <- function(input_value_region_selected = "Veteli Keskus",
                                    aes(label = paste(aluenimi, value)),
                                    fill = "white", color = "black", family = "PT Sans")
             
-          } else if (input_value_regio_show_mode == "valittu alue ja sen naapurit"){
+          } else if (input_value_regio_show_mode %in% c("valittu alue ja sen naapurit","valittu alue")){
             p + geom_sf_label(data = dat,
                               aes(label = paste(aluenimi, round(value, 1))),
                               fill = "white", color = "black", family = "PT Sans") -> p
@@ -172,14 +176,16 @@ plot_zipcodes_bar <- function(input_value_region_selected = "Veteli Keskus",
           region_data <- get_region_zipdata()
           dat <- process_zipdata(varname = input_value_variable)
 
-          naapurikoodit <- get_naapurikoodit_zip(region_data = region_data, 
-                                                 regio_selected = input_value_region_selected)
+          naapurikoodit <- get_naapurikoodit_zip(regio_selected = input_value_region_selected)
           dat <- dat %>% 
             mutate(color = ifelse(aluenimi %in% input_value_region_selected, TRUE, FALSE))
           
           if (input_value_regio_show_mode == "kaikki tason alueet"){
             dat <- dat
           } else if (input_value_regio_show_mode == "valittu alue ja sen naapurit"){
+            dat <- dat %>% filter(aluekoodi %in% naapurikoodit)
+          }  else if (input_value_regio_show_mode == "valittu alue"){
+            naapurikoodit <- karttasovellus::region_data_zip[karttasovellus::region_data_zip$kuntanro == input_value_region_selected,]$region_code
             dat <- dat %>% filter(aluekoodi %in% naapurikoodit)
           }
 
@@ -216,7 +222,7 @@ plot_zipcodes_bar <- function(input_value_region_selected = "Veteli Keskus",
 }
 
 
-plot_zipcodes_line <- function(input_value_region_selected = "Veteli Keskus",
+plot_zipcodes_line <- function(input_value_region_selected = 924,
                          # input_value_regio_show_mode = "kaikki tason alueet"
                          input_value_regio_show_mode = "kaikki tason alueet",
                          input_value_variable = "Kokonaislukema"){
@@ -225,14 +231,16 @@ plot_zipcodes_line <- function(input_value_region_selected = "Veteli Keskus",
           region_data <- get_region_zipdata()
           dat <- process_zipdata_timeseries(varname = input_value_variable)
 
-          naapurikoodit <- get_naapurikoodit_zip(region_data = region_data, 
-                                                 regio_selected = input_value_region_selected)
           dat <- dat %>% 
             mutate(color = ifelse(aluenimi %in% input_value_region_selected, TRUE, FALSE))
           
           if (input_value_regio_show_mode == "kaikki tason alueet"){
             dat <- dat
           } else if (input_value_regio_show_mode == "valittu alue ja sen naapurit"){
+            naapurikoodit <- get_naapurikoodit_zip(regio_selected = input_value_region_selected)
+            dat <- dat %>% filter(aluekoodi %in% naapurikoodit)
+          }  else if (input_value_regio_show_mode == "valittu alue"){
+            naapurikoodit <- karttasovellus::region_data_zip[karttasovellus::region_data_zip$kuntanro == input_value_region_selected,]$region_code
             dat <- dat %>% filter(aluekoodi %in% naapurikoodit)
           }
 
@@ -277,25 +285,26 @@ plot_zipcodes_line <- function(input_value_region_selected = "Veteli Keskus",
 
 # "valittu alue ja sen naapurit"
 # "kaikki tason alueet"
-map_zipcodes(input_value_region_selected = "Veteli Keskus",
+map_zipcodes(input_value_region_selected = 924,
              # input_value_region_selected = "Pohjois-Meilahti", 
-             input_value_regio_show_mode = "valittu alue ja sen naapurit",
+             input_value_regio_show_mode = "valittu alue",
              # input_value_regio_show_mode =  "kaikki tason alueet",
              # input_value_variable = 'Työttömät (% 15-64 -vuotiaista)',
              input_value_variable = 'Kokonaislukema',
-             leaflet = T)
+             leaflet = F)
 
-plot_zipcodes_bar(input_value_region_selected = "Veteli Keskus",
+plot_zipcodes_bar(input_value_region_selected = 924,
              # input_value_region_selected = "Pohjois-Meilahti", 
-             input_value_regio_show_mode = "valittu alue ja sen naapurit",
+             input_value_regio_show_mode = "valittu alue",
              # input_value_regio_show_mode =  "kaikki tason alueet",
              input_value_variable = 'Työttömät (% 15-64 -vuotiaista)'
              # input_value_variable = 'Kokonaislukema'
              )
 
 plot_zipcodes_line(#input_value_region_selected = "Veteli Keskus",
-             input_value_region_selected = "Pohjois-Meilahti",
-             input_value_regio_show_mode = "valittu alue ja sen naapurit",
+             input_value_region_selected = 924,
+             input_value_regio_show_mode = "valittu alue",
+             # input_value_regio_show_mode = "valittu alue ja sen naapurit",
              # input_value_regio_show_mode =  "kaikki tason alueet",
              # input_value_variable = 'Työttömät (% 15-64 -vuotiaista)',
              input_value_variable = 'Kokonaislukema')
