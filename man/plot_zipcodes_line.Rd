@@ -5,7 +5,8 @@
 \title{Create zipcode line chart}
 \usage{
 plot_zipcodes_line(
-  input_value_region_selected = 924,
+  input_value_region_selected = 91,
+  input_value_regio_level = "Kunnat",
   input_value_regio_show_mode = "kaikki tason alueet",
   input_value_variable = "Kokonaislukema"
 )

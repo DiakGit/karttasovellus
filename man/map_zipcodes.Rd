@@ -5,8 +5,8 @@
 \title{Create zipcode map}
 \usage{
 map_zipcodes(
-  input_value_region_selected = 924,
-  input_value_regio_show_mode = "valittu alue",
+  input_value_region_selected = 91,
+  input_value_regio_level = "Kunnat",
   input_value_variable = "Kokonaislukema",
   leaflet = FALSE
 )
@@ -14,11 +14,11 @@ map_zipcodes(
 \arguments{
 \item{input_value_region_selected}{A numeric}
 
-\item{input_value_regio_show_mode}{A string}
-
 \item{input_value_variable}{A string}
 
 \item{leaflet}{A logical}
+
+\item{input_value_regio_show_mode}{A string}
 }
 \description{
 Create zipcode map

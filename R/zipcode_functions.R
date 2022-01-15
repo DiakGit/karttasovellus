@@ -34,22 +34,25 @@ get_region_zipdata <- function(){
 
 #' Process time-series zipcode data
 #' 
-#' @param region_data A data.frame
-#' @param regio_selected A string
+#' @param regio_selected A numeric
+#' @param value_regio_level A string
 #'
 #' @export
-get_naapurikoodit_zip <- function(regio_selected = 5){
-  region_data <- karttasovellus::region_data_zip
-  region_data_kunnat <- karttasovellus::region_data[karttasovellus::region_data$level == "Kunnat",]
-  neight_muni <- region_data_kunnat[region_data_kunnat$region_code == regio_selected,][["neigbours"]][[1]]
-  neigh_list <- region_data[region_data$kuntanro %in% neight_muni,]$neigbours
-  neigh <- unique(do.call("c", neigh_list))
-  
-  # muninro <- region_data[region_data$kuntanro %in% neight_muni,c("region_code","region_name","kuntanro")] %>% 
-  #   st_drop_geometry() %>% 
-  #   left_join(geofi::municipality_key_2021 %>% select(municipality_code,municipality_name_fi), by = c("kuntanro" = "municipality_code"))
-  
-  
+get_koodit_zip <- function(regio_selected = 161, 
+                           value_regio_level = "Seutukunnat"){
+  # region_data_kunta <- karttasovellus::region_data
+  aluedata <- geofi::municipality_key_2021
+  # haetaan valitun alueen kuntanumerot
+  if (value_regio_level == "Kunnat"){
+    kuntanrot <- regio_selected
+  } else if (value_regio_level == "Seutukunnat"){
+    # if (!regio_selected %in% aluedata$seutukunta_code) return()
+    kuntanrot <- aluedata[aluedata$seutukunta_code %in% regio_selected,]$municipality_code
+  } else if (value_regio_level == "Hyvinvointialueet"){
+    kuntanrot <- aluedata[aluedata$hyvinvointialue_code %in% regio_selected,]$municipality_code
+    }
+  neigh <- karttasovellus::region_data_zip[karttasovellus::region_data_zip$kuntanro %in% kuntanrot,]$region_code
+
   return(neigh)
 }
 
@@ -65,32 +68,35 @@ get_naapurikoodit_zip <- function(regio_selected = 5){
 #' @import leaflet.extras
 #'
 #' @export
-map_zipcodes <- function(input_value_region_selected = 924,
-                         # input_value_regio_show_mode = "kaikki tason alueet"
-                         input_value_regio_show_mode = "valittu alue",
+map_zipcodes <- function(input_value_region_selected = 91,
+                         input_value_regio_level = "Kunnat",
                          input_value_variable = "Kokonaislukema",
                          leaflet = FALSE){
   
   
-  input_value_regio_level <- "Postinumeroalueet"
+  # input_value_regio_level <- "Postinumeroalueet"
   region_data <- get_region_zipdata()
   dat <- process_zipdata(varname = input_value_variable)
   dat <- left_join(region_data %>% select(-kuntanro),
                    dat,by = c("region_name" = "aluenimi"), keep = TRUE) 
-  
-  
-  dat <- dat %>% 
+
+  dat <- dat %>%
     mutate(color = ifelse(aluenimi %in% input_value_region_selected, TRUE, FALSE))
   
-  if (input_value_regio_show_mode == "kaikki tason alueet"){
-    dat <- dat
-  } else if (input_value_regio_show_mode == "valittu alue ja sen naapurit"){
-    naapurikoodit <- get_naapurikoodit_zip(regio_selected = input_value_region_selected)
-    dat <- dat %>% filter(aluekoodi %in% naapurikoodit)
-  }  else if (input_value_regio_show_mode == "valittu alue"){
-    naapurikoodit <- karttasovellus::region_data_zip[karttasovellus::region_data_zip$kuntanro == input_value_region_selected,]$region_code
-    dat <- dat %>% filter(aluekoodi %in% naapurikoodit)
-  }
+  # Laitetaan sen sijaan aluetaso tähän
+  # if (input_value_regio_show_mode == "kaikki tason alueet"){
+  #   dat <- dat
+  # } else if (input_value_regio_show_mode == "valittu alue ja sen naapurit"){
+  #   naapurikoodit <- get_naapurikoodit_zip(regio_selected = input_value_region_selected)
+  #   dat <- dat %>% filter(aluekoodi %in% naapurikoodit)
+  # }  else if (input_value_regio_show_mode == "valittu alue"){
+  #   naapurikoodit <- karttasovellus::region_data_zip[karttasovellus::region_data_zip$kuntanro == input_value_region_selected,]$region_code
+  #   dat <- dat %>% filter(aluekoodi %in% naapurikoodit)
+  # }
+    zipcodes <- get_koodit_zip(regio_selected = input_value_region_selected, 
+                                    value_regio_level = input_value_regio_level)
+    dat <- dat %>% filter(aluekoodi %in% zipcodes)
+
   
   # luodaan alaotsikko
   kuvan_subtitle <- glue("Aluetaso: {input_value_regio_level}")
@@ -108,16 +114,16 @@ map_zipcodes <- function(input_value_region_selected = 924,
                   grid_col = "white",
                   plot_title_face = "plain") -> p
     
-    if (input_value_regio_show_mode == "kaikki tason alueet"){
-      p <- p + geom_sf_label(data = dat %>% filter(aluenimi == input_value_region_selected),
-                             aes(label = paste(aluenimi, value)),
-                             fill = "white", color = "black", family = "PT Sans")
-      
-    } else if (input_value_regio_show_mode %in% c("valittu alue ja sen naapurit","valittu alue")){
-      p + geom_sf_label(data = dat,
-                        aes(label = paste(aluenimi, round(value, 1))),
-                        fill = "white", color = "black", family = "PT Sans") -> p
-    }
+    # if (input_value_regio_show_mode == "kaikki tason alueet"){
+    #   p <- p + geom_sf_label(data = dat %>% filter(aluenimi == input_value_region_selected),
+    #                          aes(label = paste(aluenimi, value)),
+    #                          fill = "white", color = "black", family = "PT Sans")
+    #   
+    # } else if (input_value_regio_show_mode %in% c("valittu alue ja sen naapurit","valittu alue")){
+    #   p + geom_sf_label(data = dat,
+    #                     aes(label = paste(aluenimi, round(value, 1))),
+    #                     fill = "white", color = "black", family = "PT Sans") -> p
+    # }
     p + theme(axis.text.x = element_blank(),
               axis.text.y = element_blank(),
               axis.title.x = element_blank(),
@@ -143,12 +149,8 @@ map_zipcodes <- function(input_value_region_selected = 924,
     
     base <- leaflet(data = dat_wgs84) %>% 
       addTiles(urlTemplate = "http://tiles.kartat.kapsi.fi/taustakartta/{z}/{x}/{y}.jpg",
-               #urlTemplate = "https://beta-karttakuva.maanmittauslaitos.fi/vectortiles/v20/{z}/{x}/{y}.jpg",
-               
-               # https://beta-karttakuva.maanmittauslaitos.fi/vectortiles/v20/#9.51/61.6445/27.3462
                options = tileOptions(opacity = .4))
-    if (input_value_regio_show_mode == "kaikki tason alueet") base <- base %>% setView(zoom = 12, lng = 25.5745, lat = 64.103)
-    
+
     base %>%   
       addPolygons(fillColor = ~pal(value),
                   color = "white",
@@ -180,31 +182,23 @@ map_zipcodes <- function(input_value_region_selected = 924,
 #' Create zipcode bar chart
 #' 
 #' @param input_value_region_selected A numeric
-#' @param input_value_regio_show_mode A string
+#' @param input_value_regio_level A string
 #' @param input_value_variable A string
 #'
 #' @export
-plot_zipcodes_bar <- function(input_value_region_selected = 924,
-                              # input_value_regio_show_mode = "kaikki tason alueet"
-                              input_value_regio_show_mode = "valittu alue",
+plot_zipcodes_bar <- function(input_value_region_selected = 91,
+                              input_value_regio_level = "Kunnat",
                               input_value_variable = "Kokonaislukema"){
   
-  input_value_regio_level <- "Postinumeroalueet"
   region_data <- get_region_zipdata()
   dat <- process_zipdata(varname = input_value_variable)
-  
-  dat <- dat %>% 
+
+  dat <- dat %>%
     mutate(color = ifelse(aluenimi %in% input_value_region_selected, TRUE, FALSE))
-  
-  if (input_value_regio_show_mode == "kaikki tason alueet"){
-    dat <- dat
-  } else if (input_value_regio_show_mode == "valittu alue ja sen naapurit"){
-    naapurikoodit <- get_naapurikoodit_zip(regio_selected = input_value_region_selected)
-    dat <- dat %>% filter(aluekoodi %in% naapurikoodit)
-  }  else if (input_value_regio_show_mode == "valittu alue"){
-    naapurikoodit <- karttasovellus::region_data_zip[karttasovellus::region_data_zip$kuntanro == input_value_region_selected,]$region_code
-    dat <- dat %>% filter(aluekoodi %in% naapurikoodit)
-  }
+
+  naapurikoodit <- get_koodit_zip(regio_selected = input_value_region_selected,
+                                  value_regio_level = input_value_regio_level)
+  dat <- dat %>% filter(aluekoodi %in% naapurikoodit)
   
   # luodaan alaotsikko
   kuvan_subtitle <- glue("Aluetaso: {input_value_regio_level}")
@@ -213,13 +207,13 @@ plot_zipcodes_bar <- function(input_value_region_selected = 924,
   
   ggplot(data = dat, aes(y = reorder(aluenimi, value), 
                          x = value, 
-                         fill = value)) +
+                         fill = kuntanimi)) +
     geom_col() +
     geom_text(aes(label = round(value,1)), 
               color = "black", 
               nudge_x = max(dat$value, na.rm = TRUE)*0.2, 
               family = "PT Sans") +
-    scale_fill_fermenter(palette = "YlGnBu", type = "seq", direction = 1) +
+    # scale_fill_fermenter(palette = "YlGnBu", type = "seq", direction = 1) +
     scale_color_fermenter(palette = "YlGnBu", type = "seq", direction = 1) +
     theme_ipsum(base_family = "PT Sans",
                 plot_title_family = "PT Sans",
@@ -227,7 +221,7 @@ plot_zipcodes_bar <- function(input_value_region_selected = 924,
                 grid_col = "white",
                 plot_title_face = "plain") + 
   theme(plot.title.position = "plot",
-        legend.position = "top") +
+        legend.position = "none") +
     labs(title = glue("{input_value_variable}"),
          subtitle = kuvan_subtitle,
          caption = glue("Huono-osaisuus Suomessa -karttasovellus (Diak)\nData: Tilastokeskus Paavo (perusdata) & Diak (mediaanisuhteutus)\nTiedot haettu:{Sys.Date()}"),
@@ -241,27 +235,30 @@ plot_zipcodes_bar <- function(input_value_region_selected = 924,
 #' @param input_value_variable A string
 #'
 #' @export
-plot_zipcodes_line <- function(input_value_region_selected = 924,
+plot_zipcodes_line <- function(input_value_region_selected = 91,
                                # input_value_regio_show_mode = "kaikki tason alueet"
+                               input_value_regio_level = "Kunnat",
                                input_value_regio_show_mode = "kaikki tason alueet",
                                input_value_variable = "Kokonaislukema"){
   
-  input_value_regio_level <- "Postinumeroalueet"
   region_data <- get_region_zipdata()
   dat <- process_zipdata_timeseries(varname = input_value_variable)
   
   dat <- dat %>% 
     mutate(color = ifelse(aluenimi %in% input_value_region_selected, TRUE, FALSE))
   
-  if (input_value_regio_show_mode == "kaikki tason alueet"){
-    dat <- dat
-  } else if (input_value_regio_show_mode == "valittu alue ja sen naapurit"){
-    naapurikoodit <- get_naapurikoodit_zip(regio_selected = input_value_region_selected)
-    dat <- dat %>% filter(aluekoodi %in% naapurikoodit)
-  }  else if (input_value_regio_show_mode == "valittu alue"){
-    naapurikoodit <- karttasovellus::region_data_zip[karttasovellus::region_data_zip$kuntanro == input_value_region_selected,]$region_code
-    dat <- dat %>% filter(aluekoodi %in% naapurikoodit)
-  }
+  # if (input_value_regio_show_mode == "kaikki tason alueet"){
+  #   dat <- dat
+  # } else if (input_value_regio_show_mode == "valittu alue ja sen naapurit"){
+  #   naapurikoodit <- get_naapurikoodit_zip(regio_selected = input_value_region_selected)
+  #   dat <- dat %>% filter(aluekoodi %in% naapurikoodit)
+  # }  else if (input_value_regio_show_mode == "valittu alue"){
+  #   naapurikoodit <- karttasovellus::region_data_zip[karttasovellus::region_data_zip$kuntanro == input_value_region_selected,]$region_code
+  #   dat <- dat %>% filter(aluekoodi %in% naapurikoodit)
+  # }
+  naapurikoodit <- get_koodit_zip(regio_selected = input_value_region_selected, 
+                                  value_regio_level = input_value_regio_level)
+  dat <- dat %>% filter(aluekoodi %in% naapurikoodit)
   
   # luodaan alaotsikko
   kuvan_subtitle <- glue("Aluetaso: {input_value_regio_level}")
@@ -281,15 +278,15 @@ plot_zipcodes_line <- function(input_value_region_selected = 924,
                 grid_col = "white",
                 plot_title_face = "plain") -> p
   
-  if (input_value_regio_show_mode == "kaikki tason alueet"){
-     
-    
-  } else if (input_value_regio_show_mode %in% c("valittu alue ja sen naapurit","valittu alue")){
+  # if (input_value_regio_show_mode == "kaikki tason alueet"){
+  #    
+  #   
+  # } else if (input_value_regio_show_mode %in% c("valittu alue ja sen naapurit","valittu alue")){
     p <- p + ggrepel::geom_text_repel(data = dat %>% filter(aika == max(aika, na.rm = TRUE)),
                                       aes(x = aika, y = value, color= aluenimi,
                                           label = paste(aluenimi, round(value,1))),
                                       family = "PT Sans", nudge_x = .3)
-  }
+  # }
   p + theme(plot.title.position = "plot",
             legend.position = "none") +
     labs(title = glue("{input_value_variable}"),
