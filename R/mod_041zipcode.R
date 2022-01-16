@@ -19,7 +19,20 @@ mod_041zipcode_ui <- function(id){
                                uiOutput(ns("output_regio_level")),
                                uiOutput(ns("output_region_selected")),
                                uiOutput(ns("output_regio_show_mode")),
-                               uiOutput(ns("output_variable"))#,
+                               uiOutput(ns("output_variable")),
+                               tags$hr(),
+                               tags$h4("3. Lataa kartta-aineisto"),
+                               radioButtons(ns("file_type"), "Valitse tiedostomuoto",
+                                            choiceNames = list("Bittimappikuva (.png)",
+                                                               "Vektorikuva (.pdf)"),
+                                            # NOTE: the first value is ".zip", not ".shp", as shapefile
+                                            # must be zipped. Shiny can only output one file and each
+                                            # shapefile constitutes of several files.
+                                            choiceValues = list(".png",
+                                                                ".pdf"),
+                                            inline = FALSE),
+                               downloadButton(ns("download_map"), "Lataa aineisto")#,
+    
                                # actionButton(ns("do"), "Click Me")
                                # uiOutput(ns("output_leaflet"))#,
                       ),
@@ -152,6 +165,17 @@ mod_041zipcode_server <- function(id){
       req(input$value_regio_level)
       req(input$value_region_selected)
       
+      # aluedata <- geofi::municipality_key_2021
+      # # haetaan valitun alueen kuntanumerot
+      # if (input$value_regio_level == "Seutukunnat"){
+      #   while(!input$value_region_selected %in% aluedata$seutukunta_code){
+      #     
+      #   }
+      # } else if (input$value_regio_level == "Hyvinvointialueet"){
+      #   while(!input$value_region_selected %in% aluedata$hyvinvointialue_code) Sys.sleep(1)
+      # }
+      
+      
       map_zipcodes(input_value_region_selected = input$value_region_selected,
                    input_value_regio_level = input$value_regio_level,
                    input_value_variable = input$value_variable,
@@ -223,6 +247,57 @@ mod_041zipcode_server <- function(id){
         # input_value_variable = "Kokonaislukema"
         )
     })
+    
+    
+    output$download_map <- downloadHandler(
+      
+      filename = function() {
+        
+        file_extension <- input$file_type
+        # file_extension <- ifelse(input$file_type %in% c(".png",".pdf"), ".zip", input$file_type)
+        
+        dataset_name <- janitor::make_clean_names(input$value_variable,
+                                                  case = "snake") %>%
+          paste0(file_extension)
+        # dataset_name <- paste0("kartta", file_extension)
+        return(dataset_name)
+      },
+      
+      content = function(file) {
+        # Reactives are cached
+        
+        if (input$file_type == ".png") {
+          
+          temp_plot <- tempdir() 
+          p1 <- map_zipcodes(input_value_region_selected = input$value_region_selected,
+                       input_value_regio_level = input$value_regio_level,
+                       input_value_variable = input$value_variable,
+                       # input_value_region_selected = 91,
+                       # input_value_regio_level = "Kunnat",
+                       # input_value_variable = "Kokonaislukema",
+                       leaflet = FALSE
+          )
+          ggsave(filename = paste0(temp_plot,"/map.png"), plot = p1, device = ragg::agg_png, width = 8.3, height = 11.7)
+          file.copy(paste0(temp_plot,"/map.png"), file)
+
+        } else if (input$file_type == ".pdf") {
+          # Write SVG using ggplot2
+          temp_plot <- tempdir()
+          p1 <- map_zipcodes(input_value_region_selected = input$value_region_selected,
+                             input_value_regio_level = input$value_regio_level,
+                             input_value_variable = input$value_variable,
+                             # input_value_region_selected = 91,
+                             # input_value_regio_level = "Kunnat",
+                             # input_value_variable = "Kokonaislukema",
+                             leaflet = FALSE
+          )
+          ggsave(filename = paste0(temp_plot,"/map.pdf"), plot = p1, device = cairo_pdf, width = 8.3, height = 11.7)
+          file.copy(paste0(temp_plot,"/map.pdf"), file)
+          
+          
+        }
+      }
+    )
     
     
     
