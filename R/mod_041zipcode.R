@@ -18,27 +18,17 @@ mod_041zipcode_ui <- function(id){
                                tags$p("Postinumeroalueittainen data näytetään aina kunnittain. Halutessasi voi valita myös kaikkien naapurikuntien datan mukaan."),
                                uiOutput(ns("output_regio_level")),
                                uiOutput(ns("output_region_selected")),
-                               uiOutput(ns("output_regio_show_mode")),
                                uiOutput(ns("output_variable")),
-                               tags$hr(),
-                               tags$h4("3. Lataa kartta-aineisto"),
-                               radioButtons(ns("file_type"), "Valitse tiedostomuoto",
-                                            choiceNames = list("Bittimappikuva (.png)",
-                                                               "Vektorikuva (.pdf)"),
-                                            # NOTE: the first value is ".zip", not ".shp", as shapefile
-                                            # must be zipped. Shiny can only output one file and each
-                                            # shapefile constitutes of several files.
-                                            choiceValues = list(".png",
-                                                                ".pdf"),
-                                            inline = FALSE),
-                               downloadButton(ns("download_map"), "Lataa aineisto")#,
-    
-                               # actionButton(ns("do"), "Click Me")
+                               radioButtons(ns("value_leaflet"), 
+                                            "Kartan tyyppi", 
+                                            choices = c("vuorovaikutteinen",
+                                                        "staattinen")
+                                            ),
+                               actionButton(ns("button_zip"), "Piirrä kuvat")
                                # uiOutput(ns("output_leaflet"))#,
                       ),
                       tags$div(class = "col-lg-5",
-                               leaflet::leafletOutput(ns("map_zip_plot"), width = "90%", height = "800px")
-                               # plotOutput(ns("map_zip_plot"), width = "90%", height = "800px")
+                               uiOutput(ns("ui_map_zip_plot"))
                       ),
                       tags$div(class = "col-lg-4",
                                uiOutput(ns("ui_plot_zip_bar"))
@@ -47,7 +37,7 @@ mod_041zipcode_ui <- function(id){
              tags$div(class = "row",
                       tags$div(class = "col-lg-12",
                                plotOutput(ns("timeseries_zip_plot"),
-                                          width = "100%", height = "900px")
+                                          width = "100%", height = "700px")
                       )
              )
              ),
@@ -100,8 +90,8 @@ mod_041zipcode_server <- function(id){
     
     
     output$output_region_selected <- renderUI({
-      
-      req(input$value_regio_level)
+
+      # req(input$value_regio_level)
       # req(input$value_variable)
 
       reg <- sf::st_drop_geometry(karttasovellus::region_data)
@@ -109,40 +99,23 @@ mod_041zipcode_server <- function(id){
       opt_indicator <- reg$region_code
       names(opt_indicator) <- reg$region_name
       Sys.sleep(1)
-      
+
       tagList(
         selectInput(
-          inputId = ns("value_region_selected"), 
-          label = "Valitse alue", 
-          choices = opt_indicator, 
+          inputId = ns("value_region_selected"),
+          label = "Valitse alue",
+          choices = opt_indicator,
           selected = opt_indicator[1])
       )
     })
-    
 
-    # output$output_regio_show_mode <- renderUI({
-    #   
-    #   opt_indicator <- c("valittu alue", 
-    #                      "valittu alue ja sen naapurit")
-    # 
-    #   tagList(
-    #     radioButtons(inputId = ns("value_regio_show_mode"), 
-    #                  choices = opt_indicator, 
-    #                  selected = opt_indicator[1],
-    #                  label = "Kuvioissa näytettävät alueet", 
-    #                  inline = FALSE)
-    #   )
-    #   
-    # })
-    
-    
+
+
     output$output_variable <- renderUI({
       
       # req(input$value_regio_level)
       # req(input$value_region_selected)
-      
-      
-      # indicator_df <- varlist_diak()
+
       opt_indicator <- c('Kokonaislukema',
                          'Alimpaan tuloluokkaan kuuluvat taloudet',
                          'Alimpaan tuloluokkaan kuuluvat täysi-ikäiset',
@@ -157,67 +130,82 @@ mod_041zipcode_server <- function(id){
           selected = opt_indicator[1])
       )
     })
+    
+    
+    # EVENTREACTIVE
+    react_value_variable <- eventReactive(input$button_zip, {
+      input$value_variable
+    })
+    
+    react_value_regio_level <- eventReactive(input$button_zip, {
+      input$value_regio_level
+    })
+    
+    react_value_region_selected <- eventReactive(input$button_zip, {
+      input$value_region_selected
+    })
+    
+    react_value_leaflet <- eventReactive(input$button_zip, {
+      input$value_leaflet
+    })
 
-    output$map_zip_plot <- leaflet::renderLeaflet({
-    # output$map_zip_plot <- renderPlot({
+    output$map_zip_plot_leaflet <- leaflet::renderLeaflet({
       
-      req(input$value_variable)
-      req(input$value_regio_level)
-      req(input$value_region_selected)
-      
-      # aluedata <- geofi::municipality_key_2021
-      # # haetaan valitun alueen kuntanumerot
-      # if (input$value_regio_level == "Seutukunnat"){
-      #   while(!input$value_region_selected %in% aluedata$seutukunta_code){
-      #     
-      #   }
-      # } else if (input$value_regio_level == "Hyvinvointialueet"){
-      #   while(!input$value_region_selected %in% aluedata$hyvinvointialue_code) Sys.sleep(1)
-      # }
-      
-      
-      map_zipcodes(input_value_region_selected = input$value_region_selected,
-                   input_value_regio_level = input$value_regio_level,
-                   input_value_variable = input$value_variable,
+      map_zipcodes(input_value_region_selected = react_value_region_selected(),
+                   input_value_regio_level = react_value_regio_level(),
+                   input_value_variable = react_value_variable(),
                    # input_value_region_selected = 91,
                    # input_value_regio_level = "Kunnat",
                    # input_value_variable = "Kokonaislukema",
                    leaflet = TRUE
-                   )
+      )
     })
     
+    output$map_zip_plot_static <- renderPlot({
+      
+      map_zipcodes(input_value_region_selected = react_value_region_selected(),
+                   input_value_regio_level = react_value_regio_level(),
+                   input_value_variable = react_value_variable(),
+                   # input_value_region_selected = 91,
+                   # input_value_regio_level = "Kunnat",
+                   # input_value_variable = "Kokonaislukema",
+                   leaflet = FALSE
+      )
+    })
+
+    output$ui_map_zip_plot <- renderUI({
+      
+      if (input$value_leaflet != "staattinen"){
+        tag_list <- leaflet::leafletOutput(ns("map_zip_plot_leaflet"), width = "90%", height = "820px")
+      } else {
+        tag_list <- plotOutput(ns("map_zip_plot_static"))
+      }
+      tagList(
+        tag_list
+      )
+    })
     
     output$bar_zip_plot <- renderPlot({
       
-      req(input$value_variable)
-      req(input$value_region_selected)
-      req(input$value_regio_level)
-      
       plot_zipcodes_bar(
-        input_value_region_selected = input$value_region_selected,
-        input_value_regio_level = input$value_regio_level,
-        input_value_variable = input$value_variable
+        input_value_region_selected = react_value_region_selected(),
+        input_value_regio_level = react_value_regio_level(),
+        input_value_variable = react_value_variable()
         # input_value_region_selected = 91,
         # input_value_regio_level = "Kunnat",
         # input_value_variable = "Kokonaislukema"
         )
     })
-
+    
     output$ui_plot_zip_bar <- renderUI({
       
-      req(input$value_variable)
-      req(input$value_region_selected)
-      req(input$value_regio_level)
-      dat <- process_zipdata(varname = input$value_variable)
-      # dat <- process_zipdata(varname = "Kokonaislukema")
+      dat <- process_zipdata(varname = react_value_variable())
 
-      zipcodes <- get_koodit_zip(regio_selected = input$value_region_selected,
-                                 value_regio_level = input$value_regio_level)
-      # zipcodes <- get_koodit_zip(regio_selected = 924,
-      #                            value_regio_level = "Kunnat")
+      zipcodes <- get_koodit_zip(regio_selected = react_value_region_selected(),
+                                 value_regio_level = react_value_regio_level())
       dat <- dat %>% filter(aluekoodi %in% zipcodes)
       
-      Sys.sleep(1)
+      # Sys.sleep(2)
       rows <- nrow(dat)
       # rows <- 10
       bar_height = 300 + rows * 17
@@ -226,86 +214,20 @@ mod_041zipcode_server <- function(id){
         div(style='height:820px; overflow-y: auto; overflow-x: hidden;',
             plotOutput(ns("bar_zip_plot"), width = "100%", height = bar_height)
         )
-        
       )
-      
     })
-    
     
     output$timeseries_zip_plot <- renderPlot({
       
-      req(input$value_variable)
-      req(input$value_region_selected)
-      req(input$value_regio_level)
-      
       plot_zipcodes_line(
-        input_value_region_selected = input$value_region_selected,
-        input_value_regio_level = input$value_regio_level,
-        input_value_variable = input$value_variable
+        input_value_region_selected = react_value_region_selected(),
+        input_value_regio_level = react_value_regio_level(),
+        input_value_variable = react_value_variable()
         # input_value_region_selected = 924,
         # input_value_regio_level = "Kunnat",
         # input_value_variable = "Kokonaislukema"
         )
     })
-    
-    
-    output$download_map <- downloadHandler(
-      
-      filename = function() {
-        
-        file_extension <- input$file_type
-        # file_extension <- ifelse(input$file_type %in% c(".png",".pdf"), ".zip", input$file_type)
-        
-        dataset_name <- janitor::make_clean_names(input$value_variable,
-                                                  case = "snake") %>%
-          paste0(file_extension)
-        # dataset_name <- paste0("kartta", file_extension)
-        return(dataset_name)
-      },
-      
-      content = function(file) {
-        # Reactives are cached
-        
-        if (input$file_type == ".png") {
-          
-          temp_plot <- tempdir() 
-          p1 <- map_zipcodes(input_value_region_selected = input$value_region_selected,
-                       input_value_regio_level = input$value_regio_level,
-                       input_value_variable = input$value_variable,
-                       # input_value_region_selected = 91,
-                       # input_value_regio_level = "Kunnat",
-                       # input_value_variable = "Kokonaislukema",
-                       leaflet = FALSE
-          )
-          ggsave(filename = paste0(temp_plot,"/map.png"), plot = p1, device = ragg::agg_png, width = 8.3, height = 11.7)
-          file.copy(paste0(temp_plot,"/map.png"), file)
 
-        } else if (input$file_type == ".pdf") {
-          # Write SVG using ggplot2
-          temp_plot <- tempdir()
-          p1 <- map_zipcodes(input_value_region_selected = input$value_region_selected,
-                             input_value_regio_level = input$value_regio_level,
-                             input_value_variable = input$value_variable,
-                             # input_value_region_selected = 91,
-                             # input_value_regio_level = "Kunnat",
-                             # input_value_variable = "Kokonaislukema",
-                             leaflet = FALSE
-          )
-          ggsave(filename = paste0(temp_plot,"/map.pdf"), plot = p1, device = cairo_pdf, width = 8.3, height = 11.7)
-          file.copy(paste0(temp_plot,"/map.pdf"), file)
-          
-          
-        }
-      }
-    )
-    
-    
-    
- 
   })
 }
-    
-# plot_zipcodes_line(
-#   input_value_region_selected = 91,
-#   input_value_regio_show_mode = "valittu alue ja naapurit",
-#   input_value_variable = "Kokonaislukema")

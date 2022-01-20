@@ -171,8 +171,10 @@ map_zipcodes <- function(input_value_region_selected = 91,
                                               textsize = "12px",
                                               direction = "auto")
       ) %>% 
-      addLegend(pal = pal, values = ~value, 
-                opacity = 0.7, 
+      addLegend(pal = pal, 
+                values = ~value, 
+                opacity = 0.7,
+                # labFormat = labelFormat(transform = function(x) sort(x, decreasing = TRUE)),
                 title = input_value_variable,
                 position = "bottomright") %>% 
       leaflet.extras::addFullscreenControl()
@@ -207,13 +209,13 @@ plot_zipcodes_bar <- function(input_value_region_selected = 91,
   
   ggplot(data = dat, aes(y = reorder(aluenimi, value), 
                          x = value, 
-                         fill = kuntanimi)) +
+                         fill = value)) +
     geom_col() +
     geom_text(aes(label = round(value,1)), 
               color = "black", 
               nudge_x = max(dat$value, na.rm = TRUE)*0.2, 
               family = "PT Sans") +
-    # scale_fill_fermenter(palette = "YlGnBu", type = "seq", direction = 1) +
+    scale_fill_fermenter(palette = "YlGnBu", type = "seq", direction = 1) +
     scale_color_fermenter(palette = "YlGnBu", type = "seq", direction = 1) +
     theme_ipsum(base_family = "PT Sans",
                 plot_title_family = "PT Sans",
