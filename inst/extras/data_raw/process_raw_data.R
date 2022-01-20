@@ -410,6 +410,90 @@ if (F){
   
 }
 
+# Postinumeroaluedata
+
+paavo_raw <- geofi::get_zipcodes(year = 2021)
+regio_Postinumeroalueet <- select(paavo_raw, -pinta_ala,-namn,-vuosi,-objectid,-kunta,-gml_id) %>% 
+  rename(region_code = posti_alue,
+         region_name = nimi)
+save(regio_Postinumeroalueet, file = here::here("data/regio_Postinumeroalueet.rda"),
+     compress = "bzip2")
+
+
+
+karttasovellus::document_data(dat = regio_Postinumeroalueet, 
+                              neim = "regio_Postinumeroalueet", 
+                              description = "Zipcode sf data from 2021 including zipcode and municipality number")
+
+# postinumeroaluenaapurit
+datalist2 <- list()
+region_data2 <- regio_Postinumeroalueet
+for (iii in 1:nrow(region_data2)){
+  this_region <- region_data2$region_code[[iii]]
+  sf::st_intersection(x = region_data2, 
+                      y = region_data2[region_data2$region_code == this_region,]) %>%
+    pull(region_code) -> neigbours
+  datalist2[[iii]] <- tibble(region_code = this_region, 
+                             neigbours = list(neigbours))
+}
+neigbour_data <- do.call(bind_rows, datalist2)
+region_data_zip <- left_join(region_data2,neigbour_data) %>% 
+  mutate(level = "Postinumeroalueet")
+# saveRDS(region_data2, "./data/region_data.RDS")
+save(region_data_zip, file = here::here("data/region_data_zip.rda"),
+     compress = "bzip2")
+karttasovellus::document_data(dat = region_data_zip, 
+                              neim = "region_data_zip", 
+                              description = "Zipcode sf with neighbours from 2021")
+
+
+
+## Poikkileikkaus
+setwd(here("./inst/extras/"))
+fs::file_copy("../../../data_storage/v20211104/uusin_postinumerodata.xlsx", "./data_raw/")
+dd <- read_excel("./data_raw/uusin_postinumerodata.xlsx", skip = 4)
+
+dfzip_v20220105 <- dd %>%
+  rename(aluekoodi = Postinumeroalue,
+         aluenimi = `Postinumeroalueen nimi`,
+         kuntanimi = `Kunnan nimi`,
+         kuntanro = Kuntakoodi) %>% 
+  pivot_longer(names_to = "variable", values_to = "value", cols = 5:ncol(.)) %>% 
+  mutate(regio_level = "Postinumeroalueet",
+         kuntanro = as.integer(kuntanro)) %>% 
+  select(regio_level,everything())
+
+save(dfzip_v20220105, file = here::here("data/dfzip_v20220105.rda"),
+     compress = "bzip2")
+
+karttasovellus::document_data(dat = dfzip_v20220105, 
+                              neim = "dfzip_v20220105", 
+                              description = "Cross-sectional zipcode level attribute data")
+
+## Aikasarja
+fs::file_copy("../../../data_storage/v20211104/postinumeroaikasarjat.xlsx", "./data_raw/")
+dd <- read_excel("./data_raw/postinumeroaikasarjat.xlsx", skip = 2)
+
+dfzip_v20220105_aikasarja <- dd %>%
+  rename(aluekoodi = Postinumeroalue,
+         aluenimi = `Postinumeroalueen nimi`,
+         aika = Vuosi,
+         kuntanimi = `Kunnan nimi`,
+         kuntanro = Kuntakoodi) %>% 
+  pivot_longer(names_to = "variable", values_to = "value", cols = 6:ncol(.)) %>% 
+  mutate(regio_level = "Postinumeroalueet",
+         kuntanro = as.integer(kuntanro),
+         aika = as.integer(sub("-.+$", "", aika))+1) %>% 
+  select(regio_level,everything())
+
+save(dfzip_v20220105_aikasarja, file = here::here("data/dfzip_v20220105_aikasarja.rda"),
+     compress = "bzip2")
+
+karttasovellus::document_data(dat = dfzip_v20220105_aikasarja, 
+                              neim = "dfzip_v20220105_aikasarja", 
+                              description = "Time-series zipcode level attribute data")
+
+
 
 
 

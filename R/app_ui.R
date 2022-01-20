@@ -29,10 +29,12 @@ app_ui <- function(request) {
                                         code_font = font_google("Space Mono")
                   ),
       # mod_01meta_ui("meta_ui_1"),
-      mod_02navi_ui("02navi_ui_1"),
-      mod_03indi_ui("03indi_ui_1"),
-      mod_04alueprof_ui("04alueprof_ui_1"),
-      mod_05etc_ui("05etc_ui_1")
+      # mod_02navi_ui("02navi_ui_1"),
+      # mod_03indi_ui("03indi_ui_1"),
+      # tags$div(style = "padding-top:50px;"),
+      mod_041zipcode_ui("041zipcode_ui_1")#,
+      # mod_04alueprof_ui("04alueprof_ui_1"),
+      # mod_05etc_ui("05etc_ui_1")
 
     )
   )

@@ -31,6 +31,9 @@ mod_02navi_ui <- function(id){
                                                                       tags$a(class="nav-link", href="#indikaattorivertailu", "Indikaattorivertailu")
                                                               ),
                                                               tags$li(class = "nav-item",
+                                                                      tags$a(class="nav-link", href="#zipcode", "Postinumeroalueet")
+                                                              ),
+                                                              tags$li(class = "nav-item",
                                                                       tags$a(class="nav-link", href="#alueprofiili", "Luo alueprofiili")
                                                               ),
                                                               tags$li(class = "nav-item",
