@@ -19,8 +19,13 @@ mod_03indi_ui <- function(id){
                                     uiOutput(ns("output_indicator")),
                                     uiOutput(ns("output_regio_level")),
                                     uiOutput(ns("output_regio_select")),
-                                    uiOutput(ns("output_regio_show_mode"))#,
-                                    # uiOutput(ns("output_save_data_indicator"))
+                                    uiOutput(ns("output_regio_show_mode")),
+                                     radioButtons(ns("value_leaflet"), 
+                                                  "Kartan tyyppi", 
+                                                  choices = c("vuorovaikutteinen",
+                                                              "staattinen")
+                                     ),
+                                     actionButton(ns("button_ind"), "Piirrä kuvat")
                                     ),
                   tags$div(class = "col-lg-5",
                            plotOutput(ns("map_plot"), width = "100%", height = "800px")
@@ -56,36 +61,7 @@ tags$hr()
 mod_03indi_server <- function(id){
   moduleServer( id, function(input, output, session){
     ns <- session$ns
-    #  get_dat <- reactive({
-    #     # dat <- readRDS("./data/df_v20201102.RDS")  
-    #     # dat <- readRDS("www/data/df_v20211104.RDS")
-    #     dat <- karttasovellus::df_v20211104
-    #     return(dat)
-    # })
-    # 
-    # get_dat_timeseries <- reactive({
-    #     dat_aika <- karttasovellus::df_v20211104_aikasarja
-    #     return(dat_aika)
-    # })
-    # 
-    # get_region_data <- reactive({
-    #     
-    #     region_data <- karttasovellus::region_data
-    #     # dat <- dplyr::filter(region_data, level %in% input$value_region_level2)
-    #     return(region_data)
-    #     
-    # })
-    # 
-    # 
-    # varlist_diak <- reactive({
-    #     dat <- get_dat()
-    #     dat %>% 
-    #         count(regio_level,var_class,variable) %>% 
-    #         select(-n) %>% 
-    #         arrange(desc(var_class),variable) -> indicator_df
-    #     return(indicator_df)
-    # })
-    
+
     # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
     #    _                 _ _         _   
     #   | |__   __ _ _ __ (_) | ____ _| |_ 
@@ -101,9 +77,6 @@ mod_03indi_server <- function(id){
         indicator_df <- varlist_diak()
         opt_indicator <- unique(indicator_df$var_class)
         
-        # if (input$sidebar_menu == "info"){
-        #     tagList()
-        # } else {
         tagList(
             selectInput(
                 inputId = ns("value_variable_class"), 
@@ -111,15 +84,11 @@ mod_03indi_server <- function(id){
                 choices = opt_indicator, 
                 selected = opt_indicator[1])
         )
-        # }
-        
     })
     
     
     output$output_indicator <- renderUI({
-        
-        req(input$value_variable_class)
-        
+
         indicator_df <- varlist_diak()
         # järjestetään niin että ne indikaattorit joita useammalta tasolta tulee ekana
         opt_indicator <- indicator_df[indicator_df$var_class %in% input$value_variable_class,]$variable
@@ -134,24 +103,11 @@ mod_03indi_server <- function(id){
             opt_indicator2 <- factor(opt_indicator2)
         }
         
-        # if (input$sidebar_menu == "info"){
-        #     tagList()
-        # } else {
         tagList(
             selectInput(inputId = ns("value_variable"), 
                         label = "Valitse muuttuja", 
                         choices = opt_indicator2
                         ,selected = levels(opt_indicator2)[1],
-                        # option= pickerOptions(
-                        #     actionsBox = TRUE,
-                        #     liveSearch = TRUE,
-                        #     deselectAllText = "Ei mitään",
-                        #     selectAllText = "Kaikki",
-                        #     noneSelectedText = "Ei yhtään valittuna",
-                        #     noneResultsText = "Ei yhtään osumaa"#,
-                        #     # maxOptions = 4,
-                        #     # maxOptionsText = "Maksimimäärä muuttujia valittu"
-                        # ),
                         multiple = FALSE)
         )
         # }
@@ -160,8 +116,6 @@ mod_03indi_server <- function(id){
     
     output$output_regio_level <- renderUI({
         
-        req(input$value_variable_class)
-        req(input$value_variable)
         varname <- input$value_variable[1]
         indicator_df <- varlist_diak()
         opt_indicator <- unique(indicator_df[indicator_df$var_class %in% input$value_variable_class & indicator_df$variable %in% varname,]$regio_level)
@@ -169,9 +123,6 @@ mod_03indi_server <- function(id){
         opt_indicator <- factor(opt_indicator, levels = c("Hyvinvointialueet","Seutukunnat","Kunnat"))
         opt_indicator <- sort(opt_indicator)
         
-        # if (input$sidebar_menu == "info"){
-        #     tagList()
-        # } else {
         tagList(
             radioButtons(inputId = ns("value_regio_level"), 
                          label = "Valitse aluetaso", inline = FALSE,
@@ -183,8 +134,6 @@ mod_03indi_server <- function(id){
     
     
     output$output_regio_select <- renderUI({
-        
-        req(input$value_regio_level)
         
         region_data <- get_region_data()
         tmpdat <- region_data[region_data$level %in% input$value_regio_level,]
@@ -201,10 +150,6 @@ mod_03indi_server <- function(id){
     
     output$output_regio_show_mode <- renderUI({
         
-        req(input$value_variable_class)
-        req(input$value_variable)
-        req(input$value_regio_level)
-        # req(input$value_region_selected)
         varlist <- varlist_diak()
         varlist_kunta <- varlist[varlist$regio_level == "Kunnat",]$variable
         
@@ -227,53 +172,34 @@ mod_03indi_server <- function(id){
         
     })
     
+  
     
-    
-
-    
-    
-    ## reaktiivisuus ----
-
-    # Define reactiveValue
-    rv <- reactiveValues(selected = NULL)
-
-    # 1. Pass value of input$timeline_selected to Reactive Value
-    observe( {
-        rv$map_click_id <- input$map1_shape_click
+    # EVENTREACTIVE
+    react_value_variable <- eventReactive(input$button_ind, {
+      input$value_variable
     })
-    # 2. clear selection if different filter is chosen
-    observeEvent(input$value_regio_level, {
-        rv$map_click_id <- NULL
+    
+    react_value_variable_class <- eventReactive(input$button_ind, {
+      input$value_variable_class
     })
-
-    get_klik <- reactive({
-        # req(input$value_variable_class)
-        # req(input$value_variable)
-        req(input$value_regio_level)
-        reg <- readRDS("./data/regiokey.RDS")
-        idnimi <- reg[reg$aluetaso == input$value_regio_level,]$aluenimi[1]
-
-        # klik <- rv$map_click_id
-        # if (is.null(klik)){
-        klik <- list("id" = input$value_region_selected)
-        # }
-        return(klik)
+    
+    react_value_regio_level <- eventReactive(input$button_ind, {
+      input$value_regio_level
+    })
+    
+    react_value_region_selected <- eventReactive(input$button_ind, {
+      input$value_region_selected
+    })
+    
+    react_value_leaflet <- eventReactive(input$button_ind, {
+      input$value_leaflet
     })
 
-
-    
     process_data <- reactive({
         
-        req(input$value_variable_class)
-        req(input$value_variable)
-        req(input$value_regio_level)
-        
         dat <- get_dat()
-        
         dat_1 <- dat[dat$regio_level %in% input$value_regio_level & dat$variable %in% input$value_variable,]
         
-        # reg <- readRDS(glue("./data/regio_{input$value_regio_level}.RDS"))
-        # reg <- get(glue("karttasovellus::regio_{input$value_regio_level}"))
         if (input$value_regio_level == "Hyvinvointialueet"){
           reg <- karttasovellus::regio_Hyvinvointialueet
           } else if (input$value_regio_level == "Seutukunnat"){
@@ -281,9 +207,7 @@ mod_03indi_server <- function(id){
           } else if (input$value_regio_level == "Kunnat"){
             reg <- karttasovellus::regio_Kunnat
           }
-        # value_regio_level <- "Hyvinvointialueet"
-        # reg <- get(x = paste0("regio_",value_regio_level), envir = "karttasovellus::")
-        
+
         res <- left_join(reg, dat_1)  
         
         res <- res %>%
@@ -351,54 +275,9 @@ mod_03indi_server <- function(id){
     #   |___|_| |_|\__,_|_|_|\_\__,_|\__,_|\__|\__\___/|_|  |_|_|\_\\__,_| \_/ |_|\___/ \__|
     #                                                                                       
     # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
-    ## indikaattorikuvioiden_datan_lataus ----
-    ## 
-    ## 
-    output$save_data_indicator <- downloadHandler(
-        
-        filename = function() {
-            file_name <- glue("data_{janitor::make_clean_names(input$value_variable)}_{tolower(input$value_regio_level)}.csv")
-            return(file_name)
-        },
-        content = function(file) {
-            
-            dat <- get_dat_timeseries()
-            region_data <- get_region_data()
-            naapurikoodit_lst <- region_data[region_data$level %in% input$value_regio_level & 
-                                                 region_data$region_name %in% input$value_region_selected,"neigbours"]
-            
-            naapurikoodit <- naapurikoodit_lst %>% 
-                unnest(cols = c(neigbours)) %>% 
-                pull(neigbours)
-            
-            
-            df <- dat[dat$variable == input$value_variable &
-                          dat$regio_level == input$value_regio_level,]
-            
-            readr::write_excel_csv2(x = df, file = file)
-        }
-    )
-    
-    output$output_save_data_indicator <- renderUI({
-        
-        req(input$value_variable)
-        tagList(
-            downloadButton(ns("save_data_indicator"), "Tallenna data csv-muodossa!", class="btn btn-dark"),
-        )
-    })
-    
-    
-    
-    
+
     ## indikaattorikuviot ----
-    
     output$ui_plot_bar <- renderUI({
-      
-      req(input$value_variable_class)
-      req(input$value_variable)
-      req(input$value_regio_level)
-      req(input$value_region_selected)
-      req(input$value_regio_show_mode)
       
       Sys.sleep(1)
       if (input$value_regio_show_mode == "kaikki tason alueet"){
@@ -414,28 +293,17 @@ mod_03indi_server <- function(id){
       } else {
         bar_height = 500
       }
-      
-
 
       tagList(
         div(style='height:820px; overflow-y: auto; overflow-x: hidden;',
             plotOutput(ns("rank_plot"), width = "100%", height = bar_height)
         )
-        
       )
-      
     })
-    
-    
+
     
     output$rank_plot <- renderPlot({
-        
-        req(input$value_variable_class)
-        req(input$value_variable)
-        req(input$value_regio_level)
-        req(input$value_region_selected)
-        req(input$value_regio_show_mode)
-        
+
         dat <- process_data()
         
         region_data <- get_region_data()
@@ -444,8 +312,6 @@ mod_03indi_server <- function(id){
                                            regio_selected = input$value_region_selected)
         dat <- dat %>% #sf::st_transform(crs = 3067) %>% 
             mutate(color = ifelse(aluenimi %in% input$value_region_selected, TRUE, FALSE))
-        
-        ## Tolpat ----
         
         dat <- process_data() %>% 
             st_set_geometry(NULL) %>% 
@@ -456,7 +322,6 @@ mod_03indi_server <- function(id){
                    color = ifelse(aluenimi %in% input$value_region_selected, TRUE, FALSE))
 
         if (input$value_regio_show_mode == "valittu alue ja sen naapurit"){
-            # dat$fill <- ifelse(!dat$aluekoodi %in% naapurikoodit, NA, dat$fill)
             dat <- dat %>% filter(aluekoodi %in% naapurikoodit)
             if (input$value_regio_level == "Kunnat"){
                 dat$color <- ifelse(!dat$aluekoodi %in% naapurikoodit, FALSE, TRUE)
@@ -502,12 +367,6 @@ mod_03indi_server <- function(id){
 
     }, alt = reactive({
         
-        req(input$value_variable_class)
-        req(input$value_variable)
-        req(input$value_regio_level)
-        req(input$value_region_selected)
-        req(input$value_regio_show_mode)
-        
         if (input$value_regio_show_mode == "kaikki tason alueet"){
             alt_teksti <- paste("Muuttujan", input$value_variable, 
                                 "arvot aluetasolla",input$value_regio_level,
@@ -549,14 +408,7 @@ mod_03indi_server <- function(id){
         
         output$map_plot <- renderPlot({
           
-          req(input$value_variable_class)
-          req(input$value_variable)
-          req(input$value_regio_level)
-          req(input$value_region_selected)
-          req(input$value_regio_show_mode)
-
           dat <- process_data()
-          
           region_data <- get_region_data()
           naapurikoodit <- get_naapurikoodit(region_data = region_data,
                                              regio_lvl = input$value_regio_level,
@@ -638,42 +490,15 @@ mod_03indi_server <- function(id){
                     axis.title.y = element_blank(),
                     panel.grid.major = element_blank(),
                     panel.grid.minor = element_blank(),
-                    # plot.title = element_text(family = "PT Sans", size = 20),
-                    #                   plot.subtitle = element_text(family = "PT Sans", size = 16),
-                    #                   plot.caption = element_text(family = "PT Sans", size = 11),
                     legend.position = c(0.1, 0.5),
                     plot.title.position = "plot") +
             labs(title = glue("{input$value_variable}"),
                  subtitle = kuvan_subtitle,
                  caption = glue("Huono-osaisuus Suomessa -karttasovellus (Diak)\nData: THL (perusdata) & Diak (mediaanisuhteutus)\nTiedot haettu:{Sys.Date()}"),
                  fill = paste0(add_line_break2(input$value_variable, 20), "\n(suhdeluku)"))
-          # 
-          # 
-          # 
-          # 
-          # p1 + p2 +
-          #   plot_layout(
-          #     ncol = 2,
-          #     widths = c(1, 1.2)
-          #   ) -> plotlist
-          # wrap_plots(plotlist, ncol = 1) +
-          #   plot_annotation(
-          #     title = glue("{input$value_variable}"),
-          #     subtitle = kuvan_subtitle,
-          #     caption = glue("Huono-osaisuus Suomessa -karttasovellus (Diak)\nData: THL (perusdata) & Diak (mediaanisuhteutus)\nTiedot haettu:{Sys.Date()}"),
-          #     theme = theme(plot.title = element_text(family = "PT Sans", size = 20),
-          #                   plot.subtitle = element_text(family = "PT Sans", size = 16),
-          #                   plot.caption = element_text(family = "PT Sans", size = 11))
-          #   )
           
         }, alt = reactive({
-          
-          req(input$value_variable_class)
-          req(input$value_variable)
-          req(input$value_regio_level)
-          req(input$value_region_selected)
-          req(input$value_regio_show_mode)
-          
+
           if (input$value_regio_show_mode == "kaikki tason alueet"){
             alt_teksti <- paste("Muuttujan", input$value_variable, 
                                 "arvot aluetasolla",input$value_regio_level,
@@ -715,15 +540,7 @@ mod_03indi_server <- function(id){
     
     ## aikasarja ----
     output$timeseries_plot <- renderPlot({
-        
-        req(input$value_variable_class)
-        req(input$value_variable)
-        req(input$value_regio_level)
-        req(input$value_region_selected)
-        req(input$value_regio_show_mode)
-        
-        
-        # klik <- get_klik()    
+
         dat <- get_dat_timeseries()
         region_data <- get_region_data()
         naapurikoodit_lst <- region_data[region_data$level %in% input$value_regio_level & 
@@ -735,37 +552,17 @@ mod_03indi_server <- function(id){
         
         
         df <- dat[dat$variable == input$value_variable &
-                      dat$regio_level == input$value_regio_level,] #%>% 
-        # mutate(color = ifelse(aluenimi %in% input$value_region_selected, TRUE, FALSE))
-        
-        # df <- karttasovellus::df_v20211104_aikasarja %>% 
-        #   filter(variable == "Huono-osaisuus yhteensä", 
-        #          regio_level == "Hyvinvointialueet")
-        
-        # df_gini <- df %>% 
-        #   left_join(karttasovellus::pop_data) %>% 
-        #   group_by(aika) %>% 
-        #     mutate(gini = round(ineq::Gini(value),2),
-        #            gini_w = round(acid::weighted.gini(x = value, w = pop)$Gini[1],2)#,
-        #            # gini_w2 = acid::weighted.gini(x = value, w = pop)$bcGini,
-        #            # gini_w3 = acid::weighted.gini(x = value, w = pop)$bcwGini
-        #            ) %>% 
-        #     ungroup() %>% 
-        #   pivot_longer(names_to = "gini_type", values_to = "gini", 10:11)
+                      dat$regio_level == input$value_regio_level,] 
         
         df_gini <- karttasovellus::ineq_data
         df_gini <- df_gini[df_gini$variable == input$value_variable &
                   df_gini$regio_level == input$value_regio_level,]
-        # df2 <- df_gini[df_gini$regio_level == $aluekoodi %in% naapurikoodit,] %>% 
-        #   filter(!aluenimi %in% input$value_region_selected)
-        
+
         df2 <- df[df$aluekoodi %in% naapurikoodit,] %>% 
           filter(!aluenimi %in% input$value_region_selected)
         
-        df_gini2 <- df_gini[df_gini$aluekoodi %in% naapurikoodit,] #%>% 
-          # filter(!aluenimi %in% input$value_region_selected)
-        
-        
+        df_gini2 <- df_gini[df_gini$aluekoodi %in% naapurikoodit,]
+
         aika1 <- sort(unique(df$aika)) - 1
         aika2 <- sort(unique(df$aika)) + 1
         labels <- paste0(aika1,"-",aika2)
@@ -787,9 +584,6 @@ mod_03indi_server <- function(id){
                 geom_point(data = df_selected_ts, aes(x = aika, y =  value),
                            fill = "black", 
                            color = "white", shape = 21, size = 2.5, stroke = 1) +
-                # geom_point(shape = 21, color = "white", stroke = 1, size = 2.5) +
-                # ggrepel::geom_text_repel(data = df %>% filter(color, aika == max(aika, na.rm = TRUE)),
-                #                          aes(x = aika, y = value, color= aluenimi, label = round(value,1)), family = "PT Sans") +
                 geom_text(data = df_selected_cs,
                           aes(x = aika, 
                               y = value, 
@@ -799,21 +593,12 @@ mod_03indi_server <- function(id){
                           family = "PT Sans", 
                           nudge_x = .3)
             
-            # gini
-            # plot_gini <- ggplot() + 
-            #     geom_line(data = df_gini, aes(x = aika, y = gini, color = aluenimi)) +
-            #     geom_text(data = df_gini, aes(x = aika, y = gini, label = gini, color = aluenimi))
             plot_gini <- ggplot() + 
               geom_line(data = df_gini, aes(x = aika, y = gini, color = aluenimi)) +
               ggrepel::geom_text_repel(data = df_gini %>% filter(aika == max(aika, na.rm = TRUE)),
                                        aes(x = aika, y = gini, color= aluenimi, label = paste(aluenimi, round(gini,2))), nudge_x = .2, family = "PT Sans")
             
-            
-            # gini
-            
         } else if (input$value_regio_show_mode == "valittu alue ja sen naapurit"){
-            
-            # alfa = ifelse(input$value_regio_level == "Kunnat", .1, .2)
             
             plot0 <- plot0 + 
                 geom_line(data = df2,aes(x = aika, y = value, color= aluenimi), show.legend = FALSE) +
@@ -839,9 +624,6 @@ mod_03indi_server <- function(id){
                           color = "black", 
                           family = "PT Sans", 
                           nudge_x = .3)
-            # ggrepel::geom_text_repel(data = df2 %>% filter(aika == max(aika, na.rm = TRUE)-1),
-            #                          aes(x = aika, y = value, color= aluenimi, label = aluenimi), 
-            #                          family = "PT Sans")
             # gini
             plot_gini <- ggplot() + 
               geom_line(data = df_gini2, aes(x = aika, y = gini, color = aluenimi)) +
@@ -850,9 +632,7 @@ mod_03indi_server <- function(id){
                                        aes(x = aika, y = gini, color= aluenimi, 
                                            label = paste(aluenimi, round(gini,1))), 
                                        family = "PT Sans", nudge_x = .3)
-            # gini
-            
-            
+
         } else if (input$value_regio_show_mode == "valitun alueen kunnat"){
             
             dat2 <- create_municipalities_within_region(varname = input$value_variable, 
@@ -870,8 +650,6 @@ mod_03indi_server <- function(id){
                 ggrepel::geom_text_repel(data = dat2 %>% filter(aika == max(aika, na.rm = TRUE)),
                                          aes(x = aika, y = value, color= aluenimi, label = paste(aluenimi, round(value,1))), nudge_x = .2, family = "PT Sans")
             
-            # gini
-            
             df_gini2 <- df_gini[df_gini$aluenimi %in% input$value_region_selected,]
 
             plot_gini <- ggplot() + 
@@ -882,8 +660,6 @@ mod_03indi_server <- function(id){
                                            label = paste(aluenimi, round(gini,1))), 
                                        family = "PT Sans", nudge_x = .3)
         }
-        
-        
         # luodaan alaotsikko
         if (input$value_regio_show_mode == "valitun alueen kunnat"){
             kuvan_subtitle <- glue("Kuvassa näytetään alueeseen {input$value_region_selected} tasolla {tolower(input$value_regio_level)} kuuluvat kunnat")
@@ -892,27 +668,13 @@ mod_03indi_server <- function(id){
         }
         
         plot0 +
-            # 
-            # # valittu
-            # ggrepel::geom_label_repel(data = df %>% filter(aika == max(aika, na.rm = TRUE)-1,
-            #                                                aluenimi == input$value_region_selected),
-            #                           aes(label = aluenimi), color = "white", family = "PT Sans") +
-            
+
             scale_x_continuous(breaks = sort(unique(df$aika)), labels = labels) +
           theme_ipsum(base_family = "PT Sans",
                       plot_title_family = "PT Sans",
                       subtitle_family = "PT Sans",
                       base_size = 14,
                       plot_title_face = "plain") +
-            # theme_ipsum(base_family = "PT Sans",
-            #             plot_title_family = "PT Sans",
-            #             subtitle_family = "PT Sans",
-            #             axis_title_size = 12,
-            #             plot_title_face = "plain") +
-            # scale_fill_brewer(palette = "YlGnBu") +
-            # scale_color_brewer(palette = "YlGnBu") +
-            # scale_fill_viridis_d(option = "plasma", direction = -1, begin = .1, end = .9) +
-            # scale_color_viridis_d(option = "plasma", direction = -1, begin = .1, end = .9) +
             labs(fill = NULL,
                  x = NULL,
                  y = paste0(add_line_break2(input$value_variable, 50), "\n(suhdeluku)"),
@@ -925,9 +687,6 @@ mod_03indi_server <- function(id){
                   panel.grid.major.y = element_blank(),
                   plot.title.position = "plot",
                   plot.margin = unit(c(0,0,0,0), "mm")#,
-                  # plot.title = element_text(family = "PT Sans", size = 20),
-                  # plot.subtitle = element_text(family = "PT Sans", size = 16),
-                  # plot.caption = element_text(family = "PT Sans", size = 11)
                   ) -> plot1
         
         plot_gini <- plot_gini + scale_x_continuous(breaks = sort(unique(df$aika)), labels = labels) +
@@ -936,10 +695,6 @@ mod_03indi_server <- function(id){
                         subtitle_family = "PT Sans",
                         base_size = 14,
                         plot_title_face = "plain") +
-            # scale_fill_brewer(palette = "YlGnBu") +
-            # scale_color_brewer(palette = "YlGnBu") +
-            # scale_fill_viridis_d(option = "plasma", direction = -1, begin = .1, end = .9) +
-            # scale_color_viridis_d(option = "plasma", direction = -1, begin = .1, end = .9) +
             labs(fill = NULL,
                  x = NULL,
                  subtitle = paste0("Indikaattorin ", add_line_break2(input$value_variable, 50), "\neriarvoisuuden kuntatason gini-kerroin aluetasolla: ", input$value_regio_level),
@@ -951,22 +706,13 @@ mod_03indi_server <- function(id){
                   plot.title.position = "plot",
                   axis.title.x = element_blank(),
                   plot.margin = unit(c(10,0,0,0), "mm"),
-                  axis.text.x = element_blank()#,
-                  # plot.title = element_text(family = "PT Sans", size = 20),
-                  # plot.subtitle = element_text(family = "PT Sans", size = 16),
-                  # plot.caption = element_text(family = "PT Sans", size = 11)
+                  axis.text.x = element_blank()
                   )
         
         patchwork::wrap_plots(plot1,plot_gini, ncol = 1, heights = c(1,1))
         
     }, alt = reactive({
-        
-        req(input$value_variable_class)
-        req(input$value_variable)
-        req(input$value_regio_level)
-        req(input$value_region_selected)
-        req(input$value_regio_show_mode)
-        
+
         if (input$value_regio_show_mode == "kaikki tason alueet"){
             alt_teksti <- paste("Muuttujan", input$value_variable, 
                                 "arvot aluetasolla",input$value_regio_level,
@@ -1003,13 +749,7 @@ mod_03indi_server <- function(id){
                                         "Kuntina näytetään",
                                         glue_collapse(unique(dat$aluenimi), sep = ", ", last = " ja ")
             )
-            
         }
-        
-        
-        
-        
-        
     }))
     
     
@@ -1023,8 +763,3 @@ mod_03indi_server <- function(id){
   })
 }
     
-## To be copied in the UI
-# 
-    
-## To be copied in the server
-# 
