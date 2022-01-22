@@ -26,6 +26,7 @@ library(sf)
 library(hrbrthemes)
 library(leaflet)
 
+
 process_zipdata <- function(varname = "Kokonaislukema"){
   dtmp <- karttasovellus::dfzip_v20220105[karttasovellus::dfzip_v20220105$variable == varname, ]
   return(dtmp)
@@ -285,10 +286,10 @@ plot_zipcodes_line <- function(input_value_region_selected = 924,
 
 # "valittu alue ja sen naapurit"
 # "kaikki tason alueet"
-map_zipcodes(input_value_region_selected = 924,
+map_zipcodes(input_value_region_selected = 91,
              # input_value_region_selected = "Pohjois-Meilahti", 
-             input_value_regio_show_mode = "valittu alue",
-             # input_value_regio_show_mode =  "kaikki tason alueet",
+             # input_value_regio_show_mode = "valittu alue",
+             input_value_regio_show_mode =  "kaikki tason alueet",
              # input_value_variable = 'Työttömät (% 15-64 -vuotiaista)',
              input_value_variable = 'Kokonaislukema',
              leaflet = F)
