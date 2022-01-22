@@ -61,35 +61,3 @@ drop_nulls <- function(x){
 #' @noRd
 rv <- shiny::reactiveValues
 rvtl <- shiny::reactiveValuesToList
-
-
-get_dat <- reactive({
-  # dat <- readRDS("./data/df_v20201102.RDS")  
-  # dat <- readRDS("www/data/df_v20211104.RDS")
-  dat <- karttasovellus::df_v20211104
-  return(dat)
-})
-
-get_dat_timeseries <- reactive({
-  dat_aika <- karttasovellus::df_v20211104_aikasarja
-  return(dat_aika)
-})
-
-get_region_data <- reactive({
-  
-  region_data <- karttasovellus::region_data
-  # dat <- dplyr::filter(region_data, level %in% input$value_region_level2)
-  return(region_data)
-  
-})
-
-
-varlist_diak <- reactive({
-  dat <- get_dat()
-  dat %>% 
-    count(regio_level,var_class,variable) %>% 
-    select(-n) %>% 
-    arrange(desc(var_class),variable) -> indicator_df
-  return(indicator_df)
-})
-

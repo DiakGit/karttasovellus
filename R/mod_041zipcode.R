@@ -175,7 +175,7 @@ mod_041zipcode_server <- function(id){
 
     output$ui_map_zip_plot <- renderUI({
       
-      if (input$value_leaflet != "staattinen"){
+      if (react_value_leaflet() != "staattinen"){
         tag_list <- leaflet::leafletOutput(ns("map_zip_plot_leaflet"), width = "90%", height = "820px")
       } else {
         tag_list <- plotOutput(ns("map_zip_plot_static"))
