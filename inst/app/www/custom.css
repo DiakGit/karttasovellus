@@ -31,6 +31,7 @@ body {
 .navbar-xyz {
         /*background-color: rgb(255, 255, 255, .9);
         border-bottom: 1px solid rgb(55, 55, 55, .4);*/
+    background-color: rgb(255, 255, 255, .9);
     border: none;
     -webkit-box-shadow: 0 3px 15px 0px rgba(0, 0, 0, 0.1);
     box-shadow: 0 3px 15px 0px rgba(0, 0, 0, 0.1);
@@ -63,7 +64,7 @@ body {
       padding-left: 10px;
       }
 .container_1280 {
-        max-width: 1280px; 
+        max-width: 1500px; 
         margin: auto;
 }
 #map {
@@ -129,7 +130,7 @@ code {
 
 
 .container, .container-sm, .container-md, .container-lg, .container-xl {
-    max-width: 1340px;
+    max-width: 1500px;
 }
 
 .shiny-plot-output {
