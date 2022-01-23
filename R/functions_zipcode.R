@@ -240,7 +240,7 @@ plot_zipcodes_bar <- function(input_value_region_selected = 91,
 plot_zipcodes_line <- function(input_value_region_selected = 91,
                                # input_value_regio_show_mode = "kaikki tason alueet"
                                input_value_regio_level = "Kunnat",
-                               input_value_regio_show_mode = "kaikki tason alueet",
+                               # input_value_regio_show_mode = "kaikki tason alueet",
                                input_value_variable = "Kokonaislukema"){
   
   region_data <- get_region_zipdata()
