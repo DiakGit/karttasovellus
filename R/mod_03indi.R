@@ -58,7 +58,8 @@ mod_03indi_ui <- function(id){
                                                   choices = c("vuorovaikutteinen",
                                                               "staattinen"),
                                                   selected = "vuorovaikutteinen"
-                                     )
+                                     )#,
+                           # bookmarkButton(label = "Jaa valinnat")
                                     ),
                   tags$div(class = "col-lg-5",
                            uiOutput(ns("ui_map_plot"))
