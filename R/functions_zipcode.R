@@ -206,14 +206,30 @@ plot_zipcodes_bar <- function(input_value_region_selected = 91,
   kuvan_subtitle <- glue("Aluetaso: {input_value_regio_level}")
   
   dat$aluenimi <- paste0(dat$aluenimi, " (", dat$aluekoodi, ") ", dat$kuntanimi)
+  med <- median(dat$value)
+  
+  if (input_value_regio_level == "Kunnat"){
+    dat$value_nudge <- ifelse(dat$value >= 100, dat$value + med*.15, dat$value - med*.15)
+  } else {
+    dat$value_nudge <- ifelse(dat$value >= 100, dat$value + med*.22, dat$value - med*.22)
+  }
   
   ggplot(data = dat, aes(y = reorder(aluenimi, value), 
                          x = value, 
                          fill = value)) +
-    geom_col() +
-    geom_text(aes(label = round(value,1)), 
+    # geom_col() +
+    xlim(c(min(dat$value, na.rm = TRUE)*0.6,max(dat$value, na.rm = TRUE)*1.3)) +
+    geom_vline(xintercept = 100, color = alpha("dim grey", 1/3), linetype = "dashed") +
+    geom_segment(aes(x = 100, 
+                     yend = reorder(aluenimi, value), 
+                     xend = value), 
+                 color = alpha("dim grey", 1/3), 
+                 alpha=1, 
+                 show.legend = FALSE) +
+    geom_point(aes(fill = value), color = "dim grey", shape = 21, size = 5, show.legend = FALSE) + 
+    geom_text(aes(label = round(value,1), x = value_nudge), 
               color = "black", 
-              nudge_x = max(dat$value, na.rm = TRUE)*0.2, 
+              # ,
               family = "PT Sans") +
     scale_fill_fermenter(palette = "YlGnBu", type = "seq", direction = 1) +
     scale_color_fermenter(palette = "YlGnBu", type = "seq", direction = 1) +

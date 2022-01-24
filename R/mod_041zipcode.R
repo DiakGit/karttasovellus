@@ -53,10 +53,10 @@ mod_041zipcode_ui <- function(id){
                                ),
                                # uiOutput(ns("output_leaflet"))#,
                       ),
-                      tags$div(class = "col-lg-5",
+                      tags$div(class = "col-lg-4",
                                uiOutput(ns("ui_map_zip_plot"))
                       ),
-                      tags$div(class = "col-lg-4",
+                      tags$div(class = "col-lg-5",
                                uiOutput(ns("ui_plot_zip_bar"))
                       )
              ),

@@ -5,10 +5,10 @@
 \title{Create bar plot}
 \usage{
 plot_rank_bar(
-  input_value_regio_level = "Kunnat",
+  input_value_regio_level = "Seutukunnat",
   input_value_variable = "Nuorisotyöttömyys",
   input_value_region_selected = "Helsinki",
-  input_value_regio_show_mode = "valittu alue ja sen naapurit"
+  input_value_regio_show_mode = "valitun alueen kunnat"
 )
 }
 \arguments{

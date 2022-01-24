@@ -153,10 +153,10 @@ get_naapurikoodit <- function(input_value_regio_level = "Kunnat",
 #' @param input_value_regio_show_mode A string.
 #'
 #' @export
-plot_rank_bar <- function(input_value_regio_level = "Kunnat",
+plot_rank_bar <- function(input_value_regio_level = "Seutukunnat",
                       input_value_variable = "Nuorisotyöttömyys",
                       input_value_region_selected = "Helsinki",
-                      input_value_regio_show_mode = "valittu alue ja sen naapurit"){
+                      input_value_regio_show_mode = "valitun alueen kunnat"){
   
   dat <- process_data(input_value_regio_level = input_value_regio_level,
                       input_value_variable = input_value_variable)
@@ -194,23 +194,34 @@ plot_rank_bar <- function(input_value_regio_level = "Kunnat",
   } else {
     kuvan_subtitle <- glue("Aluetaso: {input_value_regio_level}")
   }
-  
+  med <- median(dat$value)
+  dat$value_nudge <- ifelse(dat$value >= 100, dat$value + med*.15, dat$value - med*.15)
   ggplot(dat, aes(x = value, y = reorder(aluenimi, -rank))) + 
     theme_ipsum(base_family = "PT Sans",
                 plot_title_family = "PT Sans",
                 subtitle_family = "PT Sans",
                 grid_col = "white",
                 plot_title_face = "plain") +
-    xlim(c(0,max(dat$value, na.rm = TRUE)*1.2)) +
+    xlim(c(min(dat$value, na.rm = TRUE)*0.6,max(dat$value, na.rm = TRUE)*1.3)) +
     theme(legend.position = "right",
           plot.title.position = "plot") +
     scale_color_manual(values = c("white","black")) + 
-    geom_col(aes(color = color, fill = value), show.legend = FALSE, size = 1.1) +
+    # geom_col(aes(color = color, fill = value), show.legend = FALSE, size = 1.1) +
+    # geom_segment(aes(y = 0, xend = value, 
+    #                           yend = aluenimi, color="red"), alpha=.5, show.legend = FALSE) +
+    geom_vline(xintercept = 100, color = alpha("dim grey", 1/3), linetype = "dashed") +
+    geom_segment(aes(x = 100, 
+                     yend = reorder(aluenimi, -rank), 
+                     xend = value), 
+                 color = alpha("dim grey", 1/3), 
+                 alpha=1, 
+                 show.legend = FALSE) +
+    geom_point(aes(fill = value), color = "dim grey", shape = 21, size = 5, show.legend = FALSE) + 
     scale_fill_fermenter(palette = "YlGnBu", type = "seq", direction = 1) -> plot
   
-  plot <- plot + geom_text(aes(label = value), 
+  plot <- plot + geom_text(aes(label = value, x = value_nudge), 
                            color = "black", 
-                           nudge_x = max(dat$value, na.rm = TRUE)*0.2, 
+                           # ,
                            family = "PT Sans")
   
   plot + scale_y_discrete(expand = expansion(add = 2)) +
@@ -218,7 +229,9 @@ plot_rank_bar <- function(input_value_regio_level = "Kunnat",
     labs(title = glue("{input_value_variable}"),
          subtitle = kuvan_subtitle,
          caption = glue("Huono-osaisuus Suomessa -karttasovellus (Diak)\nData: THL (perusdata) & Diak (mediaanisuhteutus)\nTiedot haettu:{Sys.Date()}"))
+
   
+    
 }
 
 
