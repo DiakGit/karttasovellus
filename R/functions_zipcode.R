@@ -312,3 +312,25 @@ plot_zipcodes_line <- function(input_value_region_selected = 91,
          caption = glue("Huono-osaisuus Suomessa -karttasovellus (Diak)\nData: Tilastokeskus Paavo (perusdata) & Diak (mediaanisuhteutus)\nTiedot haettu:{Sys.Date()}"),
          fill = paste0(add_line_break2(input_value_variable, 20), "\n(suhdeluku)"))
 }
+
+
+#' Create zipcode table
+#' 
+#' @param input_value_region_selected A numeric
+#' @param input_value_regio_level A string
+#'
+#' @export
+table_zipcodes <- function(input_value_region_selected = 91,
+                              input_value_regio_level = "Kunnat"){
+  
+  naapurikoodit <- get_koodit_zip(regio_selected = input_value_region_selected,
+                                  value_regio_level = input_value_regio_level)
+  karttasovellus::dfzip_v20220105 %>% 
+    filter(aluekoodi %in% naapurikoodit) %>% 
+    select(aluekoodi, aluenimi, variable, value) %>% 
+    mutate(value = round(value, 1)) %>% 
+    pivot_wider(names_from = variable, values_from = value) %>% 
+    arrange(aluekoodi) %>% 
+    gt::gt()
+  
+}

@@ -728,6 +728,100 @@ mod_04alueprof_server <- function(id){
       )
     })
     
+    
+    output$zipcode_tables <- renderUI({
+
+      aluename <- react_value_region_profile()
+      aluetaso1 <- react_value_regio_level_profile()
+
+      reg_code <- karttasovellus::region_data %>%
+        filter(level == aluetaso1,
+               region_name == aluename) %>%
+        pull(region_code)
+      tags <- table_zipcodes(input_value_region_selected = reg_code,
+                     input_value_regio_level = aluetaso1)
+      tagList(
+        tags
+      )
+    })
+    
+    output$zipcode_maps <- renderUI({
+      
+      aluename <- react_value_region_profile()
+      aluetaso1 <- react_value_regio_level_profile()
+      
+      reg_code <- karttasovellus::region_data %>%
+        filter(level == aluetaso1,
+               region_name == aluename) %>%
+        pull(region_code)
+      
+      output$map_zipcode_01 <- renderPlot({
+        
+        # 'Työttömät (% 15-64 -vuotiaista)','Alimpaan tuloluokkaan kuuluvat täysi-ikäiset','Alimpaan tuloluokkaan kuuluvat taloudet','Kokonaislukema'
+        
+              map1 <- map_zipcodes(input_value_region_selected = reg_code,
+                                       input_value_regio_level = aluetaso1,
+                                       input_value_variable = "Kokonaislukema",
+                                       leaflet = FALSE)
+              map2 <- map_zipcodes(input_value_region_selected = reg_code,
+                                   input_value_regio_level = aluetaso1,
+                                   input_value_variable = "Työttömät (% 15-64 -vuotiaista)",
+                                   leaflet = FALSE)
+              map3 <- map_zipcodes(input_value_region_selected = reg_code,
+                                   input_value_regio_level = aluetaso1,
+                                   input_value_variable = "Alimpaan tuloluokkaan kuuluvat täysi-ikäiset",
+                                   leaflet = FALSE)
+              map4 <- map_zipcodes(input_value_region_selected = reg_code,
+                                   input_value_regio_level = aluetaso1,
+                                   input_value_variable = "Alimpaan tuloluokkaan kuuluvat taloudet",
+                                   leaflet = FALSE)
+              patchwork::wrap_plots(list(map1,map2,map3,map4), ncol = 2)
+              
+      })
+      
+      tagList(
+        withSpinner(plotOutput(ns("map_zipcode_01"),height = "1800px", width = "100%"))
+      )
+    })
+    
+
+    output$zipcode_timeseries <- renderUI({
+      
+      aluename <- react_value_region_profile()
+      aluetaso1 <- react_value_regio_level_profile()
+      
+      reg_code <- karttasovellus::region_data %>%
+        filter(level == aluetaso1,
+               region_name == aluename) %>%
+        pull(region_code)
+      
+      output$lineplot_zipcode_01 <- renderPlot({
+        
+        # 'Työttömät (% 15-64 -vuotiaista)','Alimpaan tuloluokkaan kuuluvat täysi-ikäiset','Alimpaan tuloluokkaan kuuluvat taloudet','Kokonaislukema'
+        
+        map1 <- plot_zipcodes_line(input_value_region_selected = reg_code,
+                             input_value_regio_level = aluetaso1,
+                             input_value_variable = "Kokonaislukema")
+        map2 <- plot_zipcodes_line(input_value_region_selected = reg_code,
+                             input_value_regio_level = aluetaso1,
+                             input_value_variable = "Työttömät (% 15-64 -vuotiaista)")
+        map3 <- plot_zipcodes_line(input_value_region_selected = reg_code,
+                             input_value_regio_level = aluetaso1,
+                             input_value_variable = "Alimpaan tuloluokkaan kuuluvat täysi-ikäiset")
+        map4 <- plot_zipcodes_line(input_value_region_selected = reg_code,
+                             input_value_regio_level = aluetaso1,
+                             input_value_variable = "Alimpaan tuloluokkaan kuuluvat taloudet")
+        patchwork::wrap_plots(list(map1,map2,map3,map4), ncol = 2)
+        
+      })
+      
+      tagList(
+        withSpinner(plotOutput(ns("lineplot_zipcode_01"),height = "1800px", width = "100%"))
+      )
+    })
+    
+    
+    
     ### profiili_html ----
     output$region_profile_html <- renderUI({
       
@@ -738,7 +832,6 @@ mod_04alueprof_server <- function(id){
       region_data <- get_region_data()
       region_data <- dplyr::filter(region_data, level %in% aluetaso1)
       naapurikoodit <- region_data[region_data$region_name %in% aluename,]$neigbours[[1]]
-      
       tabdat <- create_alueprofiili_content(aluename2 = aluename, 
                                             naapurikoodit = naapurikoodit,
                                             aluetaso1 = aluetaso1)
@@ -746,7 +839,8 @@ mod_04alueprof_server <- function(id){
       tagList(
         fluidRow(column(width = 6,
                         tags$h3(glue("{aluename} ({aluetaso1})")),
-                        tags$p("Analyysissä mukana naapurit: ", glue_collapse(unique(tabdat[tabdat$rooli == "naapuri",]$aluenimi), sep = ", ", last = " ja "))
+                        tags$p("Analyysissä mukana naapurit: ", 
+                               glue_collapse(unique(tabdat[tabdat$rooli == "naapuri",]$aluenimi), sep = ", ", last = " ja "))
         ),
         column(width = 6,
                withSpinner(uiOutput(ns("output_save_word")), proxy.height = "100px")
@@ -771,7 +865,18 @@ mod_04alueprof_server <- function(id){
         ## ## ##
         tags$h4("Huono-osaisuuden taloudelliset yhteydet"),
         ## ## ##
-        uiOutput(ns("taloudellinen_01"))
+        uiOutput(ns("taloudellinen_01")),
+        ## ## ##
+        tags$h4("Postinumeroalueittainen tieto"),
+        ## ## ##
+        tags$h5("Taulukko"),
+        uiOutput(ns("zipcode_tables")),
+        # ## ## ##
+        tags$h5("Kartat"),
+        uiOutput(ns("zipcode_maps")),
+        # ## ## ##
+        tags$h5("Aikasarjat"),
+        uiOutput(ns("zipcode_timeseries"))
       )
       
     })
