@@ -41,7 +41,7 @@ mod_041zipcode_ui <- function(id){
                                  choices = c('Kokonaislukema',
                                              'Alimpaan tuloluokkaan kuuluvat taloudet',
                                              'Alimpaan tuloluokkaan kuuluvat täysi-ikäiset',
-                                             'Työttömät (% 15-64 -vuotiaista)'
+                                             'Työttömät'
                                  ), 
                                  selected = "Kokonaislukema"),
                                # uiOutput(ns("output_variable")),
@@ -106,7 +106,7 @@ mod_041zipcode_server <- function(id){
     #   opt_indicator <- c('Kokonaislukema',
     #                      'Alimpaan tuloluokkaan kuuluvat taloudet',
     #                      'Alimpaan tuloluokkaan kuuluvat täysi-ikäiset',
-    #                      'Työttömät (% 15-64 -vuotiaista)'
+    #                      'Työttömät'
     #   )
     #   updateSelectInput(inputId = "value_variable", 
     #                     choices = opt_indicator,

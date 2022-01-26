@@ -282,7 +282,7 @@ plot_zipcodes_line <- function(input_value_region_selected = 924,
 # 'Alimpaan tuloluokkaan kuuluvat taloudet'
 # 'Alimpaan tuloluokkaan kuuluvat täysi-ikäiset'
 # 'Kokonaislukema'
-# 'Työttömät (% 15-64 -vuotiaista)'
+# 'Työttömät'
 
 # "valittu alue ja sen naapurit"
 # "kaikki tason alueet"
@@ -290,7 +290,7 @@ map_zipcodes(input_value_region_selected = 91,
              # input_value_region_selected = "Pohjois-Meilahti", 
              # input_value_regio_show_mode = "valittu alue",
              input_value_regio_show_mode =  "kaikki tason alueet",
-             # input_value_variable = 'Työttömät (% 15-64 -vuotiaista)',
+             # input_value_variable = 'Työttömät',
              input_value_variable = 'Kokonaislukema',
              leaflet = F)
 
@@ -298,7 +298,7 @@ plot_zipcodes_bar(input_value_region_selected = 924,
              # input_value_region_selected = "Pohjois-Meilahti", 
              input_value_regio_show_mode = "valittu alue",
              # input_value_regio_show_mode =  "kaikki tason alueet",
-             input_value_variable = 'Työttömät (% 15-64 -vuotiaista)'
+             input_value_variable = 'Työttömät'
              # input_value_variable = 'Kokonaislukema'
              )
 
@@ -307,7 +307,7 @@ plot_zipcodes_line(#input_value_region_selected = "Veteli Keskus",
              input_value_regio_show_mode = "valittu alue",
              # input_value_regio_show_mode = "valittu alue ja sen naapurit",
              # input_value_regio_show_mode =  "kaikki tason alueet",
-             # input_value_variable = 'Työttömät (% 15-64 -vuotiaista)',
+             # input_value_variable = 'Työttömät',
              input_value_variable = 'Kokonaislukema')
 
 ```
