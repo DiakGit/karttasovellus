@@ -35,7 +35,24 @@ df_tmp <- dd %>%
                            "Helsingin kaupunki", aluenimi)) %>% 
   mutate(aluenimi = ifelse(grepl("hyvinvointialue", aluenimi), 
                            sub("hyvinvointialue", "HVA", aluenimi),
+                           aluenimi),
+         aluenimi = ifelse(grepl("Uusimaan", aluenimi), 
+                           sub("Uusimaan", "Uudenmaan", aluenimi),
                            aluenimi))
+
+# korjataan hyvinvointialueiden aluekoodit
+hva_codes <- geofi::municipality_key_2021 %>% 
+  count(hyvinvointialue_name_fi,hyvinvointialue_code) %>% 
+  select(-n) %>%
+  rename(aluenimi = hyvinvointialue_name_fi) %>% 
+  mutate(aluenimi = ifelse(grepl("hyvinvointialue", aluenimi), 
+                           sub("hyvinvointialue", "HVA", aluenimi),
+                           aluenimi))
+
+df_tmp <- left_join(df_tmp,hva_codes) %>% 
+  mutate(aluekoodi = ifelse(regio_level == "Hyvinvointialueet", hyvinvointialue_code, aluekoodi)) %>% 
+  select(-hyvinvointialue_code)
+
 
 # Uusi data, jossa sarakenimet ei korjattu
 tibble(name1 = names(df_tmp)) %>% 
@@ -200,7 +217,23 @@ mutate(aluenimi = ifelse(aluenimi == "Helsinki (sosiaali- ja terveydenhuolto, se
                          "Helsingin kaupunki", aluenimi))  %>% 
   mutate(aluenimi = ifelse(grepl("hyvinvointialue", aluenimi), 
                               sub("hyvinvointialue", "HVA", aluenimi),
+                           aluenimi),
+         aluenimi = ifelse(grepl("Uusimaan", aluenimi), 
+                           sub("Uusimaan", "Uudenmaan", aluenimi),
                            aluenimi))
+
+# korjataan hyvinvointialueiden aluekoodit
+hva_codes <- geofi::municipality_key_2021 %>% 
+  count(hyvinvointialue_name_fi,hyvinvointialue_code) %>% 
+  select(-n) %>%
+  rename(aluenimi = hyvinvointialue_name_fi) %>% 
+  mutate(aluenimi = ifelse(grepl("hyvinvointialue", aluenimi), 
+                           sub("hyvinvointialue", "HVA", aluenimi),
+                           aluenimi))
+
+df_tmp <- left_join(df_tmp,hva_codes) %>% 
+  mutate(aluekoodi = ifelse(regio_level == "Hyvinvointialueet", hyvinvointialue_code, aluekoodi)) %>% 
+  select(-hyvinvointialue_code)
 
 # Uusi data, jossa sarakenimet ei korjattu
 tibble(name1 = names(df_tmp)) %>% 
