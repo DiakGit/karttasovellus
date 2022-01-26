@@ -297,7 +297,6 @@ plot_zipcodes_line <- function(input_value_region_selected = 91,
     theme_ipsum(base_family = "PT Sans",
                 plot_title_family = "PT Sans",
                 subtitle_family = "PT Sans",
-                grid_col = "white",
                 plot_title_face = "plain") -> p
   
   # if (input_value_regio_show_mode == "kaikki tason alueet"){
@@ -310,7 +309,10 @@ plot_zipcodes_line <- function(input_value_region_selected = 91,
                                       family = "PT Sans", nudge_x = .3)
   # }
   p + theme(plot.title.position = "plot",
-            legend.position = "none") +
+            legend.position = "none",
+            panel.grid.major.x = element_line(),
+            panel.grid.minor.x = element_blank(),
+            panel.grid.major.y = element_blank()) +
     scale_x_continuous(breaks = sort(unique(dat$aika)), labels = labels) +
     labs(title = glue("{input_value_variable}"),
          subtitle = kuvan_subtitle,

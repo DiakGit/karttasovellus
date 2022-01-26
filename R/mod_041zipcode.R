@@ -10,7 +10,7 @@
 
 
 init_val <- 1
-names(init_val) <- "Varsinais-Suomen HVA"
+names(init_val) <- "Itä-Uudenmaan HVA"
 
 mod_041zipcode_ui <- function(id){
   ns <- NS(id)
@@ -45,7 +45,7 @@ mod_041zipcode_ui <- function(id){
                                  ), 
                                  selected = "Kokonaislukema"),
                                # uiOutput(ns("output_variable")),
-                               actionButton(ns("button_zip"), "Piirrä kuvat"),
+                               actionButton(ns("button_zip"), "Päivitä kuvat", class="btn btn-primary", icon("fas fa-sync")),
                                radioButtons(ns("value_leaflet"), 
                                             tags$strong("Kartan tyyppi"), 
                                             choices = c("vuorovaikutteinen",

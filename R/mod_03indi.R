@@ -41,8 +41,8 @@ mod_03indi_ui <- function(id){
                                     # uiOutput(ns("output_regio_level")),
                            selectInput(inputId = ns("value_region_selected"), 
                                        label = "Valitse alue",
-                                       choices = "Varsinais-Suomen HVA",
-                                       selected = "Varsinais-Suomen HVA"
+                                       choices = "Itä-Uudenmaan HVA",
+                                       selected = "Itä-Uudenmaan HVA"
                            ),
                                     # uiOutput(ns("output_regio_select")),
                            radioButtons(inputId = ns("value_regio_show_mode"), 
@@ -52,7 +52,7 @@ mod_03indi_ui <- function(id){
                                         label = "Kuvioissa näytettävät alueet"
                                        ),
                                     # uiOutput(ns("output_regio_show_mode")),
-                           actionButton(ns("button_ind"), "Päivitä kuvat"),
+                           actionButton(ns("button_ind"), "Päivitä kuvat", class="btn btn-primary", icon("fas fa-sync")),
                                      radioButtons(ns("value_leaflet"), 
                                                   "Kartan tyyppi", 
                                                   choices = c("vuorovaikutteinen",
