@@ -4,7 +4,7 @@
 #'
 #' @export
 process_zipdata <- function(varname = "Kokonaislukema"){
-  dtmp <- karttasovellus::dfzip_v20220105[karttasovellus::dfzip_v20220105$variable == varname, ]
+  dtmp <- karttasovellus::dfzip_v20220125[karttasovellus::dfzip_v20220125$variable == varname, ]
   return(dtmp)
 }
 
@@ -16,8 +16,8 @@ process_zipdata <- function(varname = "Kokonaislukema"){
 #'
 #' @export
 process_zipdata_timeseries <- function(varname = "Kokonaislukema"){
-  # dtmp <- karttasovellus::dfzip_v20220105_aikasarja[karttasovellus::dfzip_v20220105_aikasarja$variable == varname & karttasovellus::dfzip_v20220105_aikasarja$aika == year, ]
-  dtmp <- karttasovellus::dfzip_v20220105_aikasarja[karttasovellus::dfzip_v20220105_aikasarja$variable == varname, ]
+  # dtmp <- karttasovellus::dfzip_v20220125_aikasarja[karttasovellus::dfzip_v20220125_aikasarja$variable == varname & karttasovellus::dfzip_v20220125_aikasarja$aika == year, ]
+  dtmp <- karttasovellus::dfzip_v20220125_aikasarja[karttasovellus::dfzip_v20220125_aikasarja$variable == varname, ]
   return(dtmp)
 }
 
@@ -283,6 +283,10 @@ plot_zipcodes_line <- function(input_value_region_selected = 91,
   
   dat$aluenimi <- paste0(dat$aluenimi, " (", dat$aluekoodi, ")\n", dat$kuntanimi)
   
+  aika1 <- sort(unique(dat$aika)) - 1
+  aika2 <- sort(unique(dat$aika)) + 1
+  labels <- paste0(aika1,"-",aika2)
+
   ggplot(data = dat, aes(y = value, 
                          x = aika, 
                          color = aluenimi,
@@ -307,6 +311,7 @@ plot_zipcodes_line <- function(input_value_region_selected = 91,
   # }
   p + theme(plot.title.position = "plot",
             legend.position = "none") +
+    scale_x_continuous(breaks = sort(unique(dat$aika)), labels = labels) +
     labs(title = glue("{input_value_variable}"),
          subtitle = kuvan_subtitle,
          caption = glue("Huono-osaisuus Suomessa -karttasovellus (Diak)\nData: Tilastokeskus Paavo (perusdata) & Diak (mediaanisuhteutus)\nTiedot haettu:{Sys.Date()}"),
@@ -325,7 +330,7 @@ table_zipcodes <- function(input_value_region_selected = 91,
   
   naapurikoodit <- get_koodit_zip(regio_selected = input_value_region_selected,
                                   value_regio_level = input_value_regio_level)
-  karttasovellus::dfzip_v20220105 %>% 
+  karttasovellus::dfzip_v20220125 %>% 
     filter(aluekoodi %in% naapurikoodit) %>% 
     select(aluekoodi, aluenimi, variable, value) %>% 
     mutate(value = round(value, 1)) %>% 

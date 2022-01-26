@@ -14,8 +14,8 @@ setwd(here("./inst/extras/"))
 
 # dir_ls(here("./data_raw/"), glob = "*.xlsx") -> flies
 # dd <- read_excel("./data_raw/Kopio_Huono-osaisuuden mittarit - KAIKKI.xlsx")
-dd <- read_excel("./data_raw/Huono-osaisuusindikaattorit - uusimmat.xlsx")
-fs::file_copy("../data_storage/v20211104/huono_osaisuusindikaattorit_20211104.xlsx", "./data_raw/")
+# dd <- read_excel("./data_raw/Huono-osaisuusindikaattorit - uusimmat.xlsx")
+# fs::file_copy("../data_storage/v20211104/huono_osaisuusindikaattorit_20211104.xlsx", "./data_raw/")
 dd <- read_excel("./data_raw/huono_osaisuusindikaattorit_20211104.xlsx") %>% 
   select(1:31) %>% 
   filter(!is.na(Aika)) %>% 
@@ -252,10 +252,73 @@ df_v20211104_aikasarja <- left_join(df,sk_names) %>%
 save(df_v20211104_aikasarja, file = here::here("data/df_v20211104_aikasarja.rda"),
      compress = "bzip2")
 
+
+# Väestömäärät eri tasoilla!
+library(pxweb)
+library(dplyr)
+library(janitor)
+pxweb_query_list <- list("Alue 2021"=c("*"), "Tiedot"=c("M411"),"Vuosi"=c("*"))
+# Download data 
+px_data <- pxweb_get(url = "https://pxnet2.stat.fi/PXWeb/api/v1/fi/Kuntien_avainluvut/2021/kuntien_avainluvut_2021_aikasarja.px",
+                     query = pxweb_query_list)
+px_tibble <- as.data.frame(px_data, 
+                           column.name.type = "text", 
+                           variable.value.type = "text") %>% 
+  as_tibble() %>% 
+  mutate(Vuosi = as.integer(Vuosi)) %>% 
+  filter(Vuosi >= 2011)
+pop_data_orig <- clean_names(px_tibble)
+names(pop_data_orig) <- c("aluenimi","aika","pop")
+# valitaan vaan kunnat
+pop_data_raw <- pop_data_orig %>% 
+  right_join(geofi::municipality_key_2021 %>% 
+               select(municipality_name_fi,
+                      seutukunta_name_fi,
+                      hyvinvointialue_name_fi), 
+             by = c("aluenimi" = "municipality_name_fi"))
+
+pop_data <- bind_rows(
+  # kuntataso
+  pop_data_raw %>% 
+    mutate(regio_level = "Kunnat") %>% 
+    select(regio_level,aluenimi,aika,pop),
+  # seutukuntataso  
+  pop_data_raw %>% 
+    group_by(seutukunta_name_fi,aika) %>% 
+    summarise(pop = sum(pop, na.rm = TRUE)) %>% 
+    ungroup() %>% 
+    rename(aluenimi = seutukunta_name_fi) %>% 
+    mutate(regio_level = "Seutukunnat") %>% 
+    select(regio_level,aluenimi,aika,pop),
+  # hyvinvointialuetaso
+  pop_data_raw %>% 
+    group_by(hyvinvointialue_name_fi,aika) %>% 
+    summarise(pop = sum(pop, na.rm = TRUE)) %>% 
+    ungroup() %>% 
+    rename(aluenimi = hyvinvointialue_name_fi) %>% 
+    mutate(regio_level = "Hyvinvointialueet") %>% 
+    select(regio_level,aluenimi,aika,pop)
+) %>% mutate(aluenimi = ifelse(grepl("hyvinvointialue", aluenimi), 
+                               sub("hyvinvointialue", "HVA", aluenimi),
+                               aluenimi)) %>% 
+  # aluekoodit vielä
+  left_join(
+    df_v20211104 %>% 
+      distinct(regio_level,aluekoodi,aluenimi)    
+  )
+
+save(pop_data, file = here::here("data/pop_data.rda"),
+     compress = "bzip2")
+
+document_data(dat = pop_data, neim = "pop_data", description = "Population data for computing population weighted gini coefficients")
+
+
+
+
 # lasketaan kuntatason eriarvoisuus
 dat_gini_raw <- df_v20211104_aikasarja %>% 
   filter(regio_level == "Kunnat") %>% 
-  left_join(karttasovellus::pop_data) %>% 
+  left_join(pop_data) %>% 
   left_join(geofi::municipality_key_2021 %>% 
                select(municipality_name_fi,
                       seutukunta_name_fi,
@@ -286,7 +349,7 @@ dat_gini_raw %>%
 ) %>% 
   # aluekoodit vielä
   left_join(
-    karttasovellus::df_v20211104 %>% 
+    df_v20211104 %>% 
       distinct(regio_level,aluekoodi,aluenimi))
 
 save(ineq_data, file = here::here("data/ineq_data.rda"),
@@ -337,64 +400,7 @@ if (F){
   
   }
 
-# Väestömäärät eri tasoilla!
-library(pxweb)
-library(dplyr)
-library(janitor)
-pxweb_query_list <- list("Alue 2021"=c("*"), "Tiedot"=c("M411"),"Vuosi"=c("*"))
-# Download data 
-px_data <- pxweb_get(url = "https://pxnet2.stat.fi/PXWeb/api/v1/fi/Kuntien_avainluvut/2021/kuntien_avainluvut_2021_aikasarja.px",
-                     query = pxweb_query_list)
-px_tibble <- as.data.frame(px_data, 
-                           column.name.type = "text", 
-                           variable.value.type = "text") %>% 
-  as_tibble() %>% 
-  mutate(Vuosi = as.integer(Vuosi)) %>% 
-  filter(Vuosi >= 2011)
-pop_data_orig <- clean_names(px_tibble)
-names(pop_data_orig) <- c("aluenimi","aika","pop")
-# valitaan vaan kunnat
-pop_data_raw <- pop_data_orig %>% 
-  right_join(geofi::municipality_key_2021 %>% 
-               select(municipality_name_fi,
-                      seutukunta_name_fi,
-                      hyvinvointialue_name_fi), 
-             by = c("aluenimi" = "municipality_name_fi"))
 
-pop_data <- bind_rows(
-  # kuntataso
-  pop_data_raw %>% 
-    mutate(regio_level = "Kunnat") %>% 
-    select(regio_level,aluenimi,aika,pop),
-# seutukuntataso  
-pop_data_raw %>% 
-  group_by(seutukunta_name_fi,aika) %>% 
-  summarise(pop = sum(pop, na.rm = TRUE)) %>% 
-  ungroup() %>% 
-  rename(aluenimi = seutukunta_name_fi) %>% 
-  mutate(regio_level = "Seutukunnat") %>% 
-  select(regio_level,aluenimi,aika,pop),
-# hyvinvointialuetaso
-pop_data_raw %>% 
-  group_by(hyvinvointialue_name_fi,aika) %>% 
-  summarise(pop = sum(pop, na.rm = TRUE)) %>% 
-  ungroup() %>% 
-  rename(aluenimi = hyvinvointialue_name_fi) %>% 
-  mutate(regio_level = "Hyvinvointialueet") %>% 
-  select(regio_level,aluenimi,aika,pop)
-) %>% mutate(aluenimi = ifelse(grepl("hyvinvointialue", aluenimi), 
-                           sub("hyvinvointialue", "HVA", aluenimi),
-                           aluenimi)) %>% 
-  # aluekoodit vielä
-  left_join(
-    karttasovellus::df_v20211104 %>% 
-      distinct(regio_level,aluekoodi,aluenimi)    
-  )
-
-save(pop_data, file = here::here("data/pop_data.rda"),
-     compress = "bzip2")
-
-document_data(dat = pop_data, neim = "pop_data", description = "Population data for computing population weighted gini coefficients")
 
 if (F){
   
@@ -410,9 +416,9 @@ if (F){
   
 }
 
-# Postinumeroaluedata
+# Postinumeroaluedata ----
 
-paavo_raw <- geofi::get_zipcodes(year = 2021)
+paavo_raw <- geofi::get_zipcodes(year = 2022)
 regio_Postinumeroalueet <- select(paavo_raw, -pinta_ala,-namn,-vuosi,-objectid,-kunta,-gml_id) %>% 
   rename(region_code = posti_alue,
          region_name = nimi)
@@ -425,10 +431,11 @@ karttasovellus::document_data(dat = regio_Postinumeroalueet,
                               neim = "regio_Postinumeroalueet", 
                               description = "Zipcode sf data from 2021 including zipcode and municipality number")
 
-# postinumeroaluenaapurit
 datalist2 <- list()
 region_data2 <- regio_Postinumeroalueet
-for (iii in 1:nrow(region_data2)){
+nrows <- nrow(region_data2)
+for (iii in 1:nrows){
+  print(paste0(iii,"/",nrows))
   this_region <- region_data2$region_code[[iii]]
   sf::st_intersection(x = region_data2, 
                       y = region_data2[region_data2$region_code == this_region,]) %>%
@@ -447,13 +454,12 @@ karttasovellus::document_data(dat = region_data_zip,
                               description = "Zipcode sf with neighbours from 2021")
 
 
-
-## Poikkileikkaus
+## Poikkileikkaus ----
 setwd(here("./inst/extras/"))
-fs::file_copy("../../../data_storage/v20211104/uusin_postinumerodata.xlsx", "./data_raw/")
-dd <- read_excel("./data_raw/uusin_postinumerodata.xlsx", skip = 4)
+# fs::file_copy("../../../data_storage/v20220126/postinumerodata_uusin.xlsx", "./data_raw/")
+dd <- read_excel("./data_raw/postinumerodata_uusin.xlsx")
 
-dfzip_v20220105 <- dd %>%
+dfzip_v20220125 <- dd %>%
   rename(aluekoodi = Postinumeroalue,
          aluenimi = `Postinumeroalueen nimi`,
          kuntanimi = `Kunnan nimi`,
@@ -463,18 +469,18 @@ dfzip_v20220105 <- dd %>%
          kuntanro = as.integer(kuntanro)) %>% 
   select(regio_level,everything())
 
-save(dfzip_v20220105, file = here::here("data/dfzip_v20220105.rda"),
+save(dfzip_v20220125, file = here::here("data/dfzip_v20220125.rda"),
      compress = "bzip2")
 
-karttasovellus::document_data(dat = dfzip_v20220105, 
-                              neim = "dfzip_v20220105", 
+karttasovellus::document_data(dat = dfzip_v20220125, 
+                              neim = "dfzip_v20220125", 
                               description = "Cross-sectional zipcode level attribute data")
 
-## Aikasarja
-fs::file_copy("../../../data_storage/v20211104/postinumeroaikasarjat.xlsx", "./data_raw/")
-dd <- read_excel("./data_raw/postinumeroaikasarjat.xlsx", skip = 2)
+## Aikasarja ----
+# fs::file_copy("../../../data_storage/v20220126/postinumeroaikasarjat_uusin.xlsx", "./data_raw/")
+dd <- read_excel("./data_raw/postinumeroaikasarjat_uusin.xlsx")
 
-dfzip_v20220105_aikasarja <- dd %>%
+dfzip_v20220125_aikasarja <- dd %>%
   rename(aluekoodi = Postinumeroalue,
          aluenimi = `Postinumeroalueen nimi`,
          aika = Vuosi,
@@ -486,11 +492,11 @@ dfzip_v20220105_aikasarja <- dd %>%
          aika = as.integer(sub("-.+$", "", aika))+1) %>% 
   select(regio_level,everything())
 
-save(dfzip_v20220105_aikasarja, file = here::here("data/dfzip_v20220105_aikasarja.rda"),
+save(dfzip_v20220125_aikasarja, file = here::here("data/dfzip_v20220125_aikasarja.rda"),
      compress = "bzip2")
 
-karttasovellus::document_data(dat = dfzip_v20220105_aikasarja, 
-                              neim = "dfzip_v20220105_aikasarja", 
+karttasovellus::document_data(dat = dfzip_v20220125_aikasarja, 
+                              neim = "dfzip_v20220125_aikasarja", 
                               description = "Time-series zipcode level attribute data")
 
 
