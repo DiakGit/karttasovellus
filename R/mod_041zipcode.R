@@ -45,7 +45,11 @@ mod_041zipcode_ui <- function(id){
                                  ), 
                                  selected = "Kokonaislukema"),
                                # uiOutput(ns("output_variable")),
-                               actionButton(ns("button_zip"), "Päivitä kuvat", class="btn btn-primary", icon("fas fa-sync")),
+                               actionButton(ns("button_zip"), 
+                                            label = "Päivitä kuvat", 
+                                            class="btn btn-outline-primary"#,  
+                                            # icon("fas fa-sync")
+                                            ),
                                radioButtons(ns("value_leaflet"), 
                                             tags$strong("Kartan tyyppi"), 
                                             choices = c("vuorovaikutteinen",

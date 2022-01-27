@@ -81,7 +81,9 @@ mod_04alueprof_server <- function(id){
     
     output$output_button_profile <- renderUI({
       tagList(
-        actionButton(ns("button"), "Luo alueprofiili", class="btn btn-primary")
+        actionButton(ns("button"), 
+                     label = "Luo alueprofiili", 
+                     class="btn btn-outline-primary")
       )
     })
     

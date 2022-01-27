@@ -1,7 +1,7 @@
 #' Document an internal data
 #'
 #' @param dat data.frame
-#' @param heim string name of the data
+#' @param neim string name of the data
 #' @param description Description of the data
 #'
 #' @export

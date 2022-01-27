@@ -9,9 +9,9 @@ document_data(dat, neim, description = "Data is data")
 \arguments{
 \item{dat}{data.frame}
 
-\item{description}{Description of the data}
+\item{neim}{string name of the data}
 
-\item{heim}{string name of the data}
+\item{description}{Description of the data}
 }
 \description{
 Document an internal data

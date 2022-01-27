@@ -52,7 +52,11 @@ mod_03indi_ui <- function(id){
                                         label = "Kuvioissa näytettävät alueet"
                                        ),
                                     # uiOutput(ns("output_regio_show_mode")),
-                           actionButton(ns("button_ind"), "Päivitä kuvat", class="btn btn-primary", icon("fas fa-sync")),
+                           actionButton(ns("button_ind"), 
+                                        label = "Päivitä kuvat", 
+                                        class="btn btn-outline-primary"#, 
+                                        # icon("fas fa-sync")
+                                        ),
                                      radioButtons(ns("value_leaflet"), 
                                                   "Kartan tyyppi", 
                                                   choices = c("vuorovaikutteinen",
