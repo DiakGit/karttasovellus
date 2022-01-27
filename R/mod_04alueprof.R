@@ -107,11 +107,11 @@ mod_04alueprof_server <- function(id){
     })
 
     
-    output$summamuuttuja_01 <- renderUI({
+    output$alueprofiili_html <- renderUI({
       
       aluename <- react_value_region_profile()
       aluetaso1 <- react_value_regio_level_profile()
-      
+
       region_data <- get_region_data()
       region_data <- dplyr::filter(region_data, level %in% aluetaso1)
       naapurikoodit <- region_data[region_data$region_name %in% aluename,]$neigbours[[1]]
@@ -120,314 +120,61 @@ mod_04alueprof_server <- function(id){
                                             input_value_regio_level_profile = aluetaso1)
       
       # Summamuuttujat
-      muuttujaluokka <- "Summamuuttujat"
+      muuttujaluokka <- c(#"Summamuuttujat",
+                          "Inhimillinen huono-osaisuus"#,
+                          # "Huono-osaisuuden sosiaaliset seuraukset",
+                          # "Huono-osaisuuden taloudelliset yhteydet"
+                          )
+      # ii <- 1
+      lapply(seq_along(muuttujaluokka), function(ii) {
       tabdat_tmp <- tabdat %>% 
-        filter(var_class == muuttujaluokka)
+        filter(var_class == muuttujaluokka[ii])
       muuttujanimi <- unique(tabdat_tmp$muuttuja)
       
-      for (ix in seq_along(muuttujanimi)){
-        lista_tbl <- create_raw_tbl(dd1 = tabdat_tmp, muuttujanimi= muuttujanimi, varnro = ix)
-        tbl_temp1 <- create_gt_tbl(lst_df = lista_tbl)
-        assign(x = paste0("lista1_tbl", stringr::str_pad(ix, width = 2, pad = 0)), value = tbl_temp1)
-      }
-      
-      output$aikasarja1_01 <- renderPlot({alueprofiiliaikasarja_html(val_muuttuja1 = muuttujanimi[1], input_value_regio_level_profile = aluetaso1, input_value_region_profile = aluename, val_muuttujaluokka = muuttujaluokka)
-      }, alt = create_alt_text_aikasarja(varname = muuttujanimi[1]))
-      output$aikasarja1_02 <- renderPlot({alueprofiiliaikasarja_html(val_muuttuja1 = muuttujanimi[2], input_value_regio_level_profile = aluetaso1, input_value_region_profile = aluename, val_muuttujaluokka = muuttujaluokka)
-      }, alt = create_alt_text_aikasarja(varname = muuttujanimi[2]))
-      output$aikasarja1_03 <- renderPlot({alueprofiiliaikasarja_html(val_muuttuja1 = muuttujanimi[3], input_value_regio_level_profile = aluetaso1, input_value_region_profile = aluename, val_muuttujaluokka = muuttujaluokka)
-      }, alt = create_alt_text_aikasarja(varname = muuttujanimi[3]))
-      output$aikasarja1_04 <- renderPlot({alueprofiiliaikasarja_html(val_muuttuja1 = muuttujanimi[4], input_value_regio_level_profile = aluetaso1, input_value_region_profile = aluename, val_muuttujaluokka = muuttujaluokka)
-      }, alt = create_alt_text_aikasarja(varname = muuttujanimi[4]))
-      
-      output$kartta1_01 <- renderPlot({alueprofiilikartta_html(val_muuttuja = muuttujanimi[1], input_value_regio_level_profile = aluetaso1, input_value_region_profile = aluename, val_muuttujaluokka = muuttujaluokka)
-      }, alt = create_alt_text_kartta(varname = muuttujanimi[1]))
-      output$kartta1_02 <- renderPlot({alueprofiilikartta_html(val_muuttuja = muuttujanimi[2], input_value_regio_level_profile = aluetaso1, input_value_region_profile = aluename, val_muuttujaluokka = muuttujaluokka)
-      }, alt = create_alt_text_kartta(varname = muuttujanimi[2]))
-      output$kartta1_03 <- renderPlot({alueprofiilikartta_html(val_muuttuja = muuttujanimi[3], input_value_regio_level_profile = aluetaso1, input_value_region_profile = aluename, val_muuttujaluokka = muuttujaluokka)
-      }, alt = create_alt_text_kartta(varname = muuttujanimi[3]))
-      output$kartta1_04 <- renderPlot({alueprofiilikartta_html(val_muuttuja = muuttujanimi[4], input_value_regio_level_profile = aluetaso1, input_value_region_profile = aluename, val_muuttujaluokka = muuttujaluokka)
-      }, alt = create_alt_text_kartta(varname = muuttujanimi[4]))
-      
-      tagList(
-        fluidRow(tags$h5(muuttujanimi[1])),
-        fluidRow(column(3,lista1_tbl01),column(5,withSpinner(plotOutput(ns("kartta1_01"),width = "100%"))),column(4,withSpinner(plotOutput(ns("aikasarja1_01"),width = "100%")))),
-        fluidRow(tags$h5(muuttujanimi[2])),
-        fluidRow(column(3,lista1_tbl02),column(5,plotOutput(ns("kartta1_02"),width = "100%")),column(4,plotOutput(ns("aikasarja1_02"),width = "100%"))),
-        fluidRow(tags$h5(muuttujanimi[3])),
-        fluidRow(column(3,lista1_tbl03),column(5,plotOutput(ns("kartta1_03"),width = "100%")),column(4,plotOutput(ns("aikasarja1_03"),width = "100%"))),
-        fluidRow(tags$h5(muuttujanimi[4])),
-        fluidRow(column(3,lista1_tbl04),column(5,plotOutput(ns("kartta1_04"),width = "100%")),column(4,plotOutput(ns("aikasarja1_04"),width = "100%")))
-      )
-    })
+
+      nro <- length(muuttujanimi)
+      lapply(1:nro, function(i) {
+
+        # jätä ne muuttujat näyttämättä, joilta tasolta ei yli kahta riviä (kuntatasolla puuttuu osa)
+        if (nrow(tabdat_tmp[tabdat_tmp$muuttuja == muuttujanimi[i],]) > 2) {
+
+        output[[paste0('taulu',ii,'_',i)]] <- function() {
+          lista_tbl <- create_raw_tbl(dd1 = tabdat_tmp, 
+                                      muuttujanimi= muuttujanimi, 
+                                      varnro = i)
+          kableExtra::kable_styling(knitr::kable(lista_tbl))
+        }
+        
+        output[[paste0('kartta',ii,'_',i)]] <- renderPlot({
+          alueprofiilikartta_html(val_muuttuja = muuttujanimi[i], 
+                                     input_value_regio_level_profile = aluetaso1, 
+                                     input_value_region_profile = aluename, 
+                                     val_muuttujaluokka = muuttujaluokka[ii])
+        }, alt = create_alt_text_kartta(varname = muuttujanimi[i]))
+        
+        output[[paste0('aikasarja',ii,'_',i)]] <- renderPlot({
+          alueprofiiliaikasarja_html(val_muuttuja1 = muuttujanimi[i], 
+                                     input_value_regio_level_profile = aluetaso1, 
+                                     input_value_region_profile = aluename, 
+                                     val_muuttujaluokka = muuttujaluokka[ii])
+        }, alt = create_alt_text_aikasarja(varname = muuttujanimi[i]))
+        
+
+        if (i == 1) h4_title <- muuttujaluokka[ii] else h4_title <- ""
+          tagList(
+            fluidRow(tags$h4(h4_title)),
+            fluidRow(tags$h5(muuttujanimi[i])),
+            fluidRow(column(3,withSpinner(tableOutput(ns(paste0('taulu',ii,'_',i))))),
+                     column(5,withSpinner(plotOutput(ns(paste0('kartta',ii,'_',i)),width = "100%"))),
+                     column(4,withSpinner(plotOutput(ns(paste0('aikasarja',ii,'_',i)),width = "100%"))))
+          )
+        }
+      })
+      })
+      })
     
-    output$inhimillinen_01 <- renderUI({
-      
-      aluename <- react_value_region_profile()
-      aluetaso1 <- react_value_regio_level_profile()
-      
-      region_data <- get_region_data()
-      region_data <- dplyr::filter(region_data, level %in% aluetaso1)
-      naapurikoodit <- region_data[region_data$region_name %in% aluename,]$neigbours[[1]]
-      
-      tabdat <- create_alueprofiili_content(input_value_region_profile = aluename, 
-                                            input_value_regio_level_profile = aluetaso1)
-      
-      muuttujaluokka <- "Inhimillinen huono-osaisuus"
-      tabdat_tmp <- tabdat %>% 
-        filter(var_class == muuttujaluokka)
-      muuttujanimi <- unique(tabdat_tmp$muuttuja)
-      
-      
-      for (ix in seq_along(muuttujanimi)){
-        lista_tbl <- create_raw_tbl(dd1 = tabdat_tmp, muuttujanimi= muuttujanimi, varnro = ix)
-        tbl_temp1 <- create_gt_tbl(lst_df = lista_tbl)
-        assign(x = paste0("lista2_tbl", stringr::str_pad(ix, width = 2, pad = 0)), value = tbl_temp1)
-      }
-      
-      output$aikasarja2_01 <- renderPlot({alueprofiiliaikasarja_html(val_muuttuja1 = muuttujanimi[1], input_value_regio_level_profile = aluetaso1, input_value_region_profile = aluename, val_muuttujaluokka = muuttujaluokka)
-      }, alt = create_alt_text_aikasarja(varname = muuttujanimi[1]))
-      output$aikasarja2_02 <- renderPlot({alueprofiiliaikasarja_html(val_muuttuja1 = muuttujanimi[2], input_value_regio_level_profile = aluetaso1, input_value_region_profile = aluename, val_muuttujaluokka = muuttujaluokka)
-      }, alt = create_alt_text_aikasarja(varname = muuttujanimi[2]))
-      output$aikasarja2_03 <- renderPlot({alueprofiiliaikasarja_html(val_muuttuja1 = muuttujanimi[3], input_value_regio_level_profile = aluetaso1, input_value_region_profile = aluename, val_muuttujaluokka = muuttujaluokka)
-      }, alt = create_alt_text_aikasarja(varname = muuttujanimi[3]))
-      output$aikasarja2_04 <- renderPlot({alueprofiiliaikasarja_html(val_muuttuja1 = muuttujanimi[4], input_value_regio_level_profile = aluetaso1, input_value_region_profile = aluename, val_muuttujaluokka = muuttujaluokka)
-      }, alt = create_alt_text_aikasarja(varname = muuttujanimi[4]))
-      output$aikasarja2_05 <- renderPlot({alueprofiiliaikasarja_html(val_muuttuja1 = muuttujanimi[5], input_value_regio_level_profile = aluetaso1, input_value_region_profile = aluename, val_muuttujaluokka = muuttujaluokka)
-      }, alt = create_alt_text_aikasarja(varname = muuttujanimi[5]))
-      output$aikasarja2_06 <- renderPlot({alueprofiiliaikasarja_html(val_muuttuja1 = muuttujanimi[6], input_value_regio_level_profile = aluetaso1, input_value_region_profile = aluename, val_muuttujaluokka = muuttujaluokka)
-      }, alt = create_alt_text_aikasarja(varname = muuttujanimi[6]))
-      if (aluetaso1 == "Hyvinvointialueet"){
-        output$aikasarja2_07 <- renderPlot({alueprofiiliaikasarja_html(val_muuttuja1 = muuttujanimi[7], input_value_regio_level_profile = aluetaso1, input_value_region_profile = aluename, val_muuttujaluokka = muuttujaluokka)
-        }, alt = create_alt_text_aikasarja(varname = muuttujanimi[7]))
-        output$aikasarja2_08 <- renderPlot({alueprofiiliaikasarja_html(val_muuttuja1 = muuttujanimi[8], input_value_regio_level_profile = aluetaso1, input_value_region_profile = aluename, val_muuttujaluokka = muuttujaluokka)
-        }, alt = create_alt_text_aikasarja(varname = muuttujanimi[8]))
-        output$aikasarja2_09 <- renderPlot({alueprofiiliaikasarja_html(val_muuttuja1 = muuttujanimi[9], input_value_regio_level_profile = aluetaso1, input_value_region_profile = aluename, val_muuttujaluokka = muuttujaluokka)
-        }, alt = create_alt_text_aikasarja(varname = muuttujanimi[9]))
-        output$aikasarja2_10 <- renderPlot({alueprofiiliaikasarja_html(val_muuttuja1 = muuttujanimi[10], input_value_regio_level_profile = aluetaso1, input_value_region_profile = aluename, val_muuttujaluokka = muuttujaluokka)
-        }, alt = create_alt_text_aikasarja(varname = muuttujanimi[10]))
-        output$aikasarja2_11 <- renderPlot({alueprofiiliaikasarja_html(val_muuttuja1 = muuttujanimi[11], input_value_regio_level_profile = aluetaso1, input_value_region_profile = aluename, val_muuttujaluokka = muuttujaluokka)
-        }, alt = create_alt_text_aikasarja(varname = muuttujanimi[11]))
-      }
-      
-      output$kartta2_01 <- renderPlot({alueprofiilikartta_html(val_muuttuja = muuttujanimi[1], input_value_regio_level_profile = aluetaso1, input_value_region_profile = aluename, val_muuttujaluokka = muuttujaluokka)
-      }, alt = create_alt_text_kartta(varname = muuttujanimi[1]))
-      output$kartta2_02 <- renderPlot({alueprofiilikartta_html(val_muuttuja = muuttujanimi[2], input_value_regio_level_profile = aluetaso1, input_value_region_profile = aluename, val_muuttujaluokka = muuttujaluokka)
-      }, alt = create_alt_text_kartta(varname = muuttujanimi[2]))
-      output$kartta2_03 <- renderPlot({alueprofiilikartta_html(val_muuttuja = muuttujanimi[3], input_value_regio_level_profile = aluetaso1, input_value_region_profile = aluename, val_muuttujaluokka = muuttujaluokka)
-      }, alt = create_alt_text_kartta(varname = muuttujanimi[3]))
-      output$kartta2_04 <- renderPlot({alueprofiilikartta_html(val_muuttuja = muuttujanimi[4], input_value_regio_level_profile = aluetaso1, input_value_region_profile = aluename, val_muuttujaluokka = muuttujaluokka)
-      }, alt = create_alt_text_kartta(varname = muuttujanimi[4]))
-      output$kartta2_05 <- renderPlot({alueprofiilikartta_html(val_muuttuja = muuttujanimi[5], input_value_regio_level_profile = aluetaso1, input_value_region_profile = aluename, val_muuttujaluokka = muuttujaluokka)
-      }, alt = create_alt_text_kartta(varname = muuttujanimi[5]))
-      output$kartta2_06 <- renderPlot({alueprofiilikartta_html(val_muuttuja = muuttujanimi[6], input_value_regio_level_profile = aluetaso1, input_value_region_profile = aluename, val_muuttujaluokka = muuttujaluokka)
-      }, alt = create_alt_text_kartta(varname = muuttujanimi[6]))
-      if (aluetaso1 == "Hyvinvointialueet"){
-        output$kartta2_07 <- renderPlot({alueprofiilikartta_html(val_muuttuja = muuttujanimi[7], input_value_regio_level_profile = aluetaso1, input_value_region_profile = aluename, val_muuttujaluokka = muuttujaluokka)
-        }, alt = create_alt_text_kartta(varname = muuttujanimi[7]))
-        output$kartta2_08 <- renderPlot({alueprofiilikartta_html(val_muuttuja = muuttujanimi[8], input_value_regio_level_profile = aluetaso1, input_value_region_profile = aluename, val_muuttujaluokka = muuttujaluokka)
-        }, alt = create_alt_text_kartta(varname = muuttujanimi[8]))
-        output$kartta2_09 <- renderPlot({alueprofiilikartta_html(val_muuttuja = muuttujanimi[9], input_value_regio_level_profile = aluetaso1, input_value_region_profile = aluename, val_muuttujaluokka = muuttujaluokka)
-        }, alt = create_alt_text_kartta(varname = muuttujanimi[9]))
-        output$kartta2_10 <- renderPlot({alueprofiilikartta_html(val_muuttuja = muuttujanimi[10], input_value_regio_level_profile = aluetaso1, input_value_region_profile = aluename, val_muuttujaluokka = muuttujaluokka)
-        }, alt = create_alt_text_kartta(varname = muuttujanimi[10]))
-        output$kartta2_11 <- renderPlot({alueprofiilikartta_html(val_muuttuja = muuttujanimi[11], input_value_regio_level_profile = aluetaso1, input_value_region_profile = aluename, val_muuttujaluokka = muuttujaluokka)
-        }, alt = create_alt_text_kartta(varname = muuttujanimi[11]))
-      }
-      
-      if (aluetaso1 == "Hyvinvointialueet"){
-        tagList(
-          fluidRow(tags$h5(muuttujanimi[1])),
-          fluidRow(column(3,lista2_tbl01),column(5,plotOutput(ns("kartta2_01"),width = "100%")),column(4,plotOutput(ns("aikasarja2_01"),width = "100%"))),
-          fluidRow(tags$h5(muuttujanimi[2])),
-          fluidRow(column(3,lista2_tbl02),column(5,plotOutput(ns("kartta2_02"),width = "100%")),column(4,plotOutput(ns("aikasarja2_02"),width = "100%"))),
-          fluidRow(tags$h5(muuttujanimi[3])),
-          fluidRow(column(3,lista2_tbl03),column(5,plotOutput(ns("kartta2_03"),width = "100%")),column(4,plotOutput(ns("aikasarja2_03"),width = "100%"))),
-          fluidRow(tags$h5(muuttujanimi[4])),
-          fluidRow(column(3,lista2_tbl04),column(5,plotOutput(ns("kartta2_04"),width = "100%")),column(4,plotOutput(ns("aikasarja2_04"),width = "100%"))),
-          fluidRow(tags$h5(muuttujanimi[5])),
-          fluidRow(column(3,lista2_tbl05),column(5,plotOutput(ns("kartta2_05"),width = "100%")),column(4,plotOutput(ns("aikasarja2_05"),width = "100%"))),
-          fluidRow(tags$h5(muuttujanimi[6])),
-          fluidRow(column(3,lista2_tbl06),column(5,plotOutput(ns("kartta2_06"),width = "100%")),column(4,plotOutput(ns("aikasarja2_06"),width = "100%"))),
-          fluidRow(tags$h5(muuttujanimi[7])),
-          fluidRow(column(3,lista2_tbl07),column(5,plotOutput(ns("kartta2_07"),width = "100%")),column(4,plotOutput(ns("aikasarja2_07"),width = "100%"))),
-          fluidRow(tags$h5(muuttujanimi[8])),
-          fluidRow(column(3,lista2_tbl08),column(5,plotOutput(ns("kartta2_08"),width = "100%")),column(4,plotOutput(ns("aikasarja2_08"),width = "100%"))),
-          fluidRow(tags$h5(muuttujanimi[9])),
-          fluidRow(column(3,lista2_tbl09),column(5,plotOutput(ns("kartta2_09"),width = "100%")),column(4,plotOutput(ns("aikasarja2_09"),width = "100%"))),
-          fluidRow(tags$h5(muuttujanimi[10])),
-          fluidRow(column(3,lista2_tbl10),column(5,plotOutput(ns("kartta2_10"),width = "100%")),column(4,plotOutput(ns("aikasarja2_10"),width = "100%"))),
-          fluidRow(tags$h5(muuttujanimi[11])),
-          fluidRow(column(3,lista2_tbl11),column(5,plotOutput(ns("kartta2_11"),width = "100%")),column(4,plotOutput(ns("aikasarja2_11"),width = "100%")))
-        )
-      } else {
-        tagList(
-          fluidRow(tags$h5(muuttujanimi[1])),
-          fluidRow(column(3,lista2_tbl01),column(5,plotOutput(ns("kartta2_01"),width = "100%")),column(4,plotOutput(ns("aikasarja2_01"),width = "100%"))),
-          fluidRow(tags$h5(muuttujanimi[2])),
-          fluidRow(column(3,lista2_tbl02),column(5,plotOutput(ns("kartta2_02"),width = "100%")),column(4,plotOutput(ns("aikasarja2_02"),width = "100%"))),
-          fluidRow(tags$h5(muuttujanimi[3])),
-          fluidRow(column(3,lista2_tbl03),column(5,plotOutput(ns("kartta2_03"),width = "100%")),column(4,plotOutput(ns("aikasarja2_03"),width = "100%"))),
-          fluidRow(tags$h5(muuttujanimi[4])),
-          fluidRow(column(3,lista2_tbl04),column(5,plotOutput(ns("kartta2_04"),width = "100%")),column(4,plotOutput(ns("aikasarja2_04"),width = "100%"))),
-          fluidRow(tags$h5(muuttujanimi[5])),
-          fluidRow(column(3,lista2_tbl05),column(5,plotOutput(ns("kartta2_05"),width = "100%")),column(4,plotOutput(ns("aikasarja2_05"),width = "100%"))),
-          fluidRow(tags$h5(muuttujanimi[6])),
-          fluidRow(column(3,lista2_tbl06),column(5,plotOutput(ns("kartta2_06"),width = "100%")),column(4,plotOutput(ns("aikasarja2_06"),width = "100%")))
-        )
-      }
-    })
-    
-    output$sosiaalinen_01 <- renderUI({
-      
-      aluename <- react_value_region_profile()
-      aluetaso1 <- react_value_regio_level_profile()
-      
-      region_data <- get_region_data()
-      region_data <- dplyr::filter(region_data, level %in% aluetaso1)
-      naapurikoodit <- region_data[region_data$region_name %in% aluename,]$neigbours[[1]]
-      
-      tabdat <- create_alueprofiili_content(input_value_region_profile = aluename, 
-                                            input_value_regio_level_profile = aluetaso1)
-      
-      muuttujaluokka <- "Huono-osaisuuden sosiaaliset seuraukset"
-      tabdat_tmp <- tabdat %>% 
-        filter(var_class == muuttujaluokka)
-      muuttujanimi <- unique(tabdat_tmp$muuttuja)
-      
-      for (ix in seq_along(muuttujanimi)){
-        lista_tbl <- create_raw_tbl(dd1 = tabdat_tmp, muuttujanimi= muuttujanimi, varnro = ix)
-        tbl_temp1 <- create_gt_tbl(lst_df = lista_tbl)
-        assign(x = paste0("lista3_tbl", stringr::str_pad(ix, width = 2, pad = 0)), value = tbl_temp1)
-      }
-      
-      output$aikasarja3_01 <- renderPlot({alueprofiiliaikasarja_html(val_muuttuja1 = muuttujanimi[1], input_value_regio_level_profile = aluetaso1, input_value_region_profile = aluename, val_muuttujaluokka = muuttujaluokka)
-      }, alt = create_alt_text_aikasarja(varname = muuttujanimi[1]))
-      output$aikasarja3_02 <- renderPlot({alueprofiiliaikasarja_html(val_muuttuja1 = muuttujanimi[2], input_value_regio_level_profile = aluetaso1, input_value_region_profile = aluename, val_muuttujaluokka = muuttujaluokka)
-      }, alt = create_alt_text_aikasarja(varname = muuttujanimi[2]))
-      output$aikasarja3_03 <- renderPlot({alueprofiiliaikasarja_html(val_muuttuja1 = muuttujanimi[3], input_value_regio_level_profile = aluetaso1, input_value_region_profile = aluename, val_muuttujaluokka = muuttujaluokka)
-      }, alt = create_alt_text_aikasarja(varname = muuttujanimi[3]))
-      output$aikasarja3_04 <- renderPlot({alueprofiiliaikasarja_html(val_muuttuja1 = muuttujanimi[4], input_value_regio_level_profile = aluetaso1, input_value_region_profile = aluename, val_muuttujaluokka = muuttujaluokka)
-      }, alt = create_alt_text_aikasarja(varname = muuttujanimi[4]))
-      if (aluetaso1 == "Hyvinvointialueet"){
-        output$aikasarja3_05 <- renderPlot({alueprofiiliaikasarja_html(val_muuttuja1 = muuttujanimi[5], input_value_regio_level_profile = aluetaso1, input_value_region_profile = aluename, val_muuttujaluokka = muuttujaluokka)
-        }, alt = create_alt_text_aikasarja(varname = muuttujanimi[5]))
-        output$aikasarja3_06 <- renderPlot({alueprofiiliaikasarja_html(val_muuttuja1 = muuttujanimi[6], input_value_regio_level_profile = aluetaso1, input_value_region_profile = aluename, val_muuttujaluokka = muuttujaluokka)
-        }, alt = create_alt_text_aikasarja(varname = muuttujanimi[6]))
-      }
-      
-      output$kartta3_01 <- renderPlot({alueprofiilikartta_html(val_muuttuja = muuttujanimi[1], input_value_regio_level_profile = aluetaso1, input_value_region_profile = aluename, val_muuttujaluokka = muuttujaluokka)
-      }, alt = create_alt_text_kartta(varname = muuttujanimi[1]))
-      output$kartta3_02 <- renderPlot({alueprofiilikartta_html(val_muuttuja = muuttujanimi[2], input_value_regio_level_profile = aluetaso1, input_value_region_profile = aluename, val_muuttujaluokka = muuttujaluokka)
-      }, alt = create_alt_text_kartta(varname = muuttujanimi[2]))
-      output$kartta3_03 <- renderPlot({alueprofiilikartta_html(val_muuttuja = muuttujanimi[3], input_value_regio_level_profile = aluetaso1, input_value_region_profile = aluename, val_muuttujaluokka = muuttujaluokka)
-      }, alt = create_alt_text_kartta(varname = muuttujanimi[3]))
-      output$kartta3_04 <- renderPlot({alueprofiilikartta_html(val_muuttuja = muuttujanimi[4], input_value_regio_level_profile = aluetaso1, input_value_region_profile = aluename, val_muuttujaluokka = muuttujaluokka)
-      }, alt = create_alt_text_kartta(varname = muuttujanimi[4]))
-      if (aluetaso1 == "Hyvinvointialueet"){
-        output$kartta3_05 <- renderPlot({alueprofiilikartta_html(val_muuttuja = muuttujanimi[5], input_value_regio_level_profile = aluetaso1, input_value_region_profile = aluename, val_muuttujaluokka = muuttujaluokka)
-        }, alt = create_alt_text_kartta(varname = muuttujanimi[5]))
-        output$kartta3_06 <- renderPlot({alueprofiilikartta_html(val_muuttuja = muuttujanimi[6], input_value_regio_level_profile = aluetaso1, input_value_region_profile = aluename, val_muuttujaluokka = muuttujaluokka)
-        }, alt = create_alt_text_kartta(varname = muuttujanimi[6]))
-      }
-      
-      if (aluetaso1 == "Hyvinvointialueet"){
-        tagList(
-          fluidRow(tags$h5(muuttujanimi[1])),
-          fluidRow(column(3,lista3_tbl01),column(5,plotOutput(ns("kartta3_01"),width = "100%")),column(4,plotOutput(ns("aikasarja3_01"),width = "100%"))),
-          fluidRow(tags$h5(muuttujanimi[2])),
-          fluidRow(column(3,lista3_tbl02),column(5,plotOutput(ns("kartta3_02"),width = "100%")),column(4,plotOutput(ns("aikasarja3_02"),width = "100%"))),
-          fluidRow(tags$h5(muuttujanimi[3])),
-          fluidRow(column(3,lista3_tbl03),column(5,plotOutput(ns("kartta3_03"),width = "100%")),column(4,plotOutput(ns("aikasarja3_03"),width = "100%"))),
-          fluidRow(tags$h5(muuttujanimi[4])),
-          fluidRow(column(3,lista3_tbl04),column(5,plotOutput(ns("kartta3_04"),width = "100%")),column(4,plotOutput(ns("aikasarja3_04"),width = "100%"))),
-          fluidRow(tags$h5(muuttujanimi[5])),
-          fluidRow(column(3,lista3_tbl05),column(5,plotOutput(ns("kartta3_05"),width = "100%")),column(4,plotOutput(ns("aikasarja3_05"),width = "100%"))),
-          fluidRow(tags$h5(muuttujanimi[6])),
-          fluidRow(column(3,lista3_tbl06),column(5,plotOutput(ns("kartta3_06"),width = "100%")),column(4,plotOutput(ns("aikasarja3_06"),width = "100%")))
-        )
-      } else {
-        tagList(
-          fluidRow(tags$h5(muuttujanimi[1])),
-          fluidRow(column(3,lista3_tbl01),column(5,plotOutput(ns("kartta3_01"),width = "100%")),column(4,plotOutput(ns("aikasarja3_01"),width = "100%"))),
-          fluidRow(tags$h5(muuttujanimi[2])),
-          fluidRow(column(3,lista3_tbl02),column(5,plotOutput(ns("kartta3_02"),width = "100%")),column(4,plotOutput(ns("aikasarja3_02"),width = "100%"))),
-          fluidRow(tags$h5(muuttujanimi[3])),
-          fluidRow(column(3,lista3_tbl03),column(5,plotOutput(ns("kartta3_03"),width = "100%")),column(4,plotOutput(ns("aikasarja3_03"),width = "100%"))),
-          fluidRow(tags$h5(muuttujanimi[4])),
-          fluidRow(column(3,lista3_tbl04),column(5,plotOutput(ns("kartta3_04"),width = "100%")),column(4,plotOutput(ns("aikasarja3_04"),width = "100%")))
-        )
-      }
-      
-      
-    })
-    
-    output$taloudellinen_01 <- renderUI({
-      
-      aluename <- react_value_region_profile()
-      aluetaso1 <- react_value_regio_level_profile()
-      
-      region_data <- get_region_data()
-      region_data <- dplyr::filter(region_data, level %in% aluetaso1)
-      naapurikoodit <- region_data[region_data$region_name %in% aluename,]$neigbours[[1]]
-      
-      tabdat <- create_alueprofiili_content(input_value_region_profile = aluename, 
-                                            input_value_regio_level_profile = aluetaso1)
-      
-      muuttujaluokka <- "Huono-osaisuuden taloudelliset yhteydet"
-      tabdat_tmp <- tabdat %>% 
-        filter(var_class == muuttujaluokka)
-      muuttujanimi <- unique(tabdat_tmp$muuttuja)
-      
-      for (ix in seq_along(muuttujanimi)){
-        lista_tbl <- create_raw_tbl(dd1 = tabdat_tmp, muuttujanimi= muuttujanimi, varnro = ix)
-        tbl_temp1 <- create_gt_tbl(lst_df = lista_tbl)
-        assign(x = paste0("lista4_tbl", stringr::str_pad(ix, width = 2, pad = 0)), value = tbl_temp1)
-      }
-      
-      output$aikasarja4_01 <- renderPlot({alueprofiiliaikasarja_html(val_muuttuja1 = muuttujanimi[1], input_value_regio_level_profile = aluetaso1, input_value_region_profile = aluename, val_muuttujaluokka = muuttujaluokka)
-      }, alt = create_alt_text_aikasarja(varname = muuttujanimi[1]))
-      output$aikasarja4_02 <- renderPlot({alueprofiiliaikasarja_html(val_muuttuja1 = muuttujanimi[2], input_value_regio_level_profile = aluetaso1, input_value_region_profile = aluename, val_muuttujaluokka = muuttujaluokka)
-      }, alt = create_alt_text_aikasarja(varname = muuttujanimi[2]))
-      output$aikasarja4_03 <- renderPlot({alueprofiiliaikasarja_html(val_muuttuja1 = muuttujanimi[3], input_value_regio_level_profile = aluetaso1, input_value_region_profile = aluename, val_muuttujaluokka = muuttujaluokka)
-      }, alt = create_alt_text_aikasarja(varname = muuttujanimi[3]))
-      output$aikasarja4_04 <- renderPlot({alueprofiiliaikasarja_html(val_muuttuja1 = muuttujanimi[4], input_value_regio_level_profile = aluetaso1, input_value_region_profile = aluename, val_muuttujaluokka = muuttujaluokka)
-      }, alt = create_alt_text_aikasarja(varname = muuttujanimi[4]))
-      output$aikasarja4_05 <- renderPlot({alueprofiiliaikasarja_html(val_muuttuja1 = muuttujanimi[5], input_value_regio_level_profile = aluetaso1, input_value_region_profile = aluename, val_muuttujaluokka = muuttujaluokka)
-      }, alt = create_alt_text_aikasarja(varname = muuttujanimi[5]))
-      output$aikasarja4_06 <- renderPlot({alueprofiiliaikasarja_html(val_muuttuja1 = muuttujanimi[6], input_value_regio_level_profile = aluetaso1, input_value_region_profile = aluename, val_muuttujaluokka = muuttujaluokka)
-      }, alt = create_alt_text_aikasarja(varname = muuttujanimi[6]))
-      
-      output$kartta4_01 <- renderPlot({alueprofiilikartta_html(val_muuttuja = muuttujanimi[1], input_value_regio_level_profile = aluetaso1, input_value_region_profile = aluename, val_muuttujaluokka = muuttujaluokka)
-      }, alt = create_alt_text_kartta(varname = muuttujanimi[1]))
-      output$kartta4_02 <- renderPlot({alueprofiilikartta_html(val_muuttuja = muuttujanimi[2], input_value_regio_level_profile = aluetaso1, input_value_region_profile = aluename, val_muuttujaluokka = muuttujaluokka)
-      }, alt = create_alt_text_kartta(varname = muuttujanimi[2]))
-      output$kartta4_03 <- renderPlot({alueprofiilikartta_html(val_muuttuja = muuttujanimi[3], input_value_regio_level_profile = aluetaso1, input_value_region_profile = aluename, val_muuttujaluokka = muuttujaluokka)
-      }, alt = create_alt_text_kartta(varname = muuttujanimi[3]))
-      output$kartta4_04 <- renderPlot({alueprofiilikartta_html(val_muuttuja = muuttujanimi[4], input_value_regio_level_profile = aluetaso1, input_value_region_profile = aluename, val_muuttujaluokka = muuttujaluokka)
-      }, alt = create_alt_text_kartta(varname = muuttujanimi[4]))
-      output$kartta4_05 <- renderPlot({alueprofiilikartta_html(val_muuttuja = muuttujanimi[5], input_value_regio_level_profile = aluetaso1, input_value_region_profile = aluename, val_muuttujaluokka = muuttujaluokka)
-      }, alt = create_alt_text_kartta(varname = muuttujanimi[5]))
-      output$kartta4_06 <- renderPlot({alueprofiilikartta_html(val_muuttuja = muuttujanimi[6], input_value_regio_level_profile = aluetaso1, input_value_region_profile = aluename, val_muuttujaluokka = muuttujaluokka)
-      }, alt = create_alt_text_kartta(varname = muuttujanimi[6]))
-      
-      tagList(
-        fluidRow(tags$h5(muuttujanimi[1])),
-        fluidRow(column(3,lista4_tbl01),column(5,plotOutput(ns("kartta4_01"),width = "100%")),column(4,plotOutput(ns("aikasarja4_01"),width = "100%"))),
-        fluidRow(tags$h5(muuttujanimi[2])),
-        fluidRow(column(3,lista4_tbl02),column(5,plotOutput(ns("kartta4_02"),width = "100%")),column(4,plotOutput(ns("aikasarja4_02"),width = "100%"))),
-        fluidRow(tags$h5(muuttujanimi[3])),
-        fluidRow(column(3,lista4_tbl03),column(5,plotOutput(ns("kartta4_03"),width = "100%")),column(4,plotOutput(ns("aikasarja4_03"),width = "100%"))),
-        fluidRow(tags$h5(muuttujanimi[4])),
-        fluidRow(column(3,lista4_tbl04),column(5,plotOutput(ns("kartta4_04"),width = "100%")),column(4,plotOutput(ns("aikasarja4_04"),width = "100%"))),
-        fluidRow(tags$h5(muuttujanimi[5])),
-        fluidRow(column(3,lista4_tbl05),column(5,plotOutput(ns("kartta4_05"),width = "100%")),column(4,plotOutput(ns("aikasarja4_05"),width = "100%"))),
-        fluidRow(tags$h5(muuttujanimi[6])),
-        fluidRow(column(3,lista4_tbl06),column(5,plotOutput(ns("kartta4_06"),width = "100%")),column(4,plotOutput(ns("aikasarja4_06"),width = "100%")))
-      )
-    })
-    
-    
+    # Alueproofiilin postinumeroalueet
+
     output$zipcode_tables <- renderUI({
 
       aluename <- react_value_region_profile()
@@ -456,8 +203,6 @@ mod_04alueprof_server <- function(id){
       
       output$map_zipcode_01 <- renderPlot({
         
-        # 'Työttömät','Alimpaan tuloluokkaan kuuluvat täysi-ikäiset','Alimpaan tuloluokkaan kuuluvat taloudet','Kokonaislukema'
-        
               map1 <- map_zipcodes(input_value_region_selected = reg_code,
                                        input_value_regio_level = aluetaso1,
                                        input_value_variable = "Kokonaislukema",
@@ -483,44 +228,6 @@ mod_04alueprof_server <- function(id){
       )
     })
     
-
-    # output$zipcode_timeseries <- renderUI({
-    #   
-    #   aluename <- react_value_region_profile()
-    #   aluetaso1 <- react_value_regio_level_profile()
-    #   
-    #   reg_code <- karttasovellus::region_data %>%
-    #     filter(level == aluetaso1,
-    #            region_name == aluename) %>%
-    #     pull(region_code)
-    #   
-    #   output$lineplot_zipcode_01 <- renderPlot({
-    #     
-    #     # 'Työttömät','Alimpaan tuloluokkaan kuuluvat täysi-ikäiset','Alimpaan tuloluokkaan kuuluvat taloudet','Kokonaislukema'
-    #     
-    #     map1 <- plot_zipcodes_line(input_value_region_selected = reg_code,
-    #                          input_value_regio_level = aluetaso1,
-    #                          input_value_variable = "Kokonaislukema")
-    #     map2 <- plot_zipcodes_line(input_value_region_selected = reg_code,
-    #                          input_value_regio_level = aluetaso1,
-    #                          input_value_variable = "Työttömät")
-    #     map3 <- plot_zipcodes_line(input_value_region_selected = reg_code,
-    #                          input_value_regio_level = aluetaso1,
-    #                          input_value_variable = "Alimpaan tuloluokkaan kuuluvat täysi-ikäiset")
-    #     map4 <- plot_zipcodes_line(input_value_region_selected = reg_code,
-    #                          input_value_regio_level = aluetaso1,
-    #                          input_value_variable = "Alimpaan tuloluokkaan kuuluvat taloudet")
-    #     patchwork::wrap_plots(list(map1,map2,map3,map4), ncol = 2)
-    #     
-    #   })
-    #   
-    #   tagList(
-    #     withSpinner(plotOutput(ns("lineplot_zipcode_01"),height = "1800px", width = "100%"))
-    #   )
-    # })
-    
-    
-    
     ### profiili_html ----
     output$region_profile_html <- renderUI({
       
@@ -542,29 +249,12 @@ mod_04alueprof_server <- function(id){
         ),
         column(width = 6,
                withSpinner(uiOutput(ns("output_save_word")), proxy.height = "100px")
-        )#,
-        # column(width = 2,
-        #        uiOutput(ns("output_save_data_profile"))
-        # )
+        )
         ),
         tags$hr(),
-        ## ##
-        tags$h4("Summamuuttujat"),
         ## ## ##
-        uiOutput(ns("summamuuttuja_01")),
-        ## ## ##
-        tags$h4("Inhimillinen huono-osaisuus"),
-        ## ## ##
-        uiOutput(ns("inhimillinen_01")),
-        ## ## ##
-        tags$h4("Huono-osaisuuden sosiaaliset seuraukset"),
-        ## ## ##
-        uiOutput(ns("sosiaalinen_01")),
-        ## ## ##
-        tags$h4("Huono-osaisuuden taloudelliset yhteydet"),
-        ## ## ##
-        uiOutput(ns("taloudellinen_01")),
-        ## ## ##
+        uiOutput(ns("alueprofiili_html")),
+        # ## ## ##
         tags$h4("Postinumeroalueittainen tieto"),
         ## ## ##
         tags$h5("Taulukko"),
@@ -572,10 +262,6 @@ mod_04alueprof_server <- function(id){
         # ## ## ##
         tags$h5("Kartat"),
         uiOutput(ns("zipcode_maps"))#,
-        
-        # # ## ## ##
-        # # tags$h5("Aikasarjat"),
-        # # uiOutput(ns("zipcode_timeseries"))
       )
       
     })
@@ -584,7 +270,6 @@ mod_04alueprof_server <- function(id){
       
       filename = function() {
         file_name <- glue("alueprofiili_{react_value_region_profile()}_{tolower(react_value_regio_level_profile())}{input$value_report_format}")
-        # file_name <-  glue("alueprofiili{input$value_report_format}")
         return(file_name)
       },
       content = function(file) {
