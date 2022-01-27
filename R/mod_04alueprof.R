@@ -120,10 +120,10 @@ mod_04alueprof_server <- function(id){
                                             input_value_regio_level_profile = aluetaso1)
       
       # Summamuuttujat
-      muuttujaluokka <- c(#"Summamuuttujat",
-                          "Inhimillinen huono-osaisuus"#,
-                          # "Huono-osaisuuden sosiaaliset seuraukset",
-                          # "Huono-osaisuuden taloudelliset yhteydet"
+      muuttujaluokka <- c("Summamuuttujat",
+                          "Inhimillinen huono-osaisuus",
+                           "Huono-osaisuuden sosiaaliset seuraukset",
+                           "Huono-osaisuuden taloudelliset yhteydet"
                           )
       # ii <- 1
       lapply(seq_along(muuttujaluokka), function(ii) {
@@ -288,7 +288,6 @@ mod_04alueprof_server <- function(id){
             region_data <- dplyr::filter(region_data, level %in% react_value_regio_level_profile())
             naapurikoodit <- region_data[region_data$region_name %in% aluename,]$neigbours[[1]]
             
-            # klik <- list("id" = "Veteli")
             params <- list(region = aluename,
                            region_level = react_value_regio_level_profile(),
                            datetime = Sys.time(),
@@ -296,29 +295,20 @@ mod_04alueprof_server <- function(id){
                            data_aikasarja = get_dat_timeseries(),
                            spatdat = process_data_profile_doc(input_value_regio_level_profile = react_value_regio_level_profile()),
                            region_data = region_data,
-                           naapurikoodit = naapurikoodit#,
-                           # odt_kerroin = 1
+                           naapurikoodit = naapurikoodit
             )
             
             tempReport <- file.path(tempdir(), "report.Rmd")
-            # tempReport <- file.path("~/Downloads", "report.Rmd")
-            # dea("./docs/report_template.Rmd", tempReport, overwrite = TRUE)
-            # lns <- readLines("./docs/report_template.Rmd") 
             lns <- readLines(system.file("templates", "report_template.Rmd", package="karttasovellus"))
             
             if (input$value_report_format == ".docx"){
-              # lns2 <- sub("korvaa_asiakirjamalli", "reference_docx: diak_karttasovellus.dotx", lns)
-              # lns3 <- sub("korvaa_dokumenttimuoto", "word_document", lns2)
               lns3 <- lns
               file.copy(system.file("templates", "diak_karttasovellus.dotx", package="karttasovellus"),
-                # "./docs/diak_karttasovellus.dotx",
                         tempdir(),
                         overwrite = TRUE)
               params[["fig_width_default"]] <- 12
               params[["fig_height_default"]] <- 10
               params[["doc_format"]] <- "docx"
-              # params[["fig_dpi"]] <- 300
-              # params[["out_width"]] <- "300px"
             } else {
               lns2 <- sub("reference_docx: diak_karttasovellus.dotx", "reference_odt: diak_karttasovellus.ott", lns)
               lns3 <- sub("word_document", "odt_document", lns2)
@@ -328,8 +318,6 @@ mod_04alueprof_server <- function(id){
               params[["fig_width_default"]] <- 12
               params[["fig_height_default"]] <- 10
               params[["doc_format"]] <- "odt"
-              # params[["fig_dpi"]] <- 300
-              # params[["out_width"]] <- "300px"
             }
             
             writeLines(lns3, tempReport)
@@ -357,15 +345,14 @@ mod_04alueprof_server <- function(id){
     
     output$output_save_word <- renderUI({
       
-      # req(input$value_variable)
       tagList(
         downloadButton(ns("report"), "Tallenna alueprofiili laitteellesi!", class="btn btn-dark"),
         radioButtons(ns("value_report_format"),
                      "Valitse tallennettavan tiedoston tiedostomuoto",
-                     choiceNames = list(#"vektorikuva (.pdf)",
+                     choiceNames = list(
                        "Word (.docx)",
                        "LibreOffice/OpenOffice/Google Docs (.odt)"),
-                     choiceValues = list(#".pdf",
+                     choiceValues = list(
                        ".docx",
                        ".odt"),
                      inline = TRUE)
@@ -373,53 +360,53 @@ mod_04alueprof_server <- function(id){
       )
     })
     
-    ## datan tallennus ----
-    ## 
-    output$save_data_profile <- downloadHandler(
-      
-      filename = function() {
-        
-        aluename <- react_value_region_profile()
-        aluetaso1 <- react_value_regio_level_profile()
-        
-        file_name <- glue("alueprofiili_data_{janitor::make_clean_names(aluename)}_{tolower(aluetaso1)}.csv")
-        return(file_name)
-      },
-      content = function(file) {
-        
-        dat <- get_dat_timeseries()
-        region_data <- get_region_data()
-        
-        aluename <- react_value_region_profile()
-        aluetaso1 <- react_value_regio_level_profile()
-        
-        naapurikoodit_lst <- region_data[region_data$level %in% aluetaso1 & 
-                                           region_data$region_name %in% aluename,"neigbours"]
-        
-        naapurikoodit <- naapurikoodit_lst %>% 
-          unnest(cols = c(neigbours)) %>% 
-          pull(neigbours)
-        
-        dat[dat$regio_level %in% aluetaso1 & dat$aluenimi %in% aluename ,] %>% 
-          select(aika,aluenimi,var_class,variable,value) %>% 
-          mutate(rooli = "valinta") -> tmpdat1
-        dat[dat$regio_level %in% aluetaso1 & dat$aluekoodi %in% naapurikoodit ,] %>% 
-          filter(!aluenimi %in% aluename) %>% 
-          select(aika,aluenimi,var_class,variable,value) %>% 
-          mutate(rooli = "naapuri") -> tmpdat2
-        tmpdat <- bind_rows(tmpdat1,tmpdat2) 
-        
-        readr::write_excel_csv2(x = tmpdat, file = file)
-      }
-    )
+    # ## datan tallennus ----
+    # ## 
+    # output$save_data_profile <- downloadHandler(
+    #   
+    #   filename = function() {
+    #     
+    #     aluename <- react_value_region_profile()
+    #     aluetaso1 <- react_value_regio_level_profile()
+    #     
+    #     file_name <- glue("alueprofiili_data_{janitor::make_clean_names(aluename)}_{tolower(aluetaso1)}.csv")
+    #     return(file_name)
+    #   },
+    #   content = function(file) {
+    #     
+    #     dat <- get_dat_timeseries()
+    #     region_data <- get_region_data()
+    #     
+    #     aluename <- react_value_region_profile()
+    #     aluetaso1 <- react_value_regio_level_profile()
+    #     
+    #     naapurikoodit_lst <- region_data[region_data$level %in% aluetaso1 & 
+    #                                        region_data$region_name %in% aluename,"neigbours"]
+    #     
+    #     naapurikoodit <- naapurikoodit_lst %>% 
+    #       unnest(cols = c(neigbours)) %>% 
+    #       pull(neigbours)
+    #     
+    #     dat[dat$regio_level %in% aluetaso1 & dat$aluenimi %in% aluename ,] %>% 
+    #       select(aika,aluenimi,var_class,variable,value) %>% 
+    #       mutate(rooli = "valinta") -> tmpdat1
+    #     dat[dat$regio_level %in% aluetaso1 & dat$aluekoodi %in% naapurikoodit ,] %>% 
+    #       filter(!aluenimi %in% aluename) %>% 
+    #       select(aika,aluenimi,var_class,variable,value) %>% 
+    #       mutate(rooli = "naapuri") -> tmpdat2
+    #     tmpdat <- bind_rows(tmpdat1,tmpdat2) 
+    #     
+    #     readr::write_excel_csv2(x = tmpdat, file = file)
+    #   }
+    # )
     
-    output$output_save_data_profile <- renderUI({
-      
-      # req(input$value_variable)
-      tagList(
-        downloadButton(ns("save_data_profile"), "Tallenna data csv-muodossa!", class="btn btn-dark")
-      )
-    })
+    # output$output_save_data_profile <- renderUI({
+    #   
+    #   # req(input$value_variable)
+    #   tagList(
+    #     downloadButton(ns("save_data_profile"), "Tallenna data csv-muodossa!", class="btn btn-dark")
+    #   )
+    # })
 
   })
 }

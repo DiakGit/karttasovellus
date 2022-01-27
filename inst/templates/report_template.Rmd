@@ -71,7 +71,6 @@ df %>%
   print(kable(tmptbl[tmptbl$muuttuja == vars[vi],] %>% 
                 mutate(aluenimi = paste0(aluenimi, " (", rooli, ") ")) %>%
                 arrange(sija) %>% 
-                # mutate(sija = paste0(sija, ".")) %>%
                 select(aluenimi,arvo,sija),
                 
               format = "pipe", 
@@ -86,8 +85,6 @@ theme_set(
   theme_minimal(base_family = "PT Sans", base_size = 7) +
           theme(axis.text.y = element_blank(), 
             panel.grid = element_blank(),
-            # strip.background = element_rect(color = "white"),
-            # plot.background = element_rect(fill = alpha(colour = "#fffff0", 1/3), color = NA),
             plot.title = element_text(size = 9, family = "bold"),
             plot.subtitle = element_text(size = 12, family = "bold"))
 )
@@ -108,7 +105,6 @@ for (i in 1:length(vars)){
     
     plot_dat <- dattemp %>% filter(variable %in% vars[i])
 
-    # spatdat <- sf::st_transform(spatdat, dat, crs = 3067)
     dat_naapurit <- spatdat[spatdat$aluekoodi %in% naapurikoodit,] %>% select(-value)
     dat_naapurit2 <- left_join(dat_naapurit,
                                plot_dat %>%
@@ -118,7 +114,6 @@ for (i in 1:length(vars)){
     p <- ggplot(data = dat_naapurit2, aes(fill = value, label = value)) +                    
     geom_sf(color = alpha("white", 1/3))  +
     theme_minimal(base_family = "PT Sans", base_size = 12) +
-      # scale_fill_viridis_c(option = "plasma") +
       scale_fill_fermenter(palette = "YlGnBu") +
 theme(axis.text = element_blank(),
           axis.title = element_blank(),
@@ -127,7 +122,6 @@ theme(axis.text = element_blank(),
       labs(x = NULL, y = NULL, fill = NULL,
            title = add_line_break2(vars[i], n = 35)) +
     geom_label(data = dat_naapurit2 %>%  
-    # ggrepel::geom_label_repel(data = dat_naapurit2 %>%
                         sf::st_set_geometry(NULL) %>%
                         bind_cols(dat_naapurit2 %>%
                                     sf::st_centroid() %>%
@@ -175,18 +169,14 @@ for (i in 1:length(vars)){
                aes(x = aika, y = value, color= aluenimi, fill= aluenimi)) +
             geom_line(show.legend = FALSE) +
             geom_point(shape = 21, color = "white", stroke = 1, size = 2.5) +
-            # ggrepel::geom_text_repel(data = plotdata_tmp %>% filter(aika == max(aika, na.rm = TRUE)),      
             geom_text(data = plotdata_tmp %>% filter(aika == max(aika, na.rm = TRUE)),
                                      aes(label = paste0(aluenimi, " ",round(value,1))), family = "PT Sans") +
-            # ggrepel::geom_text_repel(data = plotdata_tmp %>% filter(aika == max(aika, na.rm = TRUE)-1),
-            #                          aes(label = aluenimi), family = "PT Sans", nudge_x = -1) +
             scale_x_continuous(breaks = sort(unique(plotdata_tmp$aika)), labels = labels) +
             theme_ipsum(base_family = "PT Sans", 
                         base_size = 12, 
                         plot_title_size = 14,
                         plot_title_family = "PT Sans",
-                        subtitle_family = "PT Sans"#,
-                        # grid_col = "white"
+                        subtitle_family = "PT Sans"
                         ) +
             theme(legend.position = "none",
                   plot.title.position = "plot",
@@ -194,8 +184,6 @@ for (i in 1:length(vars)){
                   panel.grid.minor.x = element_blank(),
                   panel.grid.major.y = element_blank(),
                   axis.text.x = element_text(size = 9)) +
-                # scale_fill_viridis_d(option = "viridis", direction = -1, begin = .1, end = .9) +
-                # scale_color_viridis_d(option = "viridis", direction = -1, begin = .1, end = .9) +
             labs(y = NULL, x = NULL,
                  title = add_line_break2(vars[i], n = 35))
 
@@ -237,7 +225,6 @@ dat[dat$regio_level %in% params$region_level,] %>%
   arrange(desc(value)) %>% 
   slice(1) %>% 
   ungroup() %>% 
-  # mutate(maksimi = glue("{round(value, 1)} ({ifelse(nchar(aluenimi) > 10, paste0(substr(aluenimi, 1, 10),'...'), aluenimi)})")) %>% 
   mutate(rooli = "korkein arvo") %>%
   select(aluenimi,var_class,variable,value,rooli) -> max_dat
 
@@ -246,7 +233,6 @@ dat[dat$regio_level %in% params$region_level,] %>%
   arrange(value) %>% 
   slice(1) %>% 
   ungroup() %>% 
-  # mutate(minimi = glue("{round(value, 1)} ({ifelse(nchar(aluenimi) > 10, paste0(substr(aluenimi, 1, 10),'...'), aluenimi)})")) %>% 
   mutate(rooli = "matalin arvo") %>% 
   select(aluenimi,var_class,variable,value,rooli) -> min_dat
 
@@ -256,7 +242,6 @@ dat[dat$regio_level %in% params$region_level,] %>%
     mutate(sija = 1:n(),
            n = n()) %>% 
     ungroup() %>% 
-    # filter(aluenimi %in% aluename2) %>% 
     select(aluenimi,variable,sija) -> rank_dat
 
 bind_rows(tmpdat,max_dat,min_dat) %>% 
@@ -277,7 +262,6 @@ dat_region <- dat[dat$aluenimi == params$region,]
 dat_naapurit <- dat[dat$aluekoodi %in% params$naapurikoodit,]
 
 ggplot(data = dat) +                    
-# ggplot(data = dat, aes(fill = value)) +
     geom_sf(color = alpha("black", 1/8), fill = NA)  +
     theme_minimal(base_family = "PT Sans", base_size = 12) +
     labs(fill = NULL,
@@ -306,7 +290,6 @@ figu_height[varn > 4 & varn <= 6] <- 11
 figu_height[varn > 6 & varn <= 9] <- 13.3
 figu_height[varn > 9] <- 13.3
 ncol[varn > 9] <- 3
-# if (params$doc_format == "odt") figu_height <- figu_height/odt_kerroin
 ```
 
 ```{r summa_kartta, fig.height = figu_height}
@@ -335,7 +318,6 @@ figu_height[varn > 4 & varn <= 6] <- 11
 figu_height[varn > 6 & varn <= 9] <- 13.3
 figu_height[varn > 9] <- 13.3
 ncol[varn > 9] <- 3
-# if (params$doc_format == "odt") figu_height <- figu_height/odt_kerroin
 ```
 
 
@@ -363,7 +345,6 @@ figu_height[varn > 4 & varn <= 6] <- 11
 figu_height[varn > 6 & varn <= 9] <- 13.3
 figu_height[varn > 9] <- 13.3
 ncol[varn > 9] <- 3
-# if (params$doc_format == "odt") figu_height <- figu_height/odt_kerroin
 ```
 
 ```{r  sosial_kartta,  fig.height = figu_height}
@@ -391,7 +372,6 @@ figu_height[varn > 4 & varn <= 6] <- 11
 figu_height[varn > 6 & varn <= 9] <- 13.3
 figu_height[varn > 9] <- 13.3
 ncol[varn > 9] <- 3
-# if (params$doc_format == "odt") figu_height <- figu_height/odt_kerroin
 ```
 
 
@@ -407,4 +387,5 @@ create_table(tabdat, muuttujaluokka)
 ```{r talous_kuva, fig.height = figu_height}
 create_timeseries_plot(varclass = muuttujaluokka, ncol = ncol)
 ```
+
 
