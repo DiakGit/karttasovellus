@@ -4,7 +4,8 @@
 #'
 #' @export
 process_zipdata <- function(varname = "Kokonaislukema"){
-  dtmp <- karttasovellus::dfzip_v20220125[karttasovellus::dfzip_v20220125$variable == varname, ]
+  load(system.file("data", "dfzip_v20220125.rda", package="karttasovellus"))
+  dtmp <- dfzip_v20220125[dfzip_v20220125$variable == varname, ]
   return(dtmp)
 }
 
@@ -16,8 +17,8 @@ process_zipdata <- function(varname = "Kokonaislukema"){
 #'
 #' @export
 process_zipdata_timeseries <- function(varname = "Kokonaislukema"){
-  # dtmp <- karttasovellus::dfzip_v20220125_aikasarja[karttasovellus::dfzip_v20220125_aikasarja$variable == varname & karttasovellus::dfzip_v20220125_aikasarja$aika == year, ]
-  dtmp <- karttasovellus::dfzip_v20220125_aikasarja[karttasovellus::dfzip_v20220125_aikasarja$variable == varname, ]
+  load(system.file("data", "dfzip_v20220125_aikasarja.rda", package="karttasovellus"))
+  dtmp <- dfzip_v20220125_aikasarja[dfzip_v20220125_aikasarja$variable == varname, ]
   return(dtmp)
 }
 
@@ -27,7 +28,8 @@ process_zipdata_timeseries <- function(varname = "Kokonaislukema"){
 #' 
 #' @export
 get_region_zipdata <- function(){
-  karttasovellus::region_data_zip
+  load(system.file("data", "region_data_zip.rda", package="karttasovellus"))
+  return(region_data_zip)
 }
 
 # dd4 <- get_region_zipdata()
@@ -50,8 +52,10 @@ get_koodit_zip <- function(regio_selected = 161,
     kuntanrot <- aluedata[aluedata$seutukunta_code %in% regio_selected,]$municipality_code
   } else if (value_regio_level == "Hyvinvointialueet"){
     kuntanrot <- aluedata[aluedata$hyvinvointialue_code %in% regio_selected,]$municipality_code
-    }
-  neigh <- karttasovellus::region_data_zip[karttasovellus::region_data_zip$kuntanro %in% kuntanrot,]$region_code
+  }
+  
+  load(system.file("data", "region_data_zip.rda", package="karttasovellus"))
+  neigh <- region_data_zip[region_data_zip$kuntanro %in% kuntanrot,]$region_code
 
   return(neigh)
 }
@@ -83,16 +87,6 @@ map_zipcodes <- function(input_value_region_selected = 91,
   dat <- dat %>%
     mutate(color = ifelse(aluenimi %in% input_value_region_selected, TRUE, FALSE))
   
-  # Laitetaan sen sijaan aluetaso tähän
-  # if (input_value_regio_show_mode == "kaikki tason alueet"){
-  #   dat <- dat
-  # } else if (input_value_regio_show_mode == "valittu alue ja sen naapurit"){
-  #   naapurikoodit <- get_naapurikoodit_zip(regio_selected = input_value_region_selected)
-  #   dat <- dat %>% filter(aluekoodi %in% naapurikoodit)
-  # }  else if (input_value_regio_show_mode == "valittu alue"){
-  #   naapurikoodit <- karttasovellus::region_data_zip[karttasovellus::region_data_zip$kuntanro == input_value_region_selected,]$region_code
-  #   dat <- dat %>% filter(aluekoodi %in% naapurikoodit)
-  # }
     zipcodes <- get_koodit_zip(regio_selected = input_value_region_selected, 
                                     value_regio_level = input_value_regio_level)
     dat <- dat %>% filter(aluekoodi %in% zipcodes)
@@ -135,7 +129,15 @@ map_zipcodes <- function(input_value_region_selected = 91,
       labs(title = glue("{input_value_variable}"),
            subtitle = kuvan_subtitle,
            caption = glue("Huono-osaisuus Suomessa -karttasovellus (Diak)\nData: Tilastokeskus Paavo (perusdata) & Diak (mediaanisuhteutus)\nTiedot haettu:{Sys.Date()}"),
-           fill = paste0(add_line_break2(input_value_variable, 20), "\n(suhdeluku)"))
+           fill = paste0(add_line_break2(input_value_variable, 20), "\n(suhdeluku)")) +
+      ggrepel::geom_label_repel(data = dat %>%  
+                   sf::st_set_geometry(NULL) %>%
+                   bind_cols(dat %>%
+                               sf::st_centroid() %>%
+                               sf::st_coordinates() %>% as_tibble()),
+                 aes(label = paste0(aluenimi, "\n",
+                                    round(value,1)), x = X, y = Y),
+                 color = "black", fill = "white", family = "PT Sans", lineheight = .8)
   } else {
     dat_wgs84 <- sf::st_transform(x = dat, crs = "+proj=longlat +datum=WGS84")
     
@@ -328,16 +330,25 @@ plot_zipcodes_line <- function(input_value_region_selected = 91,
 #'
 #' @export
 table_zipcodes <- function(input_value_region_selected = 91,
-                              input_value_regio_level = "Kunnat"){
+                           input_value_regio_level = "Kunnat", 
+                           print = FALSE){
   
   naapurikoodit <- get_koodit_zip(regio_selected = input_value_region_selected,
                                   value_regio_level = input_value_regio_level)
-  karttasovellus::dfzip_v20220125 %>% 
+  load(system.file("data", "dfzip_v20220125.rda", package="karttasovellus"))
+  dfzip_v20220125 %>% 
     filter(aluekoodi %in% naapurikoodit) %>% 
     select(aluekoodi, aluenimi, variable, value) %>% 
     mutate(value = round(value, 1)) %>% 
     pivot_wider(names_from = variable, values_from = value) %>% 
-    arrange(aluekoodi) %>% 
-    gt::gt()
+    arrange(aluekoodi) -> tmpt
+  if (print){
+    print(kable(tmpt,
+                format = "pipe", 
+                row.names = FALSE))
+  } else {
+    gt::gt(tmpt)
+  }
+    
   
 }

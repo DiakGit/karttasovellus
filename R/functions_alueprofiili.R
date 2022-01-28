@@ -26,11 +26,14 @@ process_data_profile_doc <- function(input_value_regio_level_profile = "Hyvinvoi
   dat_1 <- dat[dat$regio_level %in% input_value_regio_level_profile,]
   
   if (input_value_regio_level_profile == "Hyvinvointialueet"){
-    reg <- karttasovellus::regio_Hyvinvointialueet
+    load(system.file("data", "regio_Hyvinvointialueet.rda", package="karttasovellus"))
+    reg <- regio_Hyvinvointialueet
   } else if (input_value_regio_level_profile == "Seutukunnat"){
-    reg <- karttasovellus::regio_Seutukunnat
+    load(system.file("data", "regio_Seutukunnat.rda", package="karttasovellus"))
+    reg <- regio_Seutukunnat
   } else if (input_value_regio_level_profile == "Kunnat"){
-    reg <- karttasovellus::regio_Kunnat
+    load(system.file("data", "regio_Kunnat.rda", package="karttasovellus"))
+    reg <- regio_Kunnat
   }
   res <- left_join(reg, dat_1)
   
@@ -337,4 +340,248 @@ create_alt_text_kartta <- function(varname = NULL,
         "ja alueina mukana ", 
         glue_collapse(region_nms, sep = ", ", last = " ja ")
   )
+}
+
+
+# printtifunktiot ----
+
+
+#' Add line breaks
+#' 
+#' @param x A string.
+#' @param n A integer
+#'
+#' @export
+print_add_line_break2 <- function(x = "very many many characters and words and sentences",
+                            n = 20){
+  y <- gsub(paste0("(.{1,",n,"})(\\s|$)"), "\\1\n", x)
+  y <- sub("\n$", "", y)
+  return(y)
+} 
+
+#' Create table for print
+#' 
+#' @param df A data frame.
+#' @param varclass A string.
+#'
+#' @export
+print_create_table <- function(varclass = "Summamuuttujat",
+                               valid_vars = "Huono-osaisuus yhteensä",
+                               tabdat2 = tabdat
+                               ){
+  
+  tabdat2 %>% 
+    filter(var_class == varclass,
+           muuttuja %in% valid_vars) %>% 
+    select(-var_class) -> tmptbl
+  
+  vars <- unique(tmptbl$muuttuja)
+  for (vi in seq_along(vars)){
+    cat("\n\n")
+    cat(paste0("## ", vars[vi]))
+    cat("\n\n")
+    print(kable(tmptbl[tmptbl$muuttuja == vars[vi],] %>% 
+                  mutate(aluenimi = paste0(aluenimi, " (", rooli, ") ")) %>%
+                  arrange(sija) %>% 
+                  select(aluenimi,arvo,sija),
+                
+                format = "pipe", 
+                row.names = FALSE))
+  }
+}
+
+#' Create table for print
+#' 
+#' @param varclass a string.
+#' @param reglevel a string.
+#' @param spatdat a sf
+#' @param naapurikoodit a integer.
+#' @param ncol a integer.
+#'
+#' @export
+print_create_map_plot <- function(varclass = "Summamuuttujat", 
+                            reglevel = "Kunnat", 
+                            regname = "Alajärvi", 
+                            naapurit = c(91,92,924),
+                            valid_vars = "Huono-osaisuus yhteensä",
+                            ncol = 2){
+  
+  datmpt <- get_dat() %>% filter(regio_level == reglevel)
+  spatdat <- process_data_profile_doc(input_value_regio_level_profile = reglevel)
+  
+  dattemp <- datmpt %>% 
+    filter(var_class %in% varclass, 
+           variable %in% valid_vars)
+  
+  vars <- dattemp %>% 
+    distinct(variable) %>% 
+    pull(variable)
+  
+  gg_x <- list()
+  for (i in 1:length(vars)){
+    
+    plot_dat <- dattemp %>% filter(variable %in% vars[i])
+    
+    dat_naapurit <- spatdat[spatdat$aluekoodi %in% naapurit,] %>% select(-value)
+    dat_naapurit2 <- left_join(dat_naapurit,
+                               plot_dat %>%
+                                 select(aluekoodi,value)
+    )
+    
+    p <- ggplot(data = dat_naapurit2, aes(fill = value, label = value)) +                    
+      geom_sf(color = alpha("white", 1/3))  +
+      theme_minimal(base_family = "PT Sans", base_size = 12) +
+      scale_fill_fermenter(palette = "YlGnBu") +
+      theme(axis.text = element_blank(),
+            axis.title = element_blank(),
+            plot.title.position = "plot",
+            panel.grid = element_blank()) +
+      labs(x = NULL, y = NULL, fill = NULL,
+           title = add_line_break2(vars[i], n = 35)) +
+      geom_label(data = dat_naapurit2 %>%  
+                   sf::st_set_geometry(NULL) %>%
+                   bind_cols(dat_naapurit2 %>%
+                               sf::st_centroid() %>%
+                               sf::st_coordinates() %>% as_tibble()),
+                 aes(label = paste0(aluenimi, "\n",
+                                    round(value,1)), x = X, y = Y),
+                 color = "black", fill = "white", family = "PT Sans", lineheight = .8)
+    
+    
+    gg_x[[i]] <- p
+  }
+  
+  gg_x2 <- purrr::compact(gg_x)
+  
+  wrap_plots(gg_x2, ncol = ncol) +
+    plot_annotation(
+      subtitle = glue("Kuhunkin kuvioon on merkitty alueen '{regname}' lisäksi alueen rajanaapurit"),
+      theme = theme_minimal() + theme(plot.background = element_rect(fill = NA, color = alpha(colour = "dim grey", 1/6)))
+    )
+}
+
+#' Create table for print
+#' 
+#' @param varclass a string.
+#' @param reglevel a string.
+#' @param spatdat a sf
+#' @param naapurikoodit a integer.
+#' @param ncol a integer.
+#'
+#' @export
+print_create_timeseries_plot <- function(varclass = "Summamuuttujat", 
+                                         reglevel = "Kunnat", 
+                                         regname = "Alajärvi", 
+                                         naapurit = c(91,92),
+                                         valid_vars = "Huono-osaisuus yhteensä",
+                                         ncol = 2){
+  
+  dattemp <- get_dat_timeseries() %>% filter(var_class %in% varclass, 
+                                             regio_level %in% reglevel,
+                                             variable %in% valid_vars)
+  vars <- dattemp %>% 
+    distinct(variable) %>% 
+    pull(variable)
+  
+  gg_x <- list()
+  for (i in 1:length(vars)){
+    
+    plot_dat <- dattemp %>% filter(variable %in% vars[i])
+    
+    plotdata_tmp <- plot_dat[plot_dat$aluekoodi %in% naapurit,]
+    
+    aika1 <- sort(unique(plotdata_tmp$aika)) - 1
+    aika2 <- sort(unique(plotdata_tmp$aika)) + 1
+    labels <- paste0(aika1,"-\n",aika2)
+    
+    p <- ggplot(data = plotdata_tmp,
+                aes(x = aika, y = value, color= aluenimi, fill= aluenimi)) +
+      geom_line(show.legend = FALSE) +
+      geom_point(shape = 21, color = "white", stroke = 1, size = 2.5) +
+      geom_text(data = plotdata_tmp %>% filter(aika == max(aika, na.rm = TRUE)),
+                aes(label = paste0(aluenimi, " ",round(value,1))), family = "PT Sans") +
+      scale_x_continuous(breaks = sort(unique(plotdata_tmp$aika)), labels = labels) +
+      theme_ipsum(base_family = "PT Sans", 
+                  base_size = 12, 
+                  plot_title_size = 14,
+                  plot_title_family = "PT Sans",
+                  subtitle_family = "PT Sans"
+      ) +
+      theme(legend.position = "none",
+            plot.title.position = "plot",
+            panel.grid.major.x = element_line(),
+            panel.grid.minor.x = element_blank(),
+            panel.grid.major.y = element_blank(),
+            axis.text.x = element_text(size = 9)) +
+      labs(y = NULL, x = NULL,
+           title = add_line_break2(vars[i], n = 35))
+    
+    
+    gg_x[[i]] <- p
+  }
+  
+  gg_x2 <- purrr::compact(gg_x)
+  
+  wrap_plots(gg_x2, ncol = ncol) +
+    plot_annotation(
+      subtitle = glue("Kuhunkin kuvioon on merkitty alueen '{regname}' lisäksi alueen rajanaapurit"),
+      theme = theme_minimal() + theme(plot.background = element_rect(fill = NA, color = alpha(colour = "dim grey", 1/6)))
+    )
+}
+
+#' Create table for print
+#' 
+#' @param params_region_level a string.
+#' @param params_region a string.
+#' @param params_naapurikoodit a integer.
+#'
+#' @export
+print_create_tabdat <- function(params_region_level = "Kunnat",
+                                params_region = "Alajärvi",
+                                params_naapurikoodit = c(91,924,92)){
+  
+  dat <- get_dat()
+  dat[dat$regio_level %in% params_region_level & dat$aluenimi %in% params_region,] %>% 
+    select(aluenimi,var_class,variable,value) %>% 
+    mutate(rooli = "valittu") -> tmpdat1
+  dat[dat$regio_level %in% params_region_level & dat$aluekoodi %in% params_naapurikoodit,] %>% 
+    filter(!aluenimi %in% params_region) %>% 
+    select(aluenimi,var_class,variable,value) %>% 
+    mutate(rooli = "naapuri")-> tmpdat2
+  tmpdat <- bind_rows(tmpdat1,tmpdat2)
+  
+  ## 
+  dat[dat$regio_level %in% params_region_level,] %>% 
+    group_by(var_class,variable) %>% 
+    arrange(desc(value)) %>% 
+    slice(1) %>% 
+    ungroup() %>% 
+    mutate(rooli = "korkein arvo") %>%
+    select(aluenimi,var_class,variable,value,rooli) -> max_dat
+  
+  dat[dat$regio_level %in% params_region_level,] %>% 
+    group_by(var_class,variable) %>% 
+    arrange(value) %>% 
+    slice(1) %>% 
+    ungroup() %>% 
+    mutate(rooli = "matalin arvo") %>% 
+    select(aluenimi,var_class,variable,value,rooli) -> min_dat
+  
+  dat[dat$regio_level %in% params_region_level,] %>% 
+    group_by(variable) %>% 
+    arrange(desc(value)) %>%
+    mutate(sija = 1:n(),
+           n = n()) %>% 
+    ungroup() %>% 
+    select(aluenimi,variable,sija) -> rank_dat
+  
+  bind_rows(tmpdat,max_dat,min_dat) %>% 
+    left_join(rank_dat) %>% 
+    mutate(value = round(value, 1)) %>% 
+    rename(muuttuja = variable,
+           arvo = value) %>% 
+    filter(!is.na(arvo)) %>% 
+    select(muuttuja,arvo,sija,everything()) %>% 
+    distinct() -> tabdat
+  return(tabdat)
 }

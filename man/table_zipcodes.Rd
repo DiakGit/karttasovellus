@@ -6,7 +6,8 @@
 \usage{
 table_zipcodes(
   input_value_region_selected = 91,
-  input_value_regio_level = "Kunnat"
+  input_value_regio_level = "Kunnat",
+  print = FALSE
 )
 }
 \arguments{

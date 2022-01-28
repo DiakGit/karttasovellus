@@ -261,11 +261,12 @@ mod_04alueprof_server <- function(id){
         uiOutput(ns("zipcode_tables")),
         # ## ## ##
         tags$h5("Kartat"),
-        uiOutput(ns("zipcode_maps"))#,
+        uiOutput(ns("zipcode_maps"))
       )
       
     })
     
+    # wordin_luominen ----
     output$report <- downloadHandler(
       
       filename = function() {
@@ -284,20 +285,12 @@ mod_04alueprof_server <- function(id){
             aluename <- react_value_region_profile()
             shiny::incProgress(3/10)
             
-            region_data <- get_region_data()
-            region_data <- dplyr::filter(region_data, level %in% react_value_regio_level_profile())
-            naapurikoodit <- region_data[region_data$region_name %in% aluename,]$neigbours[[1]]
+            
             
             params <- list(region = aluename,
                            region_level = react_value_regio_level_profile(),
-                           datetime = Sys.time(),
-                           data = get_dat(),
-                           data_aikasarja = get_dat_timeseries(),
-                           spatdat = process_data_profile_doc(input_value_regio_level_profile = react_value_regio_level_profile()),
-                           region_data = region_data,
-                           naapurikoodit = naapurikoodit
-            )
-            
+                           datetime = Sys.time())
+
             tempReport <- file.path(tempdir(), "report.Rmd")
             lns <- readLines(system.file("templates", "report_template.Rmd", package="karttasovellus"))
             
