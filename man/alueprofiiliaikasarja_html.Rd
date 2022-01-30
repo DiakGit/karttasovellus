@@ -8,7 +8,10 @@ alueprofiiliaikasarja_html(
   input_value_regio_level_profile = "Hyvinvointialueet",
   input_value_region_profile = "Itä-Uudenmaan HVA",
   val_muuttujaluokka = "Summamuuttujat",
-  val_muuttuja1 = "Huono-osaisuus yhteensä"
+  val_muuttuja1 = "Huono-osaisuus yhteensä",
+  region_data = NULL,
+  tabdat = NULL,
+  naapurikoodit = NULL
 )
 }
 \arguments{

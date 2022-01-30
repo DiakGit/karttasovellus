@@ -137,18 +137,24 @@ create_alueprofiili_content <- function(input_value_region_profile = "Itä-Uuden
 alueprofiilikartta_html <- function(input_value_regio_level_profile = "Hyvinvointialueet", 
                                     input_value_region_profile = "Itä-Uudenmaan HVA", 
                                     val_muuttujaluokka = "Summamuuttujat",
-                                    val_muuttuja = "Huono-osaisuus yhteensä"){
+                                    val_muuttuja = "Huono-osaisuus yhteensä",
+                                    region_data = NULL,
+                                    tabdat = NULL,
+                                    naapurikoodit = NULL){
   
   
   val_aluename <- input_value_region_profile
   val_aluetaso1 <- input_value_regio_level_profile
   
-  region_data <- get_region_data()
-  region_data <- dplyr::filter(region_data, level %in% val_aluetaso1)
-  naapurikoodit <- region_data[region_data$region_name %in% val_aluename,]$neigbours[[1]]
-  
-  tabdat <- create_alueprofiili_content(input_value_region_profile = val_aluename, 
-                                        input_value_regio_level_profile = val_aluetaso1)
+  if (is.null(region_data)){
+    region_data <- get_region_data()
+    region_data <- dplyr::filter(region_data, level %in% val_aluetaso1)
+    naapurikoodit <- region_data[region_data$region_name %in% val_aluename,]$neigbours[[1]]    
+  }
+  if (is.null(tabdat)){
+    tabdat <- create_alueprofiili_content(input_value_region_profile = val_aluename, 
+                                          input_value_regio_level_profile = val_aluetaso1)    
+  }
 
   lista1_tbl <- tabdat %>%
     filter(var_class == val_muuttujaluokka,
@@ -164,7 +170,7 @@ alueprofiilikartta_html <- function(input_value_regio_level_profile = "Hyvinvoin
                             base_size = 11, 
                             plot_title_size = 12) +
     # scale_fill_viridis_c(option = "plasma") +
-    scale_fill_fermenter(palette = "YlGnBu") +
+    scale_fill_fermenter(palette = "YlGnBu", type = "seq", direction = 1) +
     theme(axis.text.x = element_blank(),
           axis.text.y = element_blank(),
           axis.title.x = element_blank(),
@@ -195,19 +201,25 @@ alueprofiilikartta_html <- function(input_value_regio_level_profile = "Hyvinvoin
 alueprofiiliaikasarja_html <- function(input_value_regio_level_profile = "Hyvinvointialueet", 
                                        input_value_region_profile = "Itä-Uudenmaan HVA", 
                                        val_muuttujaluokka = "Summamuuttujat",
-                                       val_muuttuja1 = "Huono-osaisuus yhteensä"){
+                                       val_muuttuja1 = "Huono-osaisuus yhteensä",
+                                       region_data = NULL,
+                                       tabdat = NULL,
+                                       naapurikoodit = NULL){
+  
   
   val_aluename <- input_value_region_profile
   val_aluetaso1 <- input_value_regio_level_profile
   
-  region_data <- get_region_data()
-  region_data <- dplyr::filter(region_data, level %in% val_aluetaso1)
-  naapurikoodit <- region_data[region_data$region_name %in% val_aluename,]$neigbours[[1]]
-  
-  tabdat <- create_alueprofiili_content(input_value_region_profile = val_aluename, 
-                                        input_value_regio_level_profile = val_aluetaso1, 
-                                        aikasarja = TRUE)
-  
+  if (is.null(region_data)){
+    region_data <- get_region_data()
+    region_data <- dplyr::filter(region_data, level %in% val_aluetaso1)
+    naapurikoodit <- region_data[region_data$region_name %in% val_aluename,]$neigbours[[1]]    
+  }
+  if (is.null(tabdat)){
+    tabdat <- create_alueprofiili_content(input_value_region_profile = val_aluename, 
+                                          input_value_regio_level_profile = val_aluetaso1,
+                                          aikasarja = TRUE)    
+  }
   tabdat1 <- tabdat[tabdat$var_class == val_muuttujaluokka & tabdat$muuttuja == val_muuttuja1, ]
   
   plotdata_tmp <- tabdat1 %>%
@@ -431,7 +443,7 @@ print_create_map_plot <- function(varclass = "Summamuuttujat",
     p <- ggplot(data = dat_naapurit2, aes(fill = value, label = value)) +                    
       geom_sf(color = alpha("white", 1/3))  +
       theme_minimal(base_family = "PT Sans", base_size = 12) +
-      scale_fill_fermenter(palette = "YlGnBu") +
+      scale_fill_fermenter(palette = "YlGnBu", type = "seq", direction = 1) +
       theme(axis.text = element_blank(),
             axis.title = element_blank(),
             plot.title.position = "plot",

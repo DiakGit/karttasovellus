@@ -113,23 +113,27 @@ mod_04alueprof_server <- function(id){
       aluetaso1 <- react_value_regio_level_profile()
 
       region_data <- get_region_data()
-      region_data <- dplyr::filter(region_data, level %in% aluetaso1)
-      naapurikoodit <- region_data[region_data$region_name %in% aluename,]$neigbours[[1]]
+      region_data_base <- dplyr::filter(region_data, level %in% aluetaso1)
+      naapurikoodit_base <- region_data[region_data$region_name %in% aluename,]$neigbours[[1]]
       
-      tabdat <- create_alueprofiili_content(input_value_region_profile = aluename, 
+      tabdat_base <- create_alueprofiili_content(input_value_region_profile = aluename, 
                                             input_value_regio_level_profile = aluetaso1)
+      tabdat_base_ts <- create_alueprofiili_content(input_value_region_profile = aluename, 
+                                            input_value_regio_level_profile = aluetaso1,
+                                            aikasarja = TRUE)
       
       # Summamuuttujat
-      muuttujaluokka <- c("Summamuuttujat",
-                          "Inhimillinen huono-osaisuus",
-                           "Huono-osaisuuden sosiaaliset seuraukset",
-                           "Huono-osaisuuden taloudelliset yhteydet"
+      muuttujaluokka <- c(#"Summamuuttujat",
+                          # "Inhimillinen huono-osaisuus",
+                           "Huono-osaisuuden sosiaaliset seuraukset"#,
+                           #"Huono-osaisuuden taloudelliset yhteydet"
                           )
       # ii <- 1
       lapply(seq_along(muuttujaluokka), function(ii) {
-      tabdat_tmp <- tabdat %>% 
+      tabdat_tmp <- tabdat_base %>% 
         filter(var_class == muuttujaluokka[ii])
       muuttujanimi <- unique(tabdat_tmp$muuttuja)
+      profile_plot_height <- paste0(400 + length(naapurikoodit_base)*20, "px")
       
 
       nro <- length(muuttujanimi)
@@ -149,24 +153,38 @@ mod_04alueprof_server <- function(id){
           alueprofiilikartta_html(val_muuttuja = muuttujanimi[i], 
                                      input_value_regio_level_profile = aluetaso1, 
                                      input_value_region_profile = aluename, 
-                                     val_muuttujaluokka = muuttujaluokka[ii])
+                                     val_muuttujaluokka = muuttujaluokka[ii],
+                                     tabdat = tabdat_base,
+                                     region_data = region_data_base,
+                                     naapurikoodit = naapurikoodit_base)
         }, alt = create_alt_text_kartta(varname = muuttujanimi[i]))
         
         output[[paste0('aikasarja',ii,'_',i)]] <- renderPlot({
           alueprofiiliaikasarja_html(val_muuttuja1 = muuttujanimi[i], 
                                      input_value_regio_level_profile = aluetaso1, 
                                      input_value_region_profile = aluename, 
-                                     val_muuttujaluokka = muuttujaluokka[ii])
+                                     val_muuttujaluokka = muuttujaluokka[ii],
+                                     tabdat = tabdat_base_ts,
+                                     region_data = region_data_base,
+                                     naapurikoodit = naapurikoodit_base)
         }, alt = create_alt_text_aikasarja(varname = muuttujanimi[i]))
         
 
-        if (i == 1) h4_title <- muuttujaluokka[ii] else h4_title <- ""
+        if (i == 1){
+          h4_title <- muuttujaluokka[ii]
+          h4_id <- janitor::make_clean_names(muuttujaluokka[ii])
+          tag_lnk <- tags$a(class="nav-link", href="#alueprofiili", "Alueprofiilin alkuun")
+        }  else {
+          h4_title <- ""
+          h4_id <- ""
+          tag_lnk <- ""
+        }
           tagList(
-            fluidRow(tags$h4(h4_title)),
+            fluidRow(tags$h4(h4_title, id = h4_id)),tag_lnk,
             fluidRow(tags$h5(muuttujanimi[i])),
             fluidRow(column(3,withSpinner(tableOutput(ns(paste0('taulu',ii,'_',i))))),
-                     column(5,withSpinner(plotOutput(ns(paste0('kartta',ii,'_',i)),width = "100%"))),
-                     column(4,withSpinner(plotOutput(ns(paste0('aikasarja',ii,'_',i)),width = "100%"))))
+                     column(5,withSpinner(plotOutput(ns(paste0('kartta',ii,'_',i)), height = profile_plot_height, width = "100%"))),
+                     column(4,withSpinner(plotOutput(ns(paste0('aikasarja',ii,'_',i)), height = profile_plot_height, width = "100%"))))
           )
         }
       })
@@ -242,6 +260,8 @@ mod_04alueprof_server <- function(id){
                                             input_value_regio_level_profile = aluetaso1)
       
       tagList(
+        tags$div(style = "padding-top: 150px;"),
+        tags$hr(),
         fluidRow(column(width = 6,
                         tags$h3(glue("{aluename} ({aluetaso1})")),
                         tags$p("Analyysissä mukana naapurit: ", 
@@ -252,16 +272,34 @@ mod_04alueprof_server <- function(id){
         )
         ),
         tags$hr(),
+        tags$strong("Alueprofiilin sisällysluettelo"),
+        tags$li(class = "nav-item",
+                tags$a(class="toc-alueprof", href="#summamuuttujat", "Summamuuttujat")
+        ),
+        tags$li(class = "nav-item",
+                tags$a(class="toc-alueprof", href="#inhimillinen_huono_osaisuus", "Inhimillinen huono-osaisuus")
+        ),
+        tags$li(class = "nav-item",
+                tags$a(class="toc-alueprof", href="#huono_osaisuuden_sosiaaliset_seuraukset", "Huono-osaisuuden sosiaaliset seuraukset")
+        ),
+        tags$li(class = "nav-item",
+                tags$a(class="toc-alueprof", href="#huono_osaisuuden_taloudelliset_yhteydet", "Huono-osaisuuden taloudelliset yhteydet")
+        ),
+        tags$li(class = "nav-item",
+                tags$a(class="toc-alueprof", href="#postinumerotieto", "Postinumeroalueittainen tieto")
+        ),
         ## ## ##
         uiOutput(ns("alueprofiili_html")),
         # ## ## ##
-        tags$h4("Postinumeroalueittainen tieto"),
+        tags$h4("Postinumeroalueittainen tieto", id = "postinumerotieto"),
+        tags$a(class="nav-link", href="#alueprofiili", "Alueprofiilin alkuun"),
         ## ## ##
         tags$h5("Taulukko"),
         uiOutput(ns("zipcode_tables")),
         # ## ## ##
         tags$h5("Kartat"),
-        uiOutput(ns("zipcode_maps"))
+        uiOutput(ns("zipcode_maps")),
+        tags$a(class="nav-link", href="#alueprofiili", "Alueprofiilin alkuun")
       )
       
     })
