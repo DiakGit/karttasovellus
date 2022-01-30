@@ -183,6 +183,141 @@ map_zipcodes <- function(input_value_region_selected = 91,
   }
 }
 
+
+#' Create leaflet only zipcode map for alueprofiili
+#' 
+#' @param input_value_region_selected A numeric
+#' @param input_value_regio_show_mode A string
+#'
+#' @import leaflet
+#' @import leaflet.extras
+#'
+#' @export
+map_zipcodes_alueprofiili <- function(input_value_region_selected = 91,
+                         input_value_regio_level = "Kunnat"){
+
+  region_data <- get_region_zipdata()
+  load(system.file("data", "dfzip_v20220125.rda", package="karttasovellus"))
+  dfzip <- dfzip_v20220125 %>% 
+    pivot_wider(names_from = variable, values_from = value)  
+  dat <- left_join(region_data %>% select(-kuntanro),
+                   dfzip,by = c("region_name" = "aluenimi"), keep = TRUE)
+  
+  zipcodes <- get_koodit_zip(regio_selected = input_value_region_selected, 
+                             value_regio_level = input_value_regio_level)
+  dat <- dat %>% filter(aluekoodi %in% zipcodes)
+  
+  dat_wgs84 <- sf::st_transform(x = dat, crs = "+proj=longlat +datum=WGS84")
+    
+  pal1 <- leaflet::colorNumeric(palette = "YlGnBu", domain = dat_wgs84$Kokonaislukema)
+  pal2 <- leaflet::colorNumeric(palette = "YlGnBu", domain = dat_wgs84$`Alimpaan tuloluokkaan kuuluvat taloudet`)
+  pal3 <- leaflet::colorNumeric(palette = "YlGnBu", domain = dat_wgs84$`Alimpaan tuloluokkaan kuuluvat täysi-ikäiset`)
+  pal4 <- leaflet::colorNumeric(palette = "YlGnBu", domain = dat_wgs84$Työttömät)
+    
+  lab1 <- sprintf(
+      "<strong>Kokonaislukema</strong><br/><italic>%s</italic> (%s)<br/>%s<br/><strong>%s</strong>",
+      dat_wgs84$region_name, 
+      dat_wgs84$region_code, 
+      dat_wgs84$kuntanimi, 
+      round(dat_wgs84$Kokonaislukema,1)
+    ) %>% lapply(htmltools::HTML)
+  lab2 <- sprintf(
+    "<strong>Alimpaan tuloluokkaan kuuluvat taloudet</strong><br/><italic>%s</italic> (%s)<br/>%s<br/><strong>%s</strong>",
+    dat_wgs84$region_name, 
+    dat_wgs84$region_code, 
+    dat_wgs84$kuntanimi, 
+    round(dat_wgs84$`Alimpaan tuloluokkaan kuuluvat taloudet`,1)
+  ) %>% lapply(htmltools::HTML)
+  lab3 <- sprintf(
+    "<strong>Alimpaan tuloluokkaan kuuluvat täysi-ikäiset</strong><br/><italic>%s</italic> (%s)<br/>%s<br/><strong>%s</strong>",
+    dat_wgs84$region_name, 
+    dat_wgs84$region_code, 
+    dat_wgs84$kuntanimi, 
+    round(dat_wgs84$`Alimpaan tuloluokkaan kuuluvat täysi-ikäiset`,1)
+  ) %>% lapply(htmltools::HTML)
+  lab4 <- sprintf(
+    "<strong>Työttömät</strong><br/><italic>%s</italic> (%s)<br/>%s<br/><strong>%s</strong>",
+    dat_wgs84$region_name, 
+    dat_wgs84$region_code, 
+    dat_wgs84$kuntanimi, 
+    round(dat_wgs84$Työttömät,1)
+  ) %>% lapply(htmltools::HTML)
+
+    highlight_opts <- highlightOptions(
+      weight = 2,
+      color = "#666",
+      dashArray = "",
+      fillOpacity = 0.4,
+      bringToFront = TRUE)
+    
+    label_opts <- labelOptions(opacity = .7,
+                 style = list("font-weight" = "normal",
+                              padding = "2px 4px"),
+                 textsize = "12px",
+                 direction = "auto")
+
+    
+    
+    base <- leaflet(data = dat_wgs84) %>% 
+      addTiles(urlTemplate = "http://tiles.kartat.kapsi.fi/taustakartta/{z}/{x}/{y}.jpg",
+               options = tileOptions(opacity = .4))
+    
+    base %>%   
+      addPolygons(fillColor = ~pal1(Kokonaislukema),
+                  group = "Kokonaislukema",
+                  color = "white",
+                  weight = 2,
+                  opacity = .6,
+                  dashArray = "3",
+                  fillOpacity = 0.7,
+                  highlight = highlight_opts,
+                  label = lab1,
+                  labelOptions = label_opts) %>% 
+      addPolygons(fillColor = ~pal2(`Alimpaan tuloluokkaan kuuluvat taloudet`),
+                  group = "Alimpaan tuloluokkaan kuuluvat taloudet",
+                  color = "white",
+                  weight = 2,
+                  opacity = .6,
+                  dashArray = "3",
+                  fillOpacity = 0.7,
+                  highlight = highlight_opts,
+                  label = lab2,
+                  labelOptions = label_opts) %>% 
+    addPolygons(fillColor = ~pal3(`Alimpaan tuloluokkaan kuuluvat täysi-ikäiset`),
+                group = "Alimpaan tuloluokkaan kuuluvat täysi-ikäiset",
+                color = "white",
+                weight = 2,
+                opacity = .6,
+                dashArray = "3",
+                fillOpacity = 0.7,
+                highlight = highlight_opts,
+                label = lab3,
+                labelOptions = label_opts) %>% 
+      addPolygons(fillColor = ~pal4(Työttömät),
+                  group = "Työttömät",
+                  color = "white",
+                  weight = 2,
+                  opacity = .6,
+                  dashArray = "3",
+                  fillOpacity = 0.7,
+                  highlight = highlight_opts,
+                  label = lab4,
+                  labelOptions = label_opts) %>% 
+      addLegend(pal = pal1,
+                values = ~Kokonaislukema,
+                opacity = 0.7,
+                title = "",
+                position = "bottomright") %>%
+      addLayersControl(
+        baseGroups = c("Kokonaislukema", 
+                       "Alimpaan tuloluokkaan kuuluvat taloudet", 
+                       "Alimpaan tuloluokkaan kuuluvat täysi-ikäiset",
+                       "Työttömät"),
+        options = layersControlOptions(collapsed = FALSE)
+      ) %>% 
+      leaflet.extras::addFullscreenControl()
+}
+
 #' Create zipcode bar chart
 #' 
 #' @param input_value_region_selected A numeric

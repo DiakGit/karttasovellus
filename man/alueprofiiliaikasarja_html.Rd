@@ -2,7 +2,8 @@
 % Please edit documentation in R/functions_alueprofiili.R
 \name{alueprofiiliaikasarja_html}
 \alias{alueprofiiliaikasarja_html}
-\title{Process data for profile}
+\title{Create leaflet map
+Process data for profile}
 \usage{
 alueprofiiliaikasarja_html(
   input_value_regio_level_profile = "Hyvinvointialueet",
@@ -24,5 +25,6 @@ alueprofiiliaikasarja_html(
 \item{val_muuttuja}{A string.}
 }
 \description{
+Create leaflet map
 Process data for profile
 }

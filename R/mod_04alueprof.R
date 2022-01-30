@@ -237,12 +237,20 @@ mod_04alueprof_server <- function(id){
                                    input_value_regio_level = aluetaso1,
                                    input_value_variable = "Alimpaan tuloluokkaan kuuluvat taloudet",
                                    leaflet = FALSE)
-              patchwork::wrap_plots(list(map1,map2,map3,map4), ncol = 2)
+              patchwork::wrap_plots(list(map1,map2,map3,map4), ncol = 1)
               
       })
       
+      output$map_zipcode_leaflet <- renderLeaflet({
+        map_zipcodes_alueprofiili(input_value_region_selected = reg_code, input_value_regio_level = aluetaso1)
+      })
+      
       tagList(
-        withSpinner(plotOutput(ns("map_zipcode_01"),height = "1800px", width = "100%"))
+        fluidRow(column(width = 6,
+                 withSpinner(plotOutput(ns("map_zipcode_01"),height = "1800px", width = "100%"))),
+          column(width = 6,
+                 withSpinner(leafletOutput(ns("map_zipcode_leaflet"),height = "900px", width = "100%")))
+      )
       )
     })
     
