@@ -44,7 +44,7 @@ theme_set(
 
 
 ```{r parametrit, include = FALSE}
-if (FALSE){
+if (TRUE){
 params_region <- params$region
 params_region_level <- params$region_level
 params_datetime <- params$datetime
@@ -100,7 +100,7 @@ spatdat <- process_data_profile_doc(input_value_regio_level_profile = params_reg
 
 Tämä asiakirja on tuotettu automaattisesti [Diakin karttasovelluksen avulla](http://diak.shinyapps.io/karttasovellus) `r params_datetime`. Asiakirjan tiedot perustuvat THL:n Sotkanet-indikaattoripalvelun tietoihin, joihin on yhdistetty Tilastokeskuksen tilasto- ja paikkatietoaineistoja. Tarkempaa tieto indikaattoreista ja metodologiasta löydät sovelluksen [Lisätietoja](https://diak.shinyapps.io/karttasovellus_test/#info)-osiosta.
 
-Alueprofiili sisältää aina kaikkien osoittimien tiedot sekä valitulta alueelta että alueen rajanaapureista. Lisäksi alueprofiilissa esitetään kunkin osoittimen korkein ja matalin arvo. Tiedot esitetään taulukkoina, karttakuvioina sekä aikasarjakuvioina, joista näkee kunkin osoittimen kehityksen 2010-luvulla sekä valitulla alueella että sen naapureissa.
+Alueprofiili sisältää aina kaikkien osoittimien tiedot sekä valitulta alueelta että alueen rajanaapureista. Lisäksi alueprofiilissa esitetään kunkin osoittimen korkein ja matalin arvo. Tiedot esitetään taulukkoina, karttakuvioina sekä aikasarjakuvioina, joista näkee kunkin osoittimen kehityksen 2010-luvulla sekä valitulla alueella että sen naapureissa. Raportin lopussa on tiedot pienituloisuudesta ja työttömyydestä kaikilta alueen postinumeroalueilta.
 
 Tässä raportissa tarkastellaan tasolla `r params_region_level` aluetta `r params_region`. Lisäksi tarkastelussa ovat rajanaapurit: `r region_data %>% filter(level == params_region_level) %>% filter(region_code %in% naapurikoodit) %>% pull(region_name) %>% glue_collapse(sep = ", ", last = " ja ")`.
 
@@ -154,7 +154,8 @@ print_create_map_plot(varclass = muuttujaluokka,
 
 ```{r summa_tbl, results = "asis"}
 print_create_table(varclass = muuttujaluokka,
-                   valid_vars = valid_variables)
+                   valid_vars = valid_variables,
+                   tabdat2 = tabdat)
 ```
 
 ```{r summa_kuva, fig.height = figu_height}
@@ -194,7 +195,8 @@ print_create_map_plot(varclass = muuttujaluokka,
 
 ```{r inhim_tbl, results = "asis"}
 print_create_table(varclass = muuttujaluokka,
-                   valid_vars = valid_variables)
+                   valid_vars = valid_variables,
+                   tabdat2 = tabdat)
 ```
 
 ```{r inhim_kuva, fig.height = figu_height}
@@ -231,7 +233,8 @@ print_create_map_plot(varclass = muuttujaluokka,
 
 ```{r sosial_taulukko, results = "asis"}
 print_create_table(varclass = muuttujaluokka,
-                   valid_vars = valid_variables)
+                   valid_vars = valid_variables,
+                   tabdat2 = tabdat)
 ```
 
 ```{r sosial_kuva, fig.height = figu_height}
@@ -271,7 +274,8 @@ print_create_map_plot(varclass = muuttujaluokka,
 
 ```{r talous_tbl, results = "asis"}
 print_create_table(varclass = muuttujaluokka,
-                   valid_vars = valid_variables)
+                   valid_vars = valid_variables,
+                   tabdat2 = tabdat)
 ```
 
 ```{r talous_kuva, fig.height = figu_height}

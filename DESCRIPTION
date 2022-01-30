@@ -32,6 +32,7 @@ Imports:
     patchwork,
     pkgload,
     processx,
+    ragg,
     readr,
     sf,
     shiny (>= 1.7.1),
