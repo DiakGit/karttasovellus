@@ -9,8 +9,8 @@
 #' @importFrom shiny NS tagList 
 
 
-init_val <- 1
-names(init_val) <- "Itä-Uudenmaan HVA"
+init_val <- 11
+names(init_val) <- "Etelä-Karjalan HVA"
 
 mod_041zipcode_ui <- function(id){
   ns <- NS(id)
@@ -97,6 +97,7 @@ mod_041zipcode_server <- function(id){
       # freezeReactiveValue(input, "value_regio_level")
       reg <- sf::st_drop_geometry(karttasovellus::region_data)
       reg <- reg[reg$level %in% input$value_regio_level,]
+      reg <- arrange(reg, region_name)
       # reg <- reg[reg$level %in% "Hyvinvointialueet",]
       opt_indicator <- reg$region_code
       names(opt_indicator) <- reg$region_name

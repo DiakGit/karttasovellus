@@ -68,7 +68,7 @@ mod_04alueprof_server <- function(id){
       
       region_data <- get_region_data()
       tmpdat <- region_data[region_data$level %in% input$value_regio_level_profile,]
-      choices <- tmpdat$region_name
+      choices <- sort(tmpdat$region_name)
       
       tagList(
         selectInput(inputId = ns("value_region_profile"), 
@@ -123,10 +123,10 @@ mod_04alueprof_server <- function(id){
                                             aikasarja = TRUE)
       
       # Summamuuttujat
-      muuttujaluokka <- c(#"Summamuuttujat",
-                          # "Inhimillinen huono-osaisuus",
-                           "Huono-osaisuuden sosiaaliset seuraukset"#,
-                           #"Huono-osaisuuden taloudelliset yhteydet"
+      muuttujaluokka <- c("Summamuuttujat",
+                          "Inhimillinen huono-osaisuus",
+                           "Huono-osaisuuden sosiaaliset seuraukset",
+                           "Huono-osaisuuden taloudelliset yhteydet"
                           )
       # ii <- 1
       lapply(seq_along(muuttujaluokka), function(ii) {

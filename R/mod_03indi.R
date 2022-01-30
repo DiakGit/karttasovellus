@@ -41,8 +41,8 @@ mod_03indi_ui <- function(id){
                                     # uiOutput(ns("output_regio_level")),
                            selectInput(inputId = ns("value_region_selected"), 
                                        label = "Valitse alue",
-                                       choices = "Itä-Uudenmaan HVA",
-                                       selected = "Itä-Uudenmaan HVA"
+                                       choices = "Etelä-Karjalan HVA",
+                                       selected = "Etelä-Karjalan HVA"
                            ),
                                     # uiOutput(ns("output_regio_select")),
                            radioButtons(inputId = ns("value_regio_show_mode"), 
@@ -151,7 +151,7 @@ mod_03indi_server <- function(id){
       # freezeReactiveValue(input, "value_region_selected")
       region_data <- get_region_data()
       tmpdat <- region_data[region_data$level %in% input$value_regio_level,]
-      opt_indicator <- tmpdat$region_name
+      opt_indicator <- sort(tmpdat$region_name)
       updateSelectInput(inputId = "value_region_selected", choices = opt_indicator, selected = opt_indicator[1]) 
     })
 
