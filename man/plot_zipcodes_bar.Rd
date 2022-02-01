@@ -5,8 +5,8 @@
 \title{Create zipcode bar chart}
 \usage{
 plot_zipcodes_bar(
-  input_value_region_selected = 91,
-  input_value_regio_level = "Kunnat",
+  input_value_region_selected = 5,
+  input_value_regio_level = "Hyvinvointialueet",
   input_value_variable = "Kokonaislukema"
 )
 }

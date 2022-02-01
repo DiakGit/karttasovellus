@@ -1,3 +1,16 @@
+if (F){
+  library(karttasovellus)
+  library(dplyr)
+  library(glue)
+  library(ggplot2)
+  library(sf)
+  library(hrbrthemes)
+  library(leaflet)
+  library(tidyr)
+  library(forcats)
+}
+
+
 #' Process cross-sectional zipcode data
 #' 
 #' @param varname A string.
@@ -325,8 +338,8 @@ map_zipcodes_alueprofiili <- function(input_value_region_selected = 91,
 #' @param input_value_variable A string
 #'
 #' @export
-plot_zipcodes_bar <- function(input_value_region_selected = 91,
-                              input_value_regio_level = "Kunnat",
+plot_zipcodes_bar <- function(input_value_region_selected = 5,
+                              input_value_regio_level = "Hyvinvointialueet",
                               input_value_variable = "Kokonaislukema"){
   
   region_data <- get_region_zipdata()
@@ -337,25 +350,29 @@ plot_zipcodes_bar <- function(input_value_region_selected = 91,
 
   naapurikoodit <- get_koodit_zip(regio_selected = input_value_region_selected,
                                   value_regio_level = input_value_regio_level)
-  dat <- dat %>% filter(aluekoodi %in% naapurikoodit)
+  dat <- dat %>% filter(aluekoodi %in% naapurikoodit, 
+                        !is.na(value))
   
   # luodaan alaotsikko
   kuvan_subtitle <- glue("Aluetaso: {input_value_regio_level}")
   
   dat$aluenimi <- paste0(dat$aluenimi, " (", dat$aluekoodi, ") ", dat$kuntanimi)
-  med <- median(dat$value)
+  med <- median(dat$value, na.rm = TRUE)
   
   if (input_value_regio_level == "Kunnat"){
-    dat$value_nudge <- ifelse(dat$value >= 100, dat$value + med*.15, dat$value - med*.15)
+    dat$value_nudge <- ifelse(dat$value >= 100, 
+                              dat$value + med*.15, 
+                              dat$value - med*.15)
   } else {
-    dat$value_nudge <- ifelse(dat$value >= 100, dat$value + med*.22, dat$value - med*.22)
+    dat$value_nudge <- ifelse(dat$value >= 100, 
+                              dat$value + med*.22, 
+                              dat$value - med*.22)
   }
-  
   ggplot(data = dat, aes(y = reorder(aluenimi, value), 
                          x = value, 
                          fill = value)) +
     # geom_col() +
-    xlim(c(min(dat$value, na.rm = TRUE)*0.6,max(dat$value, na.rm = TRUE)*1.3)) +
+    # xlim(c(min(dat$value, na.rm = TRUE)*0.6,max(dat$value, na.rm = TRUE)*1.3)) +
     geom_vline(xintercept = 100, color = alpha("dim grey", 1/3), linetype = "dashed") +
     geom_segment(aes(x = 100, 
                      yend = reorder(aluenimi, value), 
@@ -364,9 +381,9 @@ plot_zipcodes_bar <- function(input_value_region_selected = 91,
                  alpha=1, 
                  show.legend = FALSE) +
     geom_point(aes(fill = value), color = "dim grey", shape = 21, size = 5, show.legend = FALSE) + 
-    geom_text(aes(label = round(value,1), x = value_nudge), 
+    geom_text(aes(label = round(value,0), 
+                  x = value_nudge), 
               color = "black", 
-              # ,
               family = "PT Sans") +
     scale_fill_fermenter(palette = "YlGnBu", type = "seq", direction = 1) +
     scale_color_fermenter(palette = "YlGnBu", type = "seq", direction = 1) +
@@ -380,7 +397,8 @@ plot_zipcodes_bar <- function(input_value_region_selected = 91,
     labs(title = glue("{input_value_variable}"),
          subtitle = kuvan_subtitle,
          caption = glue("Huono-osaisuus Suomessa -karttasovellus (Diak)\nData: Tilastokeskus Paavo (perusdata) & Diak (mediaanisuhteutus)\nTiedot haettu:{Sys.Date()}"),
-         fill = paste0(add_line_break2(input_value_variable, 20), "\n(suhdeluku)"))
+         fill = paste0(add_line_break2(input_value_variable, 20), "\n(suhdeluku)")) -> p
+  print(p)
 }
 
 #' Create zipcode line chart

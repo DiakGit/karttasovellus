@@ -1,13 +1,14 @@
-# library(karttasovellus)
-# library(dplyr)
-# library(glue)
-# library(ggplot2)
-# library(sf)
-# library(hrbrthemes)
-# library(leaflet)
-# library(tidyr)
-# library(forcats)
-
+if (F){
+  library(karttasovellus)
+  library(dplyr)
+  library(glue)
+  library(ggplot2)
+  library(sf)
+  library(hrbrthemes)
+  library(leaflet)
+  library(tidyr)
+  library(forcats)
+}
 
 #' Get cross-section data
 #' 
@@ -169,16 +170,15 @@ plot_rank_bar <- function(input_value_regio_level = "Seutukunnat",
   
   dat <- dat %>% 
     st_set_geometry(NULL) %>% 
-    select(rank,aluekoodi,aluenimi,value) %>% 
+    select(rank,aluekoodi,aluenimi,value,color) %>% 
     mutate(aluenimi = factor(aluenimi), 
            aluenimi = fct_reorder(aluenimi, -rank),
-           fill = value,
-           color = ifelse(aluenimi %in% input_value_region_selected, TRUE, FALSE))
+           fill = value)
   
   if (input_value_regio_show_mode == "valittu alue ja sen naapurit"){
     dat <- dat %>% filter(aluekoodi %in% naapurikoodit)
     if (input_value_regio_level == "Kunnat"){
-      dat$color <- ifelse(!dat$aluekoodi %in% naapurikoodit, FALSE, TRUE)
+      # dat$color <- ifelse(!dat$aluekoodi %in% naapurikoodit, FALSE, TRUE)
     }
   } else if (input_value_regio_show_mode == "valitun alueen kunnat"){
     
@@ -186,6 +186,8 @@ plot_rank_bar <- function(input_value_regio_level = "Seutukunnat",
                                                input_value_regio_level = input_value_regio_level,
                                                input_value_region_selected = input_value_region_selected,
                                                timeseries = FALSE)
+    dat <- dat %>% #sf::st_transform(crs = 3067) %>% 
+      mutate(color = ifelse(aluenimi %in% input_value_region_selected, TRUE, FALSE))
   }
   
   # luodaan alaotsikko
@@ -194,8 +196,10 @@ plot_rank_bar <- function(input_value_regio_level = "Seutukunnat",
   } else {
     kuvan_subtitle <- glue("Aluetaso: {input_value_regio_level}")
   }
-  med <- median(dat$value)
-  dat$value_nudge <- ifelse(dat$value >= 100, dat$value + med*.15, dat$value - med*.15)
+  med <- median(dat$value, na.rm = TRUE)
+  dat$value_nudge <- ifelse(dat$value >= 100, 
+                            dat$value + med*.15, 
+                            dat$value - med*.15)
   ggplot(dat, aes(x = value, y = reorder(aluenimi, -rank))) + 
     theme_ipsum(base_family = "PT Sans",
                 plot_title_family = "PT Sans",
@@ -217,11 +221,15 @@ plot_rank_bar <- function(input_value_regio_level = "Seutukunnat",
                  alpha=1, 
                  show.legend = FALSE) +
     geom_point(aes(fill = value), color = "dim grey", shape = 21, size = 5, show.legend = FALSE) + 
+    geom_point(data = dat[dat$color,], 
+               fill = NA, color = "purple", shape = 21, size = 5, stroke = 1.5, show.legend = FALSE) + 
+    
+    
     scale_fill_fermenter(palette = "YlGnBu", type = "seq", direction = 1) -> plot
   
-  plot <- plot + geom_text(aes(label = value, x = value_nudge), 
+  plot <- plot + geom_text(aes(label = round(value), 
+                               x = value_nudge), 
                            color = "black", 
-                           # ,
                            family = "PT Sans")
   
   plot + scale_y_discrete(expand = expansion(add = 2)) +
@@ -296,7 +304,7 @@ plot_map <- function(input_value_regio_level = "Hyvinvointialueet",
     geom_sf(color = alpha("white", 1/3))  +
     geom_sf(aes(color = color), fill = NA, show.legend = FALSE)  +    
     scale_fill_fermenter(palette = "YlGnBu", type = "seq", direction = 1) +
-    scale_color_manual(values = c(alpha("white", 1/3), "black")) +
+    scale_color_manual(values = c(alpha("white", 1/3), "purple")) +
     theme_ipsum(base_family = "PT Sans",
                 plot_title_family = "PT Sans",
                 subtitle_family = "PT Sans",

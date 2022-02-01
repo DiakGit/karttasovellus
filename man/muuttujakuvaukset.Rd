@@ -5,7 +5,7 @@
 \alias{muuttujakuvaukset}
 \title{muuttujakuvaukset}
 \format{
-A data frame with 27 rows and 4 variables:
+A data frame with 31 rows and 4 variables:
 \describe{
 \item{Muuttujaluokka}{Muuttujaluokka}
 \item{Muuttuja}{Muuttuja}
