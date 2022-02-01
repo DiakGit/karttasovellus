@@ -197,7 +197,8 @@ save(region_data, file = here::here("data/region_data.rda"),
 # dd <- read_excel("./data_raw/Aikasarjadata KORJATTU.xlsx")
 # fs::file_copy("../data_storage/v20211104/aikasarjadata_20211104.xlsx", 
 #               "./data_raw/")
-dd <- read_excel("./data_raw/aikasarjadata_20211104.xlsx")
+dd <- read_excel("./data_raw/aikasarjadata_20211104.xlsx", 
+                 col_types = c(rep("text", 4), rep("numeric", 27)))
 
 df_tmp <- dd %>%
   rename(aluekoodi = Aluekoodi,
