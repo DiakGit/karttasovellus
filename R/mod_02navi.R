@@ -52,28 +52,30 @@ mod_02navi_ui <- function(id){
                                   tags$div(class = "col-lg-8",
                                            tags$h1(id = "content", "Huono-osaisuus Suomessa"),
                                            tags$p(class = "lead",
-                                                  "Sovelluksessa voit tarkastella erilaisia huono-osaisuuden osoittimia sekä luoda  profiileja alueista. Aluetasoja on kolme: maakunnat, seutukunnat ja kunnat."),
+                                                  "Karttasovelluksessa voit tarkastella erilaisia huono-osaisuuden osoittimia sekä luoda profiileja alueista. Indikaattorivertailussa on kolme aluetasoa: hyvinvointialueet, seutukunnat ja kunnat. Postinumerotason tarkastelulle on oma osionsa."),
                                            tags$h2(id = "ohje", "Näin käytät sovellusta"),
                                            tags$p(
                                              tags$a(href = "#indikaattorivertailu", "Muuttujien tarkasteluun"), "ja", 
                                              tags$a(href = "#alueprofiili", "alueprofiilien laatimiseen"), 
-                                             "ovat omat valikkonsa"),
+                                             "on omat valikkonsa"),
                                            tags$p(
                                            tags$strong("Indikaattorivertailun"),
-                                           "valitse muuttujaluokka-valikosta voit säädellä haluatko katsoa huono-osaisuuden summatietoja vai tarkemmin kunkin huono-osaisuuden ulottuvuuden osoittimia. Valitse muuttuja-valikosta voit valita tarkemman osoittimen ja valitse aluetaso-valikosta aluetason. ", tags$br(),"Voit myös valita, näkyykö pylväs-, kartta- ja aikasarjakuviossa:"
+                                           tags$em("valitse muuttujaluokka"), "-valikosta voit säädellä haluatko katsoa huono-osaisuuden summatietoja vai tarkemmin kunkin huono-osaisuuden ulottuvuuden osoittimia.", tags$em("Valitse muuttuja"),"-valikosta voit valita tarkemman osoittimen ja", tags$em("valitse aluetaso"),"-valikosta aluetason. ", tags$br(),"Voit myös valita, näkyykö piste-, kartta- ja aikasarjakuviossa:"
                                            ),
                                            tags$ul(
                                              tags$li("kaikki valitun tason alueet,"),
                                              tags$li("valittu alue ja sen naapurit, vai"),
                                              tags$li("valitun maakunnan/seutukunnan kunnat")
                                            ),
-                                           tags$p("Pylväs- ja karttakuvio sekä aikasarjakuvio muuttuvat samanaikaisesti valinnan muuttuessa.",tags$br(),
+                                           tags$p("Karttakuva, sekä aikasarja-, piste- ja ginikerroin -kuviot päivittyvät",tags$em("Päivitä kuvat")," nappia painamalla. Voit myös valita kartan tyypin. Oletuksena oleva vuorovaikutteinen kartta mahdollistaa zoomaamisen sekä kartan tarkastelun koko ruudulla. Staattinen kartta sen sijaan huomioi saavutettavuusdirektiivin vaatimukset.",tags$br(),
+                                                  "Aikasarjakuvion jälkeen löytyvä gini-kerroin kertoo hyvinvointialueen/seutukunnan sisäisestä eriarvoisuudesta. Mitä suurempi lukema on, sitä suuremmat erot alueen kuntien välillä on valitussa muuttujassa.", tags$br(),
+                                                  tags$strong("Postinumerotarkastelussa"), "voit tarkastella postinumerotasoista huono-osaisuutta kuvastavaa tietoa. Tarkastelu toimii teknisesti samalla lailla kuin indikaattorivertailussa.", tags$br(),
                                                   tags$strong("Alueprofiilin"), "täytyy valita vain aluetaso sekä alue. Alueprofiili sisältää aina kaikkien osoittimien tiedot sekä valitulta alueelta että alueen rajanaapureista, sekä niiden aikasarjakuviot. Lisäksi alueprofiilissa esitetään kunkin osoittimen korkein ja matalin arvo.", tags$br(),
                                                   tags$a(href = "https://www.youtube.com/playlist?list=PLX8L6VZCYbFIzAqc4InxFEbP0SmfOrDzL", "Katso opastusvideot sivuston käytöstä!")),
                                            tags$p("Jos haluat viitata karttasivustoon tekstissäsi, käytä lähdeviitteenä:",
                                                   tags$em("Diakonia-ammattikorkeakoulu (i.a.)"),"ja lähdeluettelossa:", 
                                                   tags$em("Diakonia-ammattikorkeakoulu (i.a.) Huono-osaisuus Suomessa –karttasivusto. Saatavilla pp.kk.vuosi www.diak.fi/eriarvoisuus")),
-                                           tags$p("Indikaattorit ja muuttujat on muodostettu vuosien 2017-2019 tilastojen keskiarvosta vuosivaihtelun minimoimiseksi, ja suhteuttamalla arvo keskimmäiseen eli mediaanimaakuntaan/-seutukuntaan/-kuntaan vertailun helpottamiseksi. Aikasarjoissa lukemat vuodesta 2010 alkaen kolmen vuoden liukuvina keskiarvoina.",
+                                           tags$p("Indikaattorit ja muuttujat on muodostettu vuosien 2018-2020 tilastojen keskiarvosta vuosivaihtelun minimoimiseksi, ja suhteuttamalla arvo keskimmäiseen eli mediaanihyvinvointialueeseen/-seutukuntaan/-kuntaan vertailun helpottamiseksi. Mitä suurempi lukema on, sitä huonompi alueen tilanne on. Aikasarjoissa lukemat vuodesta 2010 alkaen kolmen vuoden liukuvina keskiarvoina.",
                                                   tags$a(href = "https://www.diak.fi/kumppanille-ja-kehittajalle/kehittamistyokalut/huono-osaisuus-suomessa-karttasivusto/#73053a2b", 
                                                          "Lue lisää Diakin sivuilta!"))
                                            ),

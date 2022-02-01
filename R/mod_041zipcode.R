@@ -20,7 +20,7 @@ mod_041zipcode_ui <- function(id){
              tags$div(class = "row",
                       tags$div(class = "col-lg-3 grey-background",
                                tags$h2(id = "zipcode", "Postinumeroalueet"),
-                               tags$p("Postinumeroalueittainen data näytetään aina kunnittain. Halutessasi voi valita myös kaikkien naapurikuntien datan mukaan."),
+                               tags$p("Postinumeroalueittainen data näytetään valitun alueen (hyvinvointialue, seutukunta, kunta) mukaisesti. Postinumerodatassa on sama mediaanisuhteutus kuin huono-osaisuusindikaattoreissa: 100 kuvastaa mediaanipostinumeroaluetta, sitä suurempi lukema heikompaa ja pienempi parempaa tilannetta."),
                                radioButtons(inputId = ns("value_regio_level"), 
                                             label = "Valitse aluetaso", 
                                             inline = FALSE,
