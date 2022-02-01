@@ -57,13 +57,13 @@ mod_03indi_ui <- function(id){
                                         class="btn btn-outline-primary"#, 
                                         # icon("fas fa-sync")
                                         ),
-                                     radioButtons(ns("value_leaflet"), 
-                                                  "Kartan tyyppi", 
-                                                  choices = c("vuorovaikutteinen",
-                                                              "staattinen"),
-                                                  selected = "vuorovaikutteinen"
-                                     )#,
-                           # bookmarkButton(label = "Jaa valinnat")
+                           tags$hr(),
+                           radioButtons(ns("value_leaflet"), 
+                                        tags$strong("Kartan tyyppi"), 
+                                        choices = c("vuorovaikutteinen",
+                                                    "staattinen"),
+                                        selected = "vuorovaikutteinen"
+                           )
                                     ),
                   tags$div(class = "col-lg-5",
                            uiOutput(ns("ui_map_plot"))

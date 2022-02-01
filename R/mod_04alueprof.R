@@ -19,7 +19,7 @@ mod_04alueprof_ui <- function(id){
                       ),
                       tags$div(class = "col-lg-5",
                                uiOutput(ns("output_regio_level_profile")),
-                               uiOutput(ns("output_region_profile")),
+                               shinycssloaders::withSpinner(uiOutput(ns("output_region_profile"))),
                                uiOutput(ns("output_button_profile"))
                       )
                       ),

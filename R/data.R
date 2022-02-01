@@ -35,7 +35,7 @@
 #' 
 #' This is internal data for Karttasovellus shiny app
 #' 
-#' @format A data frame with 27 rows and 4 variables:
+#' @format A data frame with 31 rows and 4 variables:
 #' \describe{
 #' \item{Muuttujaluokka}{Muuttujaluokka}
 #' \item{Muuttuja}{Muuttuja}

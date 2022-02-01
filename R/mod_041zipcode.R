@@ -50,6 +50,7 @@ mod_041zipcode_ui <- function(id){
                                             class="btn btn-outline-primary"#,  
                                             # icon("fas fa-sync")
                                             ),
+                               tags$hr(),
                                radioButtons(ns("value_leaflet"), 
                                             tags$strong("Kartan tyyppi"), 
                                             choices = c("vuorovaikutteinen",
