@@ -393,17 +393,19 @@ document_data(dat = ineq_data,
                               description = "municipality level weighted ginis for all indicators at various regional breakdowns")
 
 # Muuttujakuvaukset ----
-muuttujakuvaukset <- readxl::read_excel("./data_raw/Muuttujakuvaukset_20201102.xlsx") %>% 
+muuttujakuvaukset <- readxl::read_excel("./data_raw/Muuttujakuvaukset_20220131.xlsx") %>% 
   setNames(c("Muuttujaluokka","Muuttuja","Aluetasot","Kuvaus")) %>% 
   mutate(Muuttujaluokka = factor(Muuttujaluokka, levels = c("Summamuuttujat",
                                                             "Inhimillinen huono-osaisuus",
                                                             "Huono-osaisuuden taloudelliset seuraukset", 
-                                                            "Huono-osaisuuden sosiaaliset seuraukset"))) %>% 
+                                                            "Huono-osaisuuden sosiaaliset seuraukset",
+                                                            ""))) %>% 
   arrange(Muuttujaluokka) %>% 
   mutate(Aluetasot = sub("Maakunnat", "Hyvinvointialueet", Aluetasot))
-# saveRDS(object = dat, file = "./data/muuttujakuvaukset.RDS")
+
 save(muuttujakuvaukset, file = here::here("data/muuttujakuvaukset.rda"),
      compress = "bzip2")
+karttasovellus::document_data(dat = muuttujakuvaukset,neim = "muuttujakuvaukset")
 
 
 if (F){
