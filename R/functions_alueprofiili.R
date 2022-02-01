@@ -199,7 +199,7 @@ alueprofiilikartta_html <- function(input_value_regio_level_profile = "Hyvinvoin
 #'
 #' @export
 alueprofiiliaikasarja_html <- function(input_value_regio_level_profile = "Hyvinvointialueet", 
-                                       input_value_region_profile = "Itä-Uudenmaan HVA", 
+                                       input_value_region_profile = "Etelä-Karjalan HVA", 
                                        val_muuttujaluokka = "Summamuuttujat",
                                        val_muuttuja1 = "Huono-osaisuus yhteensä",
                                        region_data = NULL,
