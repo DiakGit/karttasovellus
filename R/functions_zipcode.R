@@ -17,8 +17,8 @@ if (F){
 #'
 #' @export
 process_zipdata <- function(varname = "Kokonaislukema"){
-  load(system.file("data", "dfzip_v20220125.rda", package="karttasovellus"))
-  dtmp <- dfzip_v20220125[dfzip_v20220125$variable == varname, ]
+  load(system.file("data", "dfzip_v20220202.rda", package="karttasovellus"))
+  dtmp <- dfzip_v20220202[dfzip_v20220202$variable == varname, ]
   return(dtmp)
 }
 
@@ -30,8 +30,8 @@ process_zipdata <- function(varname = "Kokonaislukema"){
 #'
 #' @export
 process_zipdata_timeseries <- function(varname = "Kokonaislukema"){
-  load(system.file("data", "dfzip_v20220125_aikasarja.rda", package="karttasovellus"))
-  dtmp <- dfzip_v20220125_aikasarja[dfzip_v20220125_aikasarja$variable == varname, ]
+  load(system.file("data", "dfzip_v20220202_aikasarja.rda", package="karttasovellus"))
+  dtmp <- dfzip_v20220202_aikasarja[dfzip_v20220202_aikasarja$variable == varname, ]
   return(dtmp)
 }
 
@@ -210,8 +210,8 @@ map_zipcodes_alueprofiili <- function(input_value_region_selected = 91,
                          input_value_regio_level = "Kunnat"){
 
   region_data <- get_region_zipdata()
-  load(system.file("data", "dfzip_v20220125.rda", package="karttasovellus"))
-  dfzip <- dfzip_v20220125 %>% 
+  load(system.file("data", "dfzip_v20220202.rda", package="karttasovellus"))
+  dfzip <- dfzip_v20220202 %>% 
     pivot_wider(names_from = variable, values_from = value)  
   dat <- left_join(region_data %>% select(-kuntanro),
                    dfzip,by = c("region_name" = "aluenimi"), keep = TRUE)
@@ -226,6 +226,8 @@ map_zipcodes_alueprofiili <- function(input_value_region_selected = 91,
   pal2 <- leaflet::colorNumeric(palette = "YlGnBu", domain = dat_wgs84$`Alimpaan tuloluokkaan kuuluvat taloudet`)
   pal3 <- leaflet::colorNumeric(palette = "YlGnBu", domain = dat_wgs84$`Alimpaan tuloluokkaan kuuluvat täysi-ikäiset`)
   pal4 <- leaflet::colorNumeric(palette = "YlGnBu", domain = dat_wgs84$Työttömät)
+  pal5 <- leaflet::colorNumeric(palette = "YlGnBu", domain = dat_wgs84$`Peruskoulutuksen omaavat`)
+
     
   lab1 <- sprintf(
       "<strong>Kokonaislukema</strong><br/><italic>%s</italic> (%s)<br/>%s<br/><strong>%s</strong>",
@@ -255,7 +257,15 @@ map_zipcodes_alueprofiili <- function(input_value_region_selected = 91,
     dat_wgs84$kuntanimi, 
     round(dat_wgs84$Työttömät,1)
   ) %>% lapply(htmltools::HTML)
-
+  lab5 <- sprintf(
+    "<strong>Työttömät</strong><br/><italic>%s</italic> (%s)<br/>%s<br/><strong>%s</strong>",
+    dat_wgs84$region_name, 
+    dat_wgs84$region_code, 
+    dat_wgs84$kuntanimi, 
+    round(dat_wgs84$`Peruskoulutuksen omaavat`,1)
+  ) %>% lapply(htmltools::HTML)
+  
+  
     highlight_opts <- highlightOptions(
       weight = 2,
       color = "#666",
@@ -316,6 +326,16 @@ map_zipcodes_alueprofiili <- function(input_value_region_selected = 91,
                   highlight = highlight_opts,
                   label = lab4,
                   labelOptions = label_opts) %>% 
+      addPolygons(fillColor = ~pal5(`Peruskoulutuksen omaavat`),
+                  group = "Peruskoulutuksen omaavat",
+                  color = "white",
+                  weight = 2,
+                  opacity = .6,
+                  dashArray = "3",
+                  fillOpacity = 0.7,
+                  highlight = highlight_opts,
+                  label = lab5,
+                  labelOptions = label_opts) %>% 
       addLegend(pal = pal1,
                 values = ~Kokonaislukema,
                 opacity = 0.7,
@@ -325,7 +345,8 @@ map_zipcodes_alueprofiili <- function(input_value_region_selected = 91,
         baseGroups = c("Kokonaislukema", 
                        "Alimpaan tuloluokkaan kuuluvat taloudet", 
                        "Alimpaan tuloluokkaan kuuluvat täysi-ikäiset",
-                       "Työttömät"),
+                       "Työttömät",
+                       "Peruskoulutuksen omaavat"),
         options = layersControlOptions(collapsed = FALSE)
       ) %>% 
       leaflet.extras::addFullscreenControl()
@@ -488,8 +509,8 @@ table_zipcodes <- function(input_value_region_selected = 91,
   
   naapurikoodit <- get_koodit_zip(regio_selected = input_value_region_selected,
                                   value_regio_level = input_value_regio_level)
-  load(system.file("data", "dfzip_v20220125.rda", package="karttasovellus"))
-  dfzip_v20220125 %>% 
+  load(system.file("data", "dfzip_v20220202.rda", package="karttasovellus"))
+  dfzip_v20220202 %>% 
     filter(aluekoodi %in% naapurikoodit) %>% 
     select(aluekoodi, aluenimi, variable, value) %>% 
     mutate(value = round(value, 1)) %>% 

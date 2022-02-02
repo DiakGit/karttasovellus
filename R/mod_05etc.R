@@ -22,7 +22,10 @@ mod_05etc_ui <- function(id){
                                tags$h4("Huono-osaisuuden taloudelliset seuraukset"),
                                gt_output(ns("variable_desctiption_gt3")),
                                tags$h4("Huono-osaisuuden sosiaaliset seuraukset"),
-                               gt_output(ns("variable_desctiption_gt4"))
+                               gt_output(ns("variable_desctiption_gt4")),
+                               tags$h4("Postinumerotarkastelu"),
+                               gt_output(ns("variable_desctiption_gt5"))
+                               
                       )          
              )),
     
@@ -197,6 +200,22 @@ mod_05etc_server <- function(id){
                     row_group.background.color = alpha("grey", 1/6)) -> tbl1
       return(tbl1)
     })
+    
+    output$variable_desctiption_gt5 <- gt::render_gt({
+      iv <- 5
+      dat <- get_variable_description()
+      mulu <- unique(dat$Muuttujaluokka)
+      dat_tmp <- dat[dat$Muuttujaluokka == mulu[iv],]
+      dat_tmp %>% 
+        select(-Muuttujaluokka) %>% 
+        gt() %>% 
+        # gt::tab_header(title = toupper(mulu[iv])) %>%
+        tab_options(table.width	= "90%", 
+                    table.align = "left",
+                    row_group.background.color = alpha("grey", 1/6)) -> tbl1
+      return(tbl1)
+    })
+    
   })
 }
     

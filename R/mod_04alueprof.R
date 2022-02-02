@@ -237,7 +237,11 @@ mod_04alueprof_server <- function(id){
                                    input_value_regio_level = aluetaso1,
                                    input_value_variable = "Alimpaan tuloluokkaan kuuluvat taloudet",
                                    leaflet = FALSE)
-              patchwork::wrap_plots(list(map1,map2,map3,map4), ncol = 1)
+              map5 <- map_zipcodes(input_value_region_selected = reg_code,
+                                   input_value_regio_level = aluetaso1,
+                                   input_value_variable = "Peruskoulutuksen omaavat",
+                                   leaflet = FALSE)
+              patchwork::wrap_plots(list(map1,map2,map3,map4,map5), ncol = 1)
               
       })
       

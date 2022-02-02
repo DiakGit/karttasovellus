@@ -11,12 +11,7 @@ setwd(here("./inst/extras/"))
 
 
 ## POIKKILEIKKAUSDATA ----
-
-# dir_ls(here("./data_raw/"), glob = "*.xlsx") -> flies
-# dd <- read_excel("./data_raw/Kopio_Huono-osaisuuden mittarit - KAIKKI.xlsx")
-# dd <- read_excel("./data_raw/Huono-osaisuusindikaattorit - uusimmat.xlsx")
-# fs::file_copy("../data_storage/v20211104/huono_osaisuusindikaattorit_20211104.xlsx", "./data_raw/")
-dd <- read_excel("./data_raw/huono_osaisuusindikaattorit_20211104.xlsx") %>% 
+dd <- read_excel("../../../data_storage/v20211104/huono_osaisuusindikaattorit_20211104.xlsx") %>% 
   select(1:31) %>% 
   filter(!is.na(Aika)) %>% 
   select(-Aika)
@@ -194,11 +189,8 @@ save(region_data, file = here::here("data/region_data.rda"),
      compress = "bzip2")
 
 ## AIKASARJADATA ----
-# dd <- read_excel("./data_raw/Aikasarjadata KORJATTU.xlsx")
-# fs::file_copy("../data_storage/v20211104/aikasarjadata_20211104.xlsx", 
-#               "./data_raw/")
-dd <- read_excel("./data_raw/aikasarjadata_20211104.xlsx", 
-                 col_types = c(rep("text", 4), rep("numeric", 27)))
+dd <- read_excel("../../../data_storage/v20211104/aikasarjadata_20211104.xlsx", 
+           col_types = c(rep("text", 4), rep("numeric", 27)))
 
 df_tmp <- dd %>%
   rename(aluekoodi = Aluekoodi,
@@ -281,8 +273,6 @@ df_v20211104_aikasarja <- left_join(df,sk_names) %>%
   filter(!variable %in% c("Inhimillinen","Sosiaalinen","Taloudellinen"),
          !is.na(value)) 
 
-# saveRDS(df2, here("./data/df_v20211104_aikasarja.RDS"), 
-#         compress = FALSE)
 save(df_v20211104_aikasarja, file = here::here("data/df_v20211104_aikasarja.rda"),
      compress = "bzip2")
 
@@ -394,13 +384,13 @@ document_data(dat = ineq_data,
                               description = "municipality level weighted ginis for all indicators at various regional breakdowns")
 
 # Muuttujakuvaukset ----
-muuttujakuvaukset <- readxl::read_excel("./data_raw/Muuttujakuvaukset_20220131.xlsx") %>% 
+muuttujakuvaukset <- read_excel("../../../data_storage/v20220202/muuttujakuvaukset_uusin.xlsx") %>% 
   setNames(c("Muuttujaluokka","Muuttuja","Aluetasot","Kuvaus")) %>% 
   mutate(Muuttujaluokka = factor(Muuttujaluokka, levels = c("Summamuuttujat",
                                                             "Inhimillinen huono-osaisuus",
                                                             "Huono-osaisuuden taloudelliset seuraukset", 
                                                             "Huono-osaisuuden sosiaaliset seuraukset",
-                                                            ""))) %>% 
+                                                            "Postinumerotarkastelu"))) %>% 
   arrange(Muuttujaluokka) %>% 
   mutate(Aluetasot = sub("Maakunnat", "Hyvinvointialueet", Aluetasot))
 
@@ -491,11 +481,10 @@ karttasovellus::document_data(dat = region_data_zip,
 
 
 ## Poikkileikkaus ----
-setwd(here("./inst/extras/"))
-# fs::file_copy("../../../data_storage/v20220126/postinumerodata_uusin.xlsx", "./data_raw/")
-dd <- read_excel("./data_raw/postinumerodata_uusin.xlsx")
 
-dfzip_v20220125 <- dd %>%
+dd <- read_excel("../../../data_storage/v20220202/Postinumerodata_uusin.xlsx")
+
+dfzip_v20220202 <- dd %>%
   rename(aluekoodi = Postinumeroalue,
          aluenimi = `Postinumeroalueen nimi`,
          kuntanimi = `Kunnan nimi`,
@@ -505,18 +494,18 @@ dfzip_v20220125 <- dd %>%
          kuntanro = as.integer(kuntanro)) %>% 
   select(regio_level,everything())
 
-save(dfzip_v20220125, file = here::here("data/dfzip_v20220125.rda"),
+save(dfzip_v20220202, file = here::here("data/dfzip_v20220202.rda"),
      compress = "bzip2")
 
-karttasovellus::document_data(dat = dfzip_v20220125, 
-                              neim = "dfzip_v20220125", 
+karttasovellus::document_data(dat = dfzip_v20220202, 
+                              neim = "dfzip_v20220202", 
                               description = "Cross-sectional zipcode level attribute data")
 
 ## Aikasarja ----
 # fs::file_copy("../../../data_storage/v20220126/postinumeroaikasarjat_uusin.xlsx", "./data_raw/")
-dd <- read_excel("./data_raw/postinumeroaikasarjat_uusin.xlsx")
+dd <- read_excel("../../../data_storage/v20220202/Postinumeroaikasarjat_uusin.xlsx")
 
-dfzip_v20220125_aikasarja <- dd %>%
+dfzip_v20220202_aikasarja <- dd %>%
   rename(aluekoodi = Postinumeroalue,
          aluenimi = `Postinumeroalueen nimi`,
          aika = Vuosi,
@@ -528,11 +517,11 @@ dfzip_v20220125_aikasarja <- dd %>%
          aika = as.integer(sub("-.+$", "", aika))+1) %>% 
   select(regio_level,everything())
 
-save(dfzip_v20220125_aikasarja, file = here::here("data/dfzip_v20220125_aikasarja.rda"),
+save(dfzip_v20220202_aikasarja, file = here::here("data/dfzip_v20220202_aikasarja.rda"),
      compress = "bzip2")
 
-karttasovellus::document_data(dat = dfzip_v20220125_aikasarja, 
-                              neim = "dfzip_v20220125_aikasarja", 
+karttasovellus::document_data(dat = dfzip_v20220202_aikasarja, 
+                              neim = "dfzip_v20220202_aikasarja", 
                               description = "Time-series zipcode level attribute data")
 
 

@@ -35,7 +35,7 @@
 #' 
 #' This is internal data for Karttasovellus shiny app
 #' 
-#' @format A data frame with 31 rows and 4 variables:
+#' @format A data frame with 32 rows and 4 variables:
 #' \describe{
 #' \item{Muuttujaluokka}{Muuttujaluokka}
 #' \item{Muuttuja}{Muuttuja}
@@ -145,11 +145,11 @@
 #' }
 "regio_Postinumeroalueet"
 
-#' dfzip_v20220125
+#' dfzip_v20220202
 #' 
 #' Cross-sectional zipcode level attribute data
 #' 
-#' @format A data frame with 11976 rows and 7 variables:
+#' @format A data frame with 14970 rows and 7 variables:
 #' \describe{
 #' \item{regio_level}{regio_level}
 #' \item{aluekoodi}{aluekoodi}
@@ -159,13 +159,13 @@
 #' \item{variable}{variable}
 #' \item{value}{value}
 #' }
-"dfzip_v20220125"
+"dfzip_v20220202"
 
-#' dfzip_v20220125_aikasarja
+#' dfzip_v20220202_aikasarja
 #' 
 #' Time-series zipcode level attribute data
 #' 
-#' @format A data frame with 83832 rows and 8 variables:
+#' @format A data frame with 104790 rows and 8 variables:
 #' \describe{
 #' \item{regio_level}{regio_level}
 #' \item{aluekoodi}{aluekoodi}
@@ -176,7 +176,7 @@
 #' \item{variable}{variable}
 #' \item{value}{value}
 #' }
-"dfzip_v20220125_aikasarja"
+"dfzip_v20220202_aikasarja"
 
 #' region_data_zip
 #' 
