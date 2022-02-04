@@ -1,10 +1,12 @@
 Package: karttasovellus
 Title: Huono-osaisuus Suomessa verkkosovellus
-Version: 0.0.0.9003
-Date: 2022-01-28
+Version: 1.0.0001
+Date: 2022-02-04
 Authors@R: person(given = 'Diakonia-ammattikorkeakoulu', role = c('cre', 'aut'), email = "sakari.kainulainen@diak.fi")
 Description: Huono-osaisuus Suomessa on verkkosovellus, joka tuottaa eriteltyä tietoa huono-osaisuudesta hyvinvointialueittain, seutukunnittain tai kunnittain.
 License: MIT + file LICENSE
+Depends: 
+    R (>= 3.5.0)
 Imports: 
     acid,
     attempt,

@@ -137,8 +137,8 @@ mod_05etc_server <- function(id){
     
     
     get_variable_description <- reactive({
-      dat <- karttasovellus::muuttujakuvaukset
-      return(dat)
+      load(system.file("data", "muuttujakuvaukset.rda", package="karttasovellus"))
+      return(muuttujakuvaukset)
     })
     
     output$variable_desctiption_gt1 <- gt::render_gt({

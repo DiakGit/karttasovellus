@@ -279,7 +279,9 @@ plot_map <- function(input_value_regio_level = "Hyvinvointialueet",
                                                input_value_region_selected = input_value_region_selected,
                                                timeseries = FALSE)
     
-    reg <- karttasovellus::regio_Kunnat
+    load(system.file("data", "regio_Kunnat.rda", package="karttasovellus"))
+    reg <- regio_Kunnat
+    karttasovellus
     res <- left_join(reg, dat) %>% 
       filter(!is.na(aluenimi))
     
@@ -468,7 +470,8 @@ plot_timeseries <- function(input_value_regio_level = "Kunnat",
     pull(neigbours)
 
 
-  df_gini <- karttasovellus::ineq_data
+  load(system.file("data", "ineq_data.rda", package="karttasovellus"))
+  df_gini <- ineq_data
   df_gini <- df_gini[df_gini$variable == input_value_variable &
                        df_gini$regio_level == input_value_regio_level,]
   

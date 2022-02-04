@@ -97,7 +97,8 @@ mod_041zipcode_server <- function(id){
 
     observeEvent(input$value_regio_level, {
       # freezeReactiveValue(input, "value_regio_level")
-      reg <- sf::st_drop_geometry(karttasovellus::region_data)
+      load(system.file("data", "region_data.rda", package="karttasovellus"))
+      reg <- sf::st_drop_geometry(region_data)
       reg <- reg[reg$level %in% input$value_regio_level,]
       reg <- arrange(reg, region_name)
       # reg <- reg[reg$level %in% "Hyvinvointialueet",]

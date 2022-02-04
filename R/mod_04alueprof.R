@@ -198,7 +198,8 @@ mod_04alueprof_server <- function(id){
       aluename <- react_value_region_profile()
       aluetaso1 <- react_value_regio_level_profile()
 
-      reg_code <- karttasovellus::region_data %>%
+      load(system.file("data", "region_data.rda", package="karttasovellus"))
+      reg_code <- region_data %>%
         filter(level == aluetaso1,
                region_name == aluename) %>%
         pull(region_code)
@@ -214,7 +215,8 @@ mod_04alueprof_server <- function(id){
       aluename <- react_value_region_profile()
       aluetaso1 <- react_value_regio_level_profile()
       
-      reg_code <- karttasovellus::region_data %>%
+      load(system.file("data", "region_data.rda", package="karttasovellus"))
+      reg_code <- region_data %>%
         filter(level == aluetaso1,
                region_name == aluename) %>%
         pull(region_code)
