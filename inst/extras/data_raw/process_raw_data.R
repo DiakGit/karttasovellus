@@ -345,20 +345,24 @@ dat_gini_raw <- df_v20211104_aikasarja %>%
   left_join(pop_data) %>% 
   left_join(geofi::municipality_key_2021 %>% 
                select(municipality_name_fi,
-                      seutukunta_name_fi,
+                      #seutukunta_name_fi,
                       hyvinvointialue_name_fi), 
              by = c("aluenimi" = "municipality_name_fi")) %>% 
   mutate(hyvinvointialue_name_fi = sub("hyvinvointialue", "HVA", hyvinvointialue_name_fi))
 
 ineq_data <- bind_rows(
-  dat_gini_raw %>% 
-  group_by(seutukunta_name_fi,var_class,variable,aika) %>% 
-  summarise(gini = round(acid::weighted.gini(x = value, w = pop)$Gini[1],2)) %>% 
-  mutate(regio_level = "Seutukunnat") %>% 
-  ungroup() %>% 
-  rename(aluenimi = seutukunta_name_fi),
+  # dat_gini_raw %>% 
+  # group_by(seutukunta_name_fi,var_class,variable,aika) %>% 
+  # summarise(gini = round(acid::weighted.gini(x = value, w = pop)$Gini[1],2)) %>% 
+  # mutate(regio_level = "Seutukunnat") %>% 
+  # ungroup() %>% 
+  # rename(aluenimi = seutukunta_name_fi),
 dat_gini_raw %>% 
   group_by(hyvinvointialue_name_fi,var_class,variable,aika) %>% 
+  # lasketaan gini vaan jos alueeseen kuuluu vähintään viisi kuntaa!
+  mutate(n = n()) %>% 
+  filter(n >= 5) %>% select(-n) %>% 
+  #ungroup() %>% distinct(hyvinvointialue_name_fi) %>% print(n = 50)
   summarise(gini = round(acid::weighted.gini(x = value, w = pop)$Gini[1],2)) %>% 
   mutate(regio_level = "Hyvinvointialueet") %>% 
   ungroup() %>% 
@@ -384,19 +388,21 @@ document_data(dat = ineq_data,
                               description = "municipality level weighted ginis for all indicators at various regional breakdowns")
 
 # Muuttujakuvaukset ----
-muuttujakuvaukset <- read_excel("../../../data_storage/v20220202/muuttujakuvaukset_uusin.xlsx") %>% 
+muuttujakuvaukset <- read_excel("../../../data_storage/v20220204/Muuttujakuvaukset_uusi.xlsx") %>% 
   setNames(c("Muuttujaluokka","Muuttuja","Aluetasot","Kuvaus")) %>% 
   mutate(Muuttujaluokka = factor(Muuttujaluokka, levels = c("Summamuuttujat",
                                                             "Inhimillinen huono-osaisuus",
                                                             "Huono-osaisuuden taloudelliset seuraukset", 
                                                             "Huono-osaisuuden sosiaaliset seuraukset",
                                                             "Postinumerotarkastelu"))) %>% 
-  arrange(Muuttujaluokka) %>% 
-  mutate(Aluetasot = sub("Maakunnat", "Hyvinvointialueet", Aluetasot))
+  arrange(Muuttujaluokka) #%>% 
+# mutate(Aluetasot = sub("Maakunnat", "Hyvinvointialueet", Aluetasot))
 
 save(muuttujakuvaukset, file = here::here("data/muuttujakuvaukset.rda"),
      compress = "bzip2")
 karttasovellus::document_data(dat = muuttujakuvaukset,neim = "muuttujakuvaukset")
+
+
 
 
 if (F){
