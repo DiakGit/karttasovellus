@@ -373,7 +373,7 @@ dat_gini_raw %>%
   summarise(gini = round(acid::weighted.gini(x = value, w = pop)$Gini[1],2)) %>% 
   mutate(regio_level = "Kunnat") %>% 
   ungroup() %>% 
-  mutate(aluenimi = "kaikkien kuntien välinen eriarvoisuus")
+  mutate(aluenimi = "KAIKKI KUNNAT")
 ) %>% 
   # aluekoodit vielä
   left_join(

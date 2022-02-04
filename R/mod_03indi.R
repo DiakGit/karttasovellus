@@ -78,9 +78,7 @@ mod_03indi_ui <- function(id){
                   ),
 tags$div(class = "row",
                 tags$div(class = "col-lg-12",
-                         shinycssloaders::withSpinner(
-                           plotOutput(ns("timeseries_plot"), width = "100%", height = "900px")
-                         )
+                         uiOutput(ns("ui_timeseries_plot"))
 )
 ),
 tags$hr()
@@ -288,21 +286,41 @@ mod_03indi_server <- function(id){
       funk <- eventReactive({
         input$button_ind
       }, {
-        plot_timeseries(input_value_regio_level = input$value_regio_level,
-                        input_value_variable = input$value_variable,
-                        input_value_region_selected = input$value_region_selected,
-                        input_value_regio_show_mode = input$value_regio_show_mode)
+        
+            plot_timeseries(input_value_regio_level = input$value_regio_level,
+                            input_value_variable = input$value_variable,
+                            input_value_region_selected = input$value_region_selected,
+                            input_value_regio_show_mode = input$value_regio_show_mode)
+        
       }, ignoreNULL = FALSE)
 
-      output$timeseries_plot <- renderPlot({
+      # plot_timeseries ----
+      
+      output$timeseries_plot <- renderPlot({  
         funk()
+        })
+      
+      funk_height <- eventReactive({
+        input$button_ind
+      }, {
+        if (input$value_regio_level == "Hyvinvointialueet"){
+          plot_height <- "900px"
+        } else {
+          plot_height <- "500px"
+        }
+        return(plot_height)
+      }, ignoreNULL = FALSE)
+
+      
+      output$ui_timeseries_plot <- renderUI({
+        plot_height <- funk_height()
+        tagList(
+          shinycssloaders::withSpinner(
+            plotOutput(ns("timeseries_plot"), width = "100%", height = plot_height)
+          )
+        )
       })
       
-    # output$aputeksti <- renderText({
-    #     
-    #     txt <- react_value_region_profile()
-    #     return(txt)
-    # })
   })
 }
     

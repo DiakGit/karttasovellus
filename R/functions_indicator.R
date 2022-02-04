@@ -468,17 +468,27 @@ plot_timeseries <- function(input_value_regio_level = "Kunnat",
   naapurikoodit <- naapurikoodit_lst %>% 
     unnest(cols = c(neigbours)) %>% 
     pull(neigbours)
+  
+  if (input_value_regio_level == "Hyvinvointialueet"){
+    load(system.file("data", "ineq_data.rda", package="karttasovellus"))
+    df_gini <- ineq_data
+    df_gini_kaikki <- df_gini[df_gini$variable == input_value_variable &
+                                df_gini$regio_level == "Kunnat",]
+    df_gini <- df_gini[df_gini$variable == input_value_variable &
+                         df_gini$regio_level == input_value_regio_level,]
+    df_gini <- bind_rows(df_gini,df_gini_kaikki)
+    
+    df_gini2 <- df_gini[df_gini$aluekoodi %in% naapurikoodit,]
+    df_gini2 <- bind_rows(df_gini2,df_gini_kaikki)
+    
+  }
 
 
-  load(system.file("data", "ineq_data.rda", package="karttasovellus"))
-  df_gini <- ineq_data
-  df_gini <- df_gini[df_gini$variable == input_value_variable &
-                       df_gini$regio_level == input_value_regio_level,]
+
   
   df2 <- df[df$aluekoodi %in% naapurikoodit,] %>% 
     filter(!aluenimi %in% input_value_region_selected)
   
-  df_gini2 <- df_gini[df_gini$aluekoodi %in% naapurikoodit,]
   
   aika1 <- sort(unique(df$aika)) - 1
   aika2 <- sort(unique(df$aika)) + 1
@@ -497,23 +507,27 @@ plot_timeseries <- function(input_value_regio_level = "Kunnat",
     
     plot0 <- plot0 + 
       geom_line(data = df, aes(x = aika, y = value, color= aluenimi), show.legend = FALSE) +
-      geom_line(data = df_selected_ts, aes(x = aika, y = value), color = "black") +
+      geom_line(data = df_selected_ts, aes(x = aika, y = value), color = "purple") +
       geom_point(data = df_selected_ts, aes(x = aika, y =  value),
-                 fill = "black", 
+                 fill = "purple", 
                  color = "white", shape = 21, size = 2.5, stroke = 1) +
       geom_text(data = df_selected_cs,
                 aes(x = aika, 
                     y = value, 
                     color= aluenimi, 
                     label = paste(aluenimi, round(value,1))),
-                color = "black", 
+                color = "purple", 
                 family = "PT Sans", 
                 nudge_x = .3)
     
-    plot_gini <- ggplot() + 
-      geom_line(data = df_gini, aes(x = aika, y = gini, color = aluenimi)) +
-      ggrepel::geom_text_repel(data = df_gini %>% filter(aika == max(aika, na.rm = TRUE)),
-                               aes(x = aika, y = gini, color= aluenimi, label = paste(aluenimi, round(gini,2))), nudge_x = .2, family = "PT Sans")
+    if (input_value_regio_level == "Hyvinvointialueet"){
+      plot_gini <- ggplot() + 
+        geom_line(data = df_gini, aes(x = aika, y = gini, color = aluenimi)) +
+        ggrepel::geom_text_repel(data = df_gini %>% filter(aika == max(aika, na.rm = TRUE)),
+                                 aes(x = aika, y = gini, color= aluenimi, label = paste(aluenimi, round(gini,2))), nudge_x = .2, family = "PT Sans")
+      
+    }
+    
     
   } else if (input_value_regio_show_mode == "valittu alue ja sen naapurit"){
     
@@ -528,9 +542,9 @@ plot_timeseries <- function(input_value_regio_level = "Kunnat",
                                aes(x = aika, y = value, color= aluenimi, 
                                    label = paste(aluenimi, round(value,1))), 
                                family = "PT Sans", nudge_x = .3) +
-      geom_line(data = df_selected_ts, aes(x = aika, y = value), color = "black") +
+      geom_line(data = df_selected_ts, aes(x = aika, y = value), color = "purple") +
       geom_point(data = df_selected_ts, aes(x = aika, y = value),
-                 fill = "black", 
+                 fill = "purple", 
                  color = "white", shape = 21, size = 2.5, stroke = 1) +
       
       geom_text(data = df_selected_cs,
@@ -541,7 +555,9 @@ plot_timeseries <- function(input_value_regio_level = "Kunnat",
                 color = "black", 
                 family = "PT Sans", 
                 nudge_x = .3)
+    
     # gini
+    if (input_value_regio_level == "Hyvinvointialueet"){
     plot_gini <- ggplot() + 
       geom_line(data = df_gini2, aes(x = aika, y = gini, color = aluenimi)) +
       geom_line(data = df_gini, aes(x = aika, y = gini, color = aluenimi), alpha = .1) +
@@ -549,6 +565,7 @@ plot_timeseries <- function(input_value_regio_level = "Kunnat",
                                aes(x = aika, y = gini, color= aluenimi, 
                                    label = paste(aluenimi, round(gini,1))), 
                                family = "PT Sans", nudge_x = .3)
+    }
     
   } else if (input_value_regio_show_mode == "valitun alueen kunnat"){
     
@@ -557,16 +574,10 @@ plot_timeseries <- function(input_value_regio_level = "Kunnat",
                                                 input_value_region_selected = input_value_region_selected,
                                                 timeseries = TRUE)
     
+    if (input_value_regio_level == "Hyvinvointialueet"){
     dat2_gini <- dat2 %>% group_by(aika) %>% 
       mutate(gini = round(ineq::Gini(value),2)) %>% 
       ungroup()
-    
-    plot0 <- plot0 + 
-      geom_line(data = dat2,aes(x = aika, y = value, color= aluenimi), show.legend = FALSE) +
-      geom_point(shape = 21, color = "white", stroke = 1, size = 2.5) +
-      ggrepel::geom_text_repel(data = dat2 %>% filter(aika == max(aika, na.rm = TRUE)),
-                               aes(x = aika, y = value, color= aluenimi, label = paste(aluenimi, round(value,1))), nudge_x = .2, family = "PT Sans")
-    
     df_gini2 <- df_gini[df_gini$aluenimi %in% input_value_region_selected,]
     
     plot_gini <- ggplot() + 
@@ -576,6 +587,15 @@ plot_timeseries <- function(input_value_regio_level = "Kunnat",
                                aes(x = aika, y = gini, color= aluenimi, 
                                    label = paste(aluenimi, round(gini,1))), 
                                family = "PT Sans", nudge_x = .3)
+    }
+    
+    plot0 <- plot0 + 
+      geom_line(data = dat2,aes(x = aika, y = value, color= aluenimi), show.legend = FALSE) +
+      geom_point(shape = 21, color = "white", stroke = 1, size = 2.5) +
+      ggrepel::geom_text_repel(data = dat2 %>% filter(aika == max(aika, na.rm = TRUE)),
+                               aes(x = aika, y = value, color= aluenimi, label = paste(aluenimi, round(value,1))), nudge_x = .2, family = "PT Sans")
+    
+    
   }
   # luodaan alaotsikko
   if (input_value_regio_show_mode == "valitun alueen kunnat"){
@@ -585,7 +605,6 @@ plot_timeseries <- function(input_value_regio_level = "Kunnat",
   }
   
   plot0 +
-    
     scale_x_continuous(breaks = sort(unique(df$aika)), labels = labels) +
     theme_ipsum(base_family = "PT Sans",
                 plot_title_family = "PT Sans",
@@ -606,16 +625,19 @@ plot_timeseries <- function(input_value_regio_level = "Kunnat",
           plot.margin = unit(c(0,0,0,0), "mm")#,
     ) -> plot1
   
+  labsit <- labs(fill = NULL,
+       x = NULL,
+       caption = glue("Huono-osaisuus Suomessa -karttasovellus (Diak)\nData: THL (perusdata) & Diak (mediaanisuhteutus)\nTiedot haettu:{Sys.Date()}"))
+  
+  
+  if (input_value_regio_level == "Hyvinvointialueet"){
   plot_gini <- plot_gini + scale_x_continuous(breaks = sort(unique(df$aika)), labels = labels) +
     theme_ipsum(base_family = "PT Sans",
                 plot_title_family = "PT Sans",
                 subtitle_family = "PT Sans",
                 base_size = 14,
-                plot_title_face = "plain") +
-    labs(fill = NULL,
-         x = NULL,
-         subtitle = paste0("Indikaattorin ", add_line_break2(input_value_variable, 50), "\neriarvoisuuden kuntatason gini-kerroin aluetasolla: ", input_value_regio_level),
-         caption = glue("Huono-osaisuus Suomessa -karttasovellus (Diak)\nData: THL (perusdata) & Diak (mediaanisuhteutus)\nTiedot haettu:{Sys.Date()}"))  +
+                plot_title_face = "plain") + labsit + 
+    labs(subtitle = paste0("Indikaattorin ", add_line_break2(input_value_variable, 50), "\neriarvoisuuden kuntatason gini-kerroin aluetasolla: ", input_value_regio_level)) +
     theme(legend.position = "none",
           panel.grid.major.x = element_line(),
           panel.grid.minor.x = element_blank(),
@@ -625,9 +647,12 @@ plot_timeseries <- function(input_value_regio_level = "Kunnat",
           plot.margin = unit(c(10,0,0,0), "mm"),
           axis.text.x = element_blank()
   )
-  
-  patchwork::wrap_plots(plot1,plot_gini, ncol = 1, heights = c(1,1))
-  
+  plotti <- patchwork::wrap_plots(plot1,plot_gini, ncol = 1, heights = c(1,1))
+  } else {
+    plotti <- plot1 + labsit
+  }
+  return(plotti)
+
 }
 
 
