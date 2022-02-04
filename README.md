@@ -10,7 +10,8 @@ stable](https://img.shields.io/badge/lifecycle-stable-brightgreen.svg)](https://
 <!-- badges: end -->
 
 `karttasovellus` on `shiny`-sovellus, joka tuottaa eriteltyä tietoa
-huono-osaisuudesta maakunnittain, seutukunnittain tai kunnittain.
+huono-osaisuudesta hyvinvointialueittain, seutukunnittain tai
+kunnittain.
 
 ## Kehittäminen
 
@@ -61,8 +62,8 @@ citation("karttasovellus")
 #> 
 #> To cite package 'karttasovellus' in publications use:
 #> 
-#>   Diakonia-ammattikorkeakoulu (2021). karttasovellus: Huono-osaisuus
-#>   Suomessa verkkosovellus. R package version 0.0.0.9001.
+#>   Diakonia-ammattikorkeakoulu (2022). karttasovellus: Huono-osaisuus
+#>   Suomessa verkkosovellus. R package version 0.0.0.9003.
 #>   https://github.com/DiakGit/karttasovellus
 #> 
 #> A BibTeX entry for LaTeX users is
@@ -70,8 +71,8 @@ citation("karttasovellus")
 #>   @Manual{,
 #>     title = {karttasovellus: Huono-osaisuus Suomessa verkkosovellus},
 #>     author = {{Diakonia-ammattikorkeakoulu}},
-#>     year = {2021},
-#>     note = {R package version 0.0.0.9001},
+#>     year = {2022},
+#>     note = {R package version 0.0.0.9003},
 #>     url = {https://github.com/DiakGit/karttasovellus},
 #>   }
 ```

@@ -65,7 +65,7 @@ mod_02navi_ui <- function(id){
                                            tags$ul(
                                              tags$li("kaikki valitun tason alueet,"),
                                              tags$li("valittu alue ja sen naapurit, vai"),
-                                             tags$li("valitun maakunnan/seutukunnan kunnat")
+                                             tags$li("valitun hyvinvointialueen/seutukunnan kunnat")
                                            ),
                                            tags$p("Karttakuva, sekä aikasarja-, piste- ja ginikerroin -kuviot päivittyvät",tags$em("Päivitä kuvat")," nappia painamalla. Voit myös valita kartan tyypin. Oletuksena oleva vuorovaikutteinen kartta mahdollistaa zoomaamisen sekä kartan tarkastelun koko ruudulla. Staattinen kartta sen sijaan huomioi saavutettavuusdirektiivin vaatimukset.",tags$br(),
                                                   "Aikasarjakuvion jälkeen löytyvä gini-kerroin kertoo hyvinvointialueen/seutukunnan sisäisestä eriarvoisuudesta. Mitä suurempi lukema on, sitä suuremmat erot alueen kuntien välillä on valitussa muuttujassa.", tags$br(),

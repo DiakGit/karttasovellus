@@ -20,7 +20,7 @@ knitr::opts_chunk$set(
 <!-- badges: end -->
 
 
-`karttasovellus` on `shiny`-sovellus, joka tuottaa eriteltyä tietoa huono-osaisuudesta maakunnittain, seutukunnittain tai kunnittain.
+`karttasovellus` on `shiny`-sovellus, joka tuottaa eriteltyä tietoa huono-osaisuudesta hyvinvointialueittain, seutukunnittain tai kunnittain.
 
 ## Kehittäminen
 
