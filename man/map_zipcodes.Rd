@@ -8,7 +8,8 @@ map_zipcodes(
   input_value_region_selected = 91,
   input_value_regio_level = "Kunnat",
   input_value_variable = "Kokonaislukema",
-  leaflet = FALSE
+  leaflet = FALSE,
+  alueprofiili = FALSE
 )
 }
 \arguments{

@@ -223,37 +223,35 @@ mod_04alueprof_server <- function(id){
       
       output$map_zipcode_01 <- renderPlot({
         
-              map1 <- map_zipcodes(input_value_region_selected = reg_code,
+        zipvars <- c('Kokonaislukema',
+          'Alimpaan tuloluokkaan kuuluvat taloudet',
+          'Alimpaan tuloluokkaan kuuluvat täysi-ikäiset',
+          'Työttömät',
+          'Peruskoulutuksen omaavat'
+          )
+        maplista <- list()
+        for (ii in seq_along(zipvars)){
+          maplista[[ii]] <- map_zipcodes(input_value_region_selected = reg_code,
                                        input_value_regio_level = aluetaso1,
-                                       input_value_variable = "Kokonaislukema",
-                                       leaflet = FALSE)
-              map2 <- map_zipcodes(input_value_region_selected = reg_code,
-                                   input_value_regio_level = aluetaso1,
-                                   input_value_variable = "Työttömät",
-                                   leaflet = FALSE)
-              map3 <- map_zipcodes(input_value_region_selected = reg_code,
-                                   input_value_regio_level = aluetaso1,
-                                   input_value_variable = "Alimpaan tuloluokkaan kuuluvat täysi-ikäiset",
-                                   leaflet = FALSE)
-              map4 <- map_zipcodes(input_value_region_selected = reg_code,
-                                   input_value_regio_level = aluetaso1,
-                                   input_value_variable = "Alimpaan tuloluokkaan kuuluvat taloudet",
-                                   leaflet = FALSE)
-              map5 <- map_zipcodes(input_value_region_selected = reg_code,
-                                   input_value_regio_level = aluetaso1,
-                                   input_value_variable = "Peruskoulutuksen omaavat",
-                                   leaflet = FALSE)
-              patchwork::wrap_plots(list(map1,map2,map3,map4,map5), ncol = 1)
-              
+                                       input_value_variable = zipvars[ii],
+                                       leaflet = FALSE, alueprofiili = TRUE)
+      }
+      patchwork::wrap_plots(maplista, ncol = 2)      
       })
       
       output$map_zipcode_leaflet <- renderLeaflet({
-        map_zipcodes_alueprofiili(input_value_region_selected = reg_code, input_value_regio_level = aluetaso1)
+        map_zipcodes_alueprofiili(input_value_region_selected = reg_code, 
+                                  input_value_regio_level = aluetaso1, 
+                                  zipvars = c('Kokonaislukema',
+                                              'Alimpaan tuloluokkaan kuuluvat taloudet',
+                                              'Alimpaan tuloluokkaan kuuluvat täysi-ikäiset',
+                                              'Työttömät',
+                                              'Peruskoulutuksen omaavat'))
       })
       
       tagList(
         fluidRow(column(width = 6,
-                 withSpinner(plotOutput(ns("map_zipcode_01"),height = "1800px", width = "100%"))),
+                 withSpinner(plotOutput(ns("map_zipcode_01"),height = "1400px", width = "100%"))),
           column(width = 6,
                  withSpinner(leafletOutput(ns("map_zipcode_leaflet"),height = "900px", width = "100%")))
       )
@@ -302,16 +300,26 @@ mod_04alueprof_server <- function(id){
         tags$li(class = "nav-item",
                 tags$a(class="toc-alueprof", href="#postinumerotieto", "Postinumeroalueittainen tieto")
         ),
-        ## ## ##
-        uiOutput(ns("alueprofiili_html")),
+        tags$ul(
+          tags$li(class = "nav-item",
+                  tags$a(class="toc-alueprof", href="#ziptbl", "Taulukko")
+          ),
+          tags$li(class = "nav-item",
+                  tags$a(class="toc-alueprof", href="#zipmap", "Kartat")
+          ),
+        ),
         # ## ## ##
+        # uiOutput(ns("alueprofiili_html")),
+        # # ## ## ##
         tags$h4("Postinumeroalueittainen tieto", id = "postinumerotieto"),
         tags$a(class="nav-link", href="#alueprofiili", "Alueprofiilin alkuun"),
         ## ## ##
-        tags$h5("Taulukko"),
+        tags$h5("Taulukko", id = "ziptbl"),
+        tags$a(class="nav-link", href="#alueprofiili", "Alueprofiilin alkuun"),
         uiOutput(ns("zipcode_tables")),
         # ## ## ##
-        tags$h5("Kartat"),
+        tags$h5("Kartat", id = "zipmap"),
+        tags$a(class="nav-link", href="#alueprofiili", "Alueprofiilin alkuun"),
         uiOutput(ns("zipcode_maps")),
         tags$a(class="nav-link", href="#alueprofiili", "Alueprofiilin alkuun")
       )

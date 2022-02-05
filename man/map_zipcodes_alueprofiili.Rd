@@ -6,7 +6,10 @@
 \usage{
 map_zipcodes_alueprofiili(
   input_value_region_selected = 91,
-  input_value_regio_level = "Kunnat"
+  input_value_regio_level = "Kunnat",
+  zipvars = c("Kokonaislukema", "Alimpaan tuloluokkaan kuuluvat taloudet",
+    "Alimpaan tuloluokkaan kuuluvat täysi-ikäiset", "Työttömät",
+    "Peruskoulutuksen omaavat")
 )
 }
 \arguments{
