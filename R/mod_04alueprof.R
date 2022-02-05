@@ -229,7 +229,7 @@ mod_04alueprof_server <- function(id){
         # zipppiem määrä ->> kuvan korkeus
         naapurikoodit <- get_koodit_zip(regio_selected = reg_code,
                                         value_regio_level = aluetaso1)
-        korkeus <- paste0(200 + length(naapurikoodit) * 20, "px")
+        korkeus <- paste0(200 + length(naapurikoodit) * 14, "px")
         
         output$dot_plot_zip <- renderPlot({
           plot_zipcodes_dotplot_alueprofiili(input_value_region_selected = reg_code,

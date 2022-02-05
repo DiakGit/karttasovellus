@@ -423,7 +423,8 @@ plot_zipcodes_dotplot_alueprofiili <- function(input_value_region_selected = 5,
     labs(title = "Kaikki postinumeroaluetason osoittimet",
          subtitle = kuvan_subtitle,
          caption = glue("Huono-osaisuus Suomessa -karttasovellus (Diak)\nData: Tilastokeskus Paavo (perusdata) & Diak (mediaanisuhteutus)\nTiedot haettu:{Sys.Date()}"),
-         fill = paste0(add_line_break2(input_value_variable, 20), "\n(suhdeluku)")) +
+         fill = NULL
+         ) +
     facet_wrap(~variable, nrow = 1, scales = "free_x") -> p
   print(p)
 }
