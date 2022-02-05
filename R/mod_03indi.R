@@ -67,13 +67,9 @@ mod_03indi_ui <- function(id){
                                     ),
                   tags$div(class = "col-lg-5",
                            uiOutput(ns("ui_map_plot"))
-                           # shinycssloaders::withSpinner(leaflet::leafletOutput(ns("map_plot_leaflet"), width = "90%", height = "820px"))
-                           # ui_map_plot
-
                            ),
                   tags$div(class = "col-lg-4",
                            uiOutput(ns("ui_plot_bar"))
-                           # shinycssloaders::withSpinner(plotOutput(ns("rank_plot"), width = "100%", height = 800))
                   )
                   ),
 tags$div(class = "row",
@@ -189,15 +185,14 @@ mod_03indi_server <- function(id){
       input$button_ind
     }, {
       dat <- process_data(input_value_regio_level = input$value_regio_level,
-                          input_value_variable = input$value_variable)
+                          input_value_variable = input$value_variable, 
+                          spatial = FALSE)
       
       region_data <- get_region_data()
       naapurikoodit <- get_naapurikoodit(input_value_regio_level = input$value_regio_level,
-                                         input_value_region_selected = input$value_region_selected)
-      
-      dat <- dat %>% 
-        st_set_geometry(NULL) 
-      
+                                         input_value_region_selected = input$value_region_selected, 
+                                         region_data = region_data)
+
       if (input$value_regio_show_mode == "valittu alue ja sen naapurit"){
         dat <- dat %>% filter(aluekoodi %in% naapurikoodit)
         # if (input$value_regio_level == "Kunnat"){

@@ -51,42 +51,58 @@ varlist_diak <- function(){
 #' @param input_value_regio_level A string.
 #' @param input_value_variable A string.
 #' @param timeseries A logical.
+#' @param dat_cs A data frame. An optional data to speed up things
+#' @param dat_ts A data frame. An optional data to speed up things
 #'
 #' @export
 process_data <- function(input_value_regio_level = "Kunnat",
                          input_value_variable = "Nuorisotyöttömyys", 
-                         timeseries = FALSE){
+                         timeseries = FALSE,
+                         spatial = TRUE,
+                         dat_ts = NULL,
+                         dat_cs = NULL){
   
   if (timeseries){
-    dat <- get_dat_timeseries()
+    if (is.null(dat_ts)) dat <- get_dat_timeseries() else dat <- dat_ts
   } else {
-    dat <- get_dat()    
+    if (is.null(dat_cs)) dat <- get_dat() else dat <- dat_cs
   } 
 
   dat_1 <- dat[dat$regio_level %in% input_value_regio_level & dat$variable %in% input_value_variable,]
   
-  if (input_value_regio_level == "Hyvinvointialueet"){
-    load(system.file("data", "regio_Hyvinvointialueet.rda", package="karttasovellus"))
-    reg <- regio_Hyvinvointialueet
-  } else if (input_value_regio_level == "Seutukunnat"){
-    load(system.file("data", "regio_Seutukunnat.rda", package="karttasovellus"))
-    reg <- regio_Seutukunnat
-  } else if (input_value_regio_level == "Kunnat"){
-    load(system.file("data", "regio_Kunnat.rda", package="karttasovellus"))
-    reg <- regio_Kunnat
+  if (spatial){ # eli jos karttaa varten
+    if (input_value_regio_level == "Hyvinvointialueet"){
+      load(system.file("data", "regio_Hyvinvointialueet.rda", package="karttasovellus"))
+      reg <- regio_Hyvinvointialueet
+    } else if (input_value_regio_level == "Seutukunnat"){
+      load(system.file("data", "regio_Seutukunnat.rda", package="karttasovellus"))
+      reg <- regio_Seutukunnat
+    } else if (input_value_regio_level == "Kunnat"){
+      load(system.file("data", "regio_Kunnat.rda", package="karttasovellus"))
+      reg <- regio_Kunnat
+    }
+    res <- left_join(reg, dat_1) %>% 
+      select(-regio_level) %>%
+      filter(!is.na(value)) %>%
+      arrange(desc(value)) %>%
+      mutate(value = round(value, 1)) %>%
+      mutate(rank = 1:n())
+  } else {
+    res <- dat_1 %>% 
+      select(-regio_level) %>%
+      filter(!is.na(value)) %>%
+      arrange(desc(value)) %>%
+      mutate(value = round(value, 1)) %>%
+      mutate(rank = 1:n())
   }
-  
-  res <- left_join(reg, dat_1)  
-  
-  res <- res %>%
-    select(-regio_level) %>%
-    filter(!is.na(value)) %>%
-    arrange(desc(value)) %>%
-    mutate(value = round(value, 1)) %>%
-    mutate(rank = 1:n())
-
   return(res)
 }
+
+# library(profvis)
+# profvis({
+#   plot_map()
+# })
+
 
 
 #' Create list of region neighbors
@@ -100,26 +116,28 @@ process_data <- function(input_value_regio_level = "Kunnat",
 create_municipalities_within_region <- function(input_value_variable = "Nuorisotyöttömyys", 
                                                 input_value_regio_level = "Kunnat",
                                                 input_value_region_selected = "Helsinki",
-                                                timeseries = TRUE){
+                                                timeseries = TRUE,
+                                                dat_ts = NULL,
+                                                dat_cs = NULL){
   varname <- input_value_variable
   regio_level <- input_value_regio_level
   aluenimi <- input_value_region_selected
 
   if (timeseries){
-    dat <- get_dat_timeseries()
+    if (is.null(dat_ts)) dat <- get_dat_timeseries() else dat <- dat_ts
   } else {
-    dat <- get_dat()
-  }
-
+    if (is.null(dat_cs)) dat <- get_dat() else dat <- dat_cs
+  } 
+  
   dat_1 <- dat[dat$regio_level %in% "Kunnat" & dat$variable %in% varname,]
   
   if (regio_level == "Hyvinvointialueet"){
-    muni_key_subset <- geofi::municipality_key_2019 %>% 
+    muni_key_subset <- geofi::municipality_key_2021 %>% 
       mutate(hyvinvointialue_name_fi = sub("hyvinvointialue", "HVA", hyvinvointialue_name_fi)) %>% 
       filter(hyvinvointialue_name_fi == aluenimi) %>% 
       select(name_fi)
   } else {
-    muni_key_subset <- geofi::municipality_key_2019 %>% 
+    muni_key_subset <- geofi::municipality_key_2021 %>% 
       filter(seutukunta_name_fi == aluenimi) %>% 
       select(name_fi) 
   }
@@ -137,8 +155,9 @@ create_municipalities_within_region <- function(input_value_variable = "Nuorisot
 
 # get_naapurikoodit ----
 get_naapurikoodit <- function(input_value_regio_level = "Kunnat",
-                              input_value_region_selected = "Helsinki"){
-  region_data <- get_region_data()
+                              input_value_region_selected = "Helsinki",
+                              region_data = NULL){
+  if (is.null(region_data)) region_data <- get_region_data()
   naapurikoodit_lst <- region_data[region_data$level %in% input_value_regio_level & 
                                      region_data$region_name %in% input_value_region_selected,"neigbours"]
   naapurikoodit <- naapurikoodit_lst %>% tidyr::unnest(cols = c(neigbours)) %>% pull(neigbours)
@@ -159,17 +178,20 @@ plot_rank_bar <- function(input_value_regio_level = "Seutukunnat",
                       input_value_region_selected = "Helsinki",
                       input_value_regio_show_mode = "valitun alueen kunnat"){
   
+  dat_cs <- get_dat()
+  
   dat <- process_data(input_value_regio_level = input_value_regio_level,
-                      input_value_variable = input_value_variable)
+                      input_value_variable = input_value_variable, 
+                      dat_cs = dat_cs, 
+                      spatial = FALSE)
   
   region_data <- get_region_data()
   naapurikoodit <- get_naapurikoodit(input_value_regio_level = input_value_regio_level,
-                                     input_value_region_selected = input_value_region_selected)
-  dat <- dat %>% #sf::st_transform(crs = 3067) %>% 
-    mutate(color = ifelse(aluenimi %in% input_value_region_selected, TRUE, FALSE))
+                                     input_value_region_selected = input_value_region_selected, 
+                                     region_data = region_data)
+  dat <- dat %>% mutate(color = ifelse(aluenimi %in% input_value_region_selected, TRUE, FALSE))
   
   dat <- dat %>% 
-    st_set_geometry(NULL) %>% 
     select(rank,aluekoodi,aluenimi,value,color) %>% 
     mutate(aluenimi = factor(aluenimi), 
            aluenimi = fct_reorder(aluenimi, -rank),
@@ -185,9 +207,9 @@ plot_rank_bar <- function(input_value_regio_level = "Seutukunnat",
     dat <- create_municipalities_within_region(input_value_variable = input_value_variable, 
                                                input_value_regio_level = input_value_regio_level,
                                                input_value_region_selected = input_value_region_selected,
-                                               timeseries = FALSE)
-    dat <- dat %>% #sf::st_transform(crs = 3067) %>% 
-      mutate(color = ifelse(aluenimi %in% input_value_region_selected, TRUE, FALSE))
+                                               timeseries = FALSE, 
+                                               dat_cs = dat_cs)
+    dat <- dat %>% mutate(color = ifelse(aluenimi %in% input_value_region_selected, TRUE, FALSE))
   }
   
   # luodaan alaotsikko
@@ -259,14 +281,17 @@ plot_map <- function(input_value_regio_level = "Hyvinvointialueet",
                           leaflet = FALSE
                      ){
   
+  df_cs <- get_dat()
+  
   dat <- process_data(input_value_regio_level = input_value_regio_level,
-                      input_value_variable = input_value_variable)
+                      input_value_variable = input_value_variable, 
+                      dat_cs = df_cs)
   
   region_data <- get_region_data()
   naapurikoodit <- get_naapurikoodit(input_value_regio_level = input_value_regio_level,
-                                     input_value_region_selected = input_value_region_selected)
-  dat <- dat %>% #sf::st_transform(crs = 3067) %>% 
-    mutate(color = ifelse(aluenimi %in% input_value_region_selected, TRUE, FALSE))
+                                     input_value_region_selected = input_value_region_selected,
+                                     region_data = region_data)
+  dat <- dat %>% mutate(color = ifelse(aluenimi %in% input_value_region_selected, TRUE, FALSE))
   
   if (input_value_regio_show_mode == "kaikki tason alueet"){
     dat <- dat
@@ -277,11 +302,11 @@ plot_map <- function(input_value_regio_level = "Hyvinvointialueet",
     dat <- create_municipalities_within_region(input_value_variable = input_value_variable, 
                                                input_value_regio_level = input_value_regio_level,
                                                input_value_region_selected = input_value_region_selected,
-                                               timeseries = FALSE)
+                                               timeseries = FALSE, 
+                                               dat_cs = df_cs)
     
     load(system.file("data", "regio_Kunnat.rda", package="karttasovellus"))
     reg <- regio_Kunnat
-    karttasovellus
     res <- left_join(reg, dat) %>% 
       filter(!is.na(aluenimi))
     
@@ -331,7 +356,9 @@ plot_map <- function(input_value_regio_level = "Hyvinvointialueet",
                       aes(label = paste(aluenimi, value)),
                       fill = "white", color = "black", family = "PT Sans") -> p
   } else if (input_value_regio_show_mode == "valitun alueen kunnat"){
-    p + ggrepel::geom_label_repel(data = dat %>%
+    # p + ggrepel::geom_label_repel(
+      p + geom_label(
+                        data = dat %>%
                                     sf::st_set_geometry(NULL) %>%
                                     bind_cols(dat %>% sf::st_centroid() %>% sf::st_coordinates() %>% as_tibble()),
                                   aes(label = paste0(aluenimi,"\n", value), x = X, y = Y),
@@ -458,9 +485,12 @@ plot_timeseries <- function(input_value_regio_level = "Kunnat",
                      input_value_region_selected = "Helsinki",
                      input_value_regio_show_mode = "valittu alue ja sen naapurit"){
   
+  dat_ts <- get_dat_timeseries()
+  
   df <- process_data(input_value_regio_level = input_value_regio_level,
                       input_value_variable = input_value_variable,
-                      timeseries = TRUE)
+                      timeseries = TRUE, 
+                     dat_ts = dat_ts)
   region_data <- get_region_data()
   naapurikoodit_lst <- region_data[region_data$level %in% input_value_regio_level & 
                                      region_data$region_name %in% input_value_region_selected,"neigbours"]
@@ -480,16 +510,10 @@ plot_timeseries <- function(input_value_regio_level = "Kunnat",
     
     df_gini2 <- df_gini[df_gini$aluekoodi %in% naapurikoodit,]
     df_gini2 <- bind_rows(df_gini2,df_gini_kaikki)
-    
   }
-
-
-
-  
   df2 <- df[df$aluekoodi %in% naapurikoodit,] %>% 
     filter(!aluenimi %in% input_value_region_selected)
-  
-  
+
   aika1 <- sort(unique(df$aika)) - 1
   aika2 <- sort(unique(df$aika)) + 1
   labels <- paste0(aika1,"-",aika2)
@@ -510,7 +534,7 @@ plot_timeseries <- function(input_value_regio_level = "Kunnat",
       geom_line(data = df_selected_ts, aes(x = aika, y = value), color = "purple") +
       geom_point(data = df_selected_ts, aes(x = aika, y =  value),
                  fill = "purple", 
-                 color = "white", shape = 21, size = 2.5, stroke = 1) +
+                 color = "white", shape = 21, size = 3, stroke = 1.2) +
       geom_text(data = df_selected_cs,
                 aes(x = aika, 
                     y = value, 
@@ -523,8 +547,10 @@ plot_timeseries <- function(input_value_regio_level = "Kunnat",
     if (input_value_regio_level == "Hyvinvointialueet"){
       plot_gini <- ggplot() + 
         geom_line(data = df_gini, aes(x = aika, y = gini, color = aluenimi)) +
-        ggrepel::geom_text_repel(data = df_gini %>% filter(aika == max(aika, na.rm = TRUE)),
-                                 aes(x = aika, y = gini, color= aluenimi, label = paste(aluenimi, round(gini,2))), nudge_x = .2, family = "PT Sans")
+        geom_text(
+        # ggrepel::geom_text_repel(
+          data = df_gini %>% filter(aika == max(aika, na.rm = TRUE)),
+          aes(x = aika, y = gini, color= aluenimi, label = paste(aluenimi, round(gini,2))), nudge_x = .2, family = "PT Sans")
       
     }
     
@@ -538,14 +564,16 @@ plot_timeseries <- function(input_value_regio_level = "Kunnat",
                 color = "dim grey", alpha = .1) +
       geom_point(data = df2, 
                  aes(x = aika, y = value,fill= aluenimi), shape = 21, color = "white", stroke = 1, size = 2.5) +
-      ggrepel::geom_text_repel(data = df2 %>% filter(aika == max(aika, na.rm = TRUE)),
-                               aes(x = aika, y = value, color= aluenimi, 
-                                   label = paste(aluenimi, round(value,1))), 
+      # ggrepel::geom_text_repel(
+      geom_text(
+        data = df2 %>% filter(aika == max(aika, na.rm = TRUE)),
+        aes(x = aika, y = value, color= aluenimi, 
+            label = paste(aluenimi, round(value,1))), 
                                family = "PT Sans", nudge_x = .3) +
       geom_line(data = df_selected_ts, aes(x = aika, y = value), color = "purple") +
       geom_point(data = df_selected_ts, aes(x = aika, y = value),
                  fill = "purple", 
-                 color = "white", shape = 21, size = 2.5, stroke = 1) +
+                 color = "white", shape = 21, size = 3, stroke = 1.2) +
       
       geom_text(data = df_selected_cs,
                 aes(x = aika, 
@@ -561,9 +589,11 @@ plot_timeseries <- function(input_value_regio_level = "Kunnat",
     plot_gini <- ggplot() + 
       geom_line(data = df_gini2, aes(x = aika, y = gini, color = aluenimi)) +
       geom_line(data = df_gini, aes(x = aika, y = gini, color = aluenimi), alpha = .1) +
-      ggrepel::geom_text_repel(data = df_gini2 %>% filter(aika == max(aika, na.rm = TRUE)),
-                               aes(x = aika, y = gini, color= aluenimi, 
-                                   label = paste(aluenimi, round(gini,1))), 
+      # ggrepel::geom_text_repel(
+      geom_text(
+        data = df_gini2 %>% filter(aika == max(aika, na.rm = TRUE)),
+        aes(x = aika, y = gini, color= aluenimi, 
+            label = paste(aluenimi, round(gini,1))), 
                                family = "PT Sans", nudge_x = .3)
     }
     
@@ -572,7 +602,8 @@ plot_timeseries <- function(input_value_regio_level = "Kunnat",
     dat2 <- create_municipalities_within_region(input_value_variable = input_value_variable, 
                                                 input_value_regio_level = input_value_regio_level,
                                                 input_value_region_selected = input_value_region_selected,
-                                                timeseries = TRUE)
+                                                timeseries = TRUE, 
+                                                dat_ts = dat_ts)
     
     if (input_value_regio_level == "Hyvinvointialueet"){
     dat2_gini <- dat2 %>% group_by(aika) %>% 
@@ -583,17 +614,21 @@ plot_timeseries <- function(input_value_regio_level = "Kunnat",
     plot_gini <- ggplot() + 
       geom_line(data = df_gini2, aes(x = aika, y = gini, color = aluenimi)) +
       geom_line(data = df_gini, aes(x = aika, y = gini, color = aluenimi), alpha = .1) +
-      ggrepel::geom_text_repel(data = df_gini2 %>% filter(aika == max(aika, na.rm = TRUE)),
-                               aes(x = aika, y = gini, color= aluenimi, 
-                                   label = paste(aluenimi, round(gini,1))), 
-                               family = "PT Sans", nudge_x = .3)
+      # ggrepel::geom_text_repel(
+      geom_text(
+        data = df_gini2 %>% filter(aika == max(aika, na.rm = TRUE)),
+        aes(x = aika, y = gini, color= aluenimi, 
+            label = paste(aluenimi, round(gini,1))), family = "PT Sans", nudge_x = .3)
     }
     
     plot0 <- plot0 + 
       geom_line(data = dat2,aes(x = aika, y = value, color= aluenimi), show.legend = FALSE) +
-      geom_point(shape = 21, color = "white", stroke = 1, size = 2.5) +
-      ggrepel::geom_text_repel(data = dat2 %>% filter(aika == max(aika, na.rm = TRUE)),
-                               aes(x = aika, y = value, color= aluenimi, label = paste(aluenimi, round(value,1))), nudge_x = .2, family = "PT Sans")
+      geom_point(shape = 21, color = "white", shape = 21, size = 3, stroke = 1.2) +
+      # ggrepel::geom_text_repel(
+      geom_text(
+        data = dat2 %>% filter(aika == max(aika, na.rm = TRUE)),
+        aes(x = aika, y = value, color= aluenimi, label = paste(aluenimi, round(value,1))), 
+        nudge_x = .2, family = "PT Sans")
     
     
   }

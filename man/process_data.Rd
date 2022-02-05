@@ -7,7 +7,10 @@
 process_data(
   input_value_regio_level = "Kunnat",
   input_value_variable = "Nuorisotyöttömyys",
-  timeseries = FALSE
+  timeseries = FALSE,
+  spatial = TRUE,
+  dat_ts = NULL,
+  dat_cs = NULL
 )
 }
 \arguments{
@@ -16,6 +19,10 @@ process_data(
 \item{input_value_variable}{A string.}
 
 \item{timeseries}{A logical.}
+
+\item{dat_ts}{A data frame. An optional data to speed up things}
+
+\item{dat_cs}{A data frame. An optional data to speed up things}
 }
 \description{
 Process municipality data

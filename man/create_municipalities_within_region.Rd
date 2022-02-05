@@ -8,7 +8,9 @@ create_municipalities_within_region(
   input_value_variable = "Nuorisotyöttömyys",
   input_value_regio_level = "Kunnat",
   input_value_region_selected = "Helsinki",
-  timeseries = TRUE
+  timeseries = TRUE,
+  dat_ts = NULL,
+  dat_cs = NULL
 )
 }
 \arguments{
