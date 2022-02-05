@@ -109,18 +109,6 @@ mod_041zipcode_server <- function(id){
                          selected = opt_indicator[1])
     })
 
-    # observeEvent(input$value_region_selected, {
-    #   # freezeReactiveValue(input, "value_regio_level")
-    #   opt_indicator <- c('Kokonaislukema',
-    #                      'Alimpaan tuloluokkaan kuuluvat taloudet',
-    #                      'Alimpaan tuloluokkaan kuuluvat täysi-ikäiset',
-    #                      'Työttömät'
-    #   )
-    #   updateSelectInput(inputId = "value_variable", 
-    #                     choices = opt_indicator,
-    #                     selected = opt_indicator[1])
-    # })
-
     # =============================================================================================
     # =============================================================================================
     # KUVAT

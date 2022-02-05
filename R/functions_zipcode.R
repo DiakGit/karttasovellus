@@ -121,16 +121,6 @@ map_zipcodes <- function(input_value_region_selected = 91,
                   grid_col = "white",
                   plot_title_face = "plain") -> p
     
-    # if (input_value_regio_show_mode == "kaikki tason alueet"){
-    #   p <- p + geom_sf_label(data = dat %>% filter(aluenimi == input_value_region_selected),
-    #                          aes(label = paste(aluenimi, value)),
-    #                          fill = "white", color = "black", family = "PT Sans")
-    #   
-    # } else if (input_value_regio_show_mode %in% c("valittu alue ja sen naapurit","valittu alue")){
-    #   p + geom_sf_label(data = dat,
-    #                     aes(label = paste(aluenimi, round(value, 1))),
-    #                     fill = "white", color = "black", family = "PT Sans") -> p
-    # }
     p + theme(axis.text.x = element_blank(),
               axis.text.y = element_blank(),
               axis.title.x = element_blank(),
@@ -441,15 +431,6 @@ plot_zipcodes_line <- function(input_value_region_selected = 91,
   dat <- dat %>% 
     mutate(color = ifelse(aluenimi %in% input_value_region_selected, TRUE, FALSE))
   
-  # if (input_value_regio_show_mode == "kaikki tason alueet"){
-  #   dat <- dat
-  # } else if (input_value_regio_show_mode == "valittu alue ja sen naapurit"){
-  #   naapurikoodit <- get_naapurikoodit_zip(regio_selected = input_value_region_selected)
-  #   dat <- dat %>% filter(aluekoodi %in% naapurikoodit)
-  # }  else if (input_value_regio_show_mode == "valittu alue"){
-  #   naapurikoodit <- karttasovellus::region_data_zip[karttasovellus::region_data_zip$kuntanro == input_value_region_selected,]$region_code
-  #   dat <- dat %>% filter(aluekoodi %in% naapurikoodit)
-  # }
   naapurikoodit <- get_koodit_zip(regio_selected = input_value_region_selected, 
                                   value_regio_level = input_value_regio_level)
   dat <- dat %>% filter(aluekoodi %in% naapurikoodit)
