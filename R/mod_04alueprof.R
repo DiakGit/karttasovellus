@@ -204,11 +204,50 @@ mod_04alueprof_server <- function(id){
                region_name == aluename) %>%
         pull(region_code)
       tags <- table_zipcodes(input_value_region_selected = reg_code,
-                     input_value_regio_level = aluetaso1)
+                     input_value_regio_level = aluetaso1, 
+                     zipvars = c('Kokonaislukema',
+                                 'Alimpaan tuloluokkaan kuuluvat taloudet',
+                                 'Alimpaan tuloluokkaan kuuluvat täysi-ikäiset',
+                                 'Työttömät',
+                                 'Peruskoulutuksen omaavat'))
       tagList(
         tags
       )
     })
+    
+    output$zipcode_dotplot <- renderUI({
+
+        aluename <- react_value_region_profile()
+        aluetaso1 <- react_value_regio_level_profile()
+        
+        load(system.file("data", "region_data.rda", package="karttasovellus"))
+        reg_code <- region_data %>%
+          filter(level == aluetaso1,
+                 region_name == aluename) %>%
+          pull(region_code)
+        
+        # zipppiem määrä ->> kuvan korkeus
+        naapurikoodit <- get_koodit_zip(regio_selected = reg_code,
+                                        value_regio_level = aluetaso1)
+        korkeus <- paste0(200 + length(naapurikoodit) * 20, "px")
+        
+        output$dot_plot_zip <- renderPlot({
+          plot_zipcodes_dotplot_alueprofiili(input_value_region_selected = reg_code,
+                                             input_value_regio_level = aluetaso1,
+                                             zipvars = c('Kokonaislukema',
+                                                         'Alimpaan tuloluokkaan kuuluvat taloudet',
+                                                         'Alimpaan tuloluokkaan kuuluvat täysi-ikäiset',
+                                                         'Työttömät',
+                                                         'Peruskoulutuksen omaavat'))
+        })
+        tagList(
+          fluidRow(column(width = 12,
+                          withSpinner(plotOutput(ns("dot_plot_zip"),height = korkeus, width = "100%")))
+          )
+        )
+      })
+    
+    
     
     output$zipcode_maps <- renderUI({
       
@@ -305,11 +344,14 @@ mod_04alueprof_server <- function(id){
                   tags$a(class="toc-alueprof", href="#ziptbl", "Taulukko")
           ),
           tags$li(class = "nav-item",
+                  tags$a(class="toc-alueprof", href="#dotplot", "Pistekuvio")
+          ),
+          tags$li(class = "nav-item",
                   tags$a(class="toc-alueprof", href="#zipmap", "Kartat")
           ),
         ),
         # ## ## ##
-        # uiOutput(ns("alueprofiili_html")),
+        uiOutput(ns("alueprofiili_html")),
         # # ## ## ##
         tags$h4("Postinumeroalueittainen tieto", id = "postinumerotieto"),
         tags$a(class="nav-link", href="#alueprofiili", "Alueprofiilin alkuun"),
@@ -317,6 +359,10 @@ mod_04alueprof_server <- function(id){
         tags$h5("Taulukko", id = "ziptbl"),
         tags$a(class="nav-link", href="#alueprofiili", "Alueprofiilin alkuun"),
         uiOutput(ns("zipcode_tables")),
+        ## ## ##
+        tags$h5("Pistekuvio", id = "dotplot"),
+        tags$a(class="nav-link", href="#alueprofiili", "Alueprofiilin alkuun"),
+        uiOutput(ns("zipcode_dotplot")),
         # ## ## ##
         tags$h5("Kartat", id = "zipmap"),
         tags$a(class="nav-link", href="#alueprofiili", "Alueprofiilin alkuun"),

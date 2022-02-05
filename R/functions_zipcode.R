@@ -18,7 +18,7 @@ if (F){
 #' @export
 process_zipdata <- function(varname = "Kokonaislukema"){
   load(system.file("data", "dfzip_v20220202.rda", package="karttasovellus"))
-  dtmp <- dfzip_v20220202[dfzip_v20220202$variable == varname, ]
+  dtmp <- dfzip_v20220202[dfzip_v20220202$variable %in% varname, ]
   return(dtmp)
 }
 
@@ -31,7 +31,7 @@ process_zipdata <- function(varname = "Kokonaislukema"){
 #' @export
 process_zipdata_timeseries <- function(varname = "Kokonaislukema"){
   load(system.file("data", "dfzip_v20220202_aikasarja.rda", package="karttasovellus"))
-  dtmp <- dfzip_v20220202_aikasarja[dfzip_v20220202_aikasarja$variable == varname, ]
+  dtmp <- dfzip_v20220202_aikasarja[dfzip_v20220202_aikasarja$variable %in% varname, ]
   return(dtmp)
 }
 
@@ -354,6 +354,80 @@ plot_zipcodes_bar <- function(input_value_region_selected = 5,
   print(p)
 }
 
+
+#' Create zipcode bar chart
+#' 
+#' @param input_value_region_selected A numeric
+#' @param input_value_regio_level A string
+#' @param zipvars A string
+#'
+#' @export
+plot_zipcodes_dotplot_alueprofiili <- function(input_value_region_selected = 5,
+                              input_value_regio_level = "Hyvinvointialueet",
+                              zipvars = c('Kokonaislukema',
+                                          'Alimpaan tuloluokkaan kuuluvat taloudet',
+                                          'Alimpaan tuloluokkaan kuuluvat täysi-ikäiset',
+                                          'Työttömät',
+                                          'Peruskoulutuksen omaavat')){
+  region_data <- get_region_zipdata()
+  dat <- process_zipdata(varname = zipvars)
+  naapurikoodit <- get_koodit_zip(regio_selected = input_value_region_selected,
+                                  value_regio_level = input_value_regio_level)
+  dat <- dat %>% filter(aluekoodi %in% naapurikoodit, 
+                        !is.na(value))
+  
+  # luodaan alaotsikko
+  kuvan_subtitle <- glue("Aluetaso: {input_value_regio_level}")
+  
+  dat$aluenimi <- paste0(dat$aluenimi, " (", dat$aluekoodi, ") ", dat$kuntanimi)
+  med <- median(dat$value, na.rm = TRUE)
+  
+  if (input_value_regio_level == "Kunnat"){
+    dat$value_nudge <- ifelse(dat$value >= 100, 
+                              dat$value + med*.15, 
+                              dat$value - med*.15)
+  } else {
+    dat$value_nudge <- ifelse(dat$value >= 100, 
+                              dat$value + med*.22, 
+                              dat$value - med*.22)
+  }
+  dat$variable <- factor(dat$variable, levels = zipvars)
+  
+  aluenimet <- arrange(dat[dat$variable == "Kokonaislukema",], value) %>% pull(aluenimi)
+  dat$aluenimi <- factor(dat$aluenimi, levels = aluenimet)
+  
+  ggplot(data = dat, aes(y = aluenimi, 
+                         x = value, 
+                         fill = value)) +
+    geom_vline(xintercept = 100, color = alpha("dim grey", 1/3), linetype = "dashed") +
+    geom_segment(aes(x = 100, 
+                     yend = reorder(aluenimi, value), 
+                     xend = value), 
+                 color = alpha("dim grey", 1/3), 
+                 alpha=1, 
+                 show.legend = FALSE) +
+    geom_point(aes(fill = value), color = "dim grey", shape = 21, size = 4, show.legend = FALSE) + 
+    geom_text(aes(label = round(value,0), 
+                  x = value_nudge),
+              color = "black", 
+              family = "PT Sans") +
+    scale_fill_fermenter(palette = "YlGnBu", type = "seq", direction = 1) +
+    scale_color_fermenter(palette = "YlGnBu", type = "seq", direction = 1) +
+    theme_ipsum(base_family = "PT Sans",
+                plot_title_family = "PT Sans",
+                subtitle_family = "PT Sans",
+                grid_col = "white",
+                plot_title_face = "plain") + 
+    theme(plot.title.position = "plot",
+          legend.position = "top") +
+    labs(title = "Kaikki postinumeroaluetason osoittimet",
+         subtitle = kuvan_subtitle,
+         caption = glue("Huono-osaisuus Suomessa -karttasovellus (Diak)\nData: Tilastokeskus Paavo (perusdata) & Diak (mediaanisuhteutus)\nTiedot haettu:{Sys.Date()}"),
+         fill = paste0(add_line_break2(input_value_variable, 20), "\n(suhdeluku)")) +
+    facet_wrap(~variable, nrow = 1, scales = "free_x") -> p
+  print(p)
+}
+
 #' Create zipcode line chart
 #' 
 #' @param input_value_region_selected A numeric
@@ -402,10 +476,12 @@ plot_zipcodes_line <- function(input_value_region_selected = 91,
   #    
   #   
   # } else if (input_value_regio_show_mode %in% c("valittu alue ja sen naapurit","valittu alue")){
-    p <- p + ggrepel::geom_text_repel(data = dat %>% filter(aika == max(aika, na.rm = TRUE)),
-                                      aes(x = aika, y = value, color= aluenimi,
-                                          label = paste(aluenimi, round(value,1))),
-                                      family = "PT Sans", nudge_x = .3)
+  # p <- p + ggrepel::geom_text_repel(  
+  p <- p + geom_text(
+      data = dat %>% filter(aika == max(aika, na.rm = TRUE)),
+      aes(x = aika, y = value, color= aluenimi,
+          label = paste(aluenimi, round(value,1))),
+      family = "PT Sans", nudge_x = .3)
   # }
   p + theme(plot.title.position = "plot",
             legend.position = "none",
@@ -428,6 +504,11 @@ plot_zipcodes_line <- function(input_value_region_selected = 91,
 #' @export
 table_zipcodes <- function(input_value_region_selected = 91,
                            input_value_regio_level = "Kunnat", 
+                           zipvars = c('Kokonaislukema',
+                                       'Alimpaan tuloluokkaan kuuluvat taloudet',
+                                       'Alimpaan tuloluokkaan kuuluvat täysi-ikäiset',
+                                       'Työttömät',
+                                       'Peruskoulutuksen omaavat'),
                            print = FALSE){
   
   naapurikoodit <- get_koodit_zip(regio_selected = input_value_region_selected,
@@ -436,9 +517,11 @@ table_zipcodes <- function(input_value_region_selected = 91,
   dfzip_v20220202 %>% 
     filter(aluekoodi %in% naapurikoodit) %>% 
     select(aluekoodi, aluenimi, variable, value) %>% 
-    mutate(value = round(value, 1)) %>% 
+    mutate(value = round(value, 1),
+           variable = factor(variable, levels = zipvars)) %>% 
+    arrange(variable) %>% 
     pivot_wider(names_from = variable, values_from = value) %>% 
-    arrange(aluekoodi) -> tmpt
+    arrange(desc(Kokonaislukema)) -> tmpt
   if (print){
     print(kable(tmpt,
                 format = "pipe", 
