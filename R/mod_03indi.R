@@ -234,7 +234,13 @@ mod_03indi_server <- function(id){
 
     output$rank_plot <- renderPlot({
       plotReactiveRank()
-    })
+    }, alt = reactive({
+      alt_txt_indicator(which_plot = "dotplot", 
+                        input_value_regio_show_mode = input$value_regio_show_mode,
+                        input_value_variable = input$value_variable,
+                        input_value_regio_level = input$value_regio_level,
+                        input_value_region_selected = input$value_region_selected)
+    }))
         
     
     plotReactiveMapLeaflet <- eventReactive({
@@ -264,7 +270,14 @@ mod_03indi_server <- function(id){
 
     output$map_plot_static <- renderPlot({
       plotReactiveMapStatic()
+      }, alt = reactive({
+        alt_txt_indicator(which_plot = "map",
+                          input_value_regio_show_mode = input$value_regio_show_mode,
+                          input_value_variable = input$value_variable,
+                          input_value_regio_level = input$value_regio_level,
+                          input_value_region_selected = input$value_region_selected)
       })
+      )
 
       output$ui_map_plot <- renderUI({
         
@@ -293,7 +306,14 @@ mod_03indi_server <- function(id){
       
       output$timeseries_plot <- renderPlot({  
         funk()
-        })
+        }, alt = reactive({
+          alt_txt_indicator(which_plot = "timeseries",
+                            input_value_regio_show_mode = input$value_regio_show_mode,
+                            input_value_variable = input$value_variable,
+                            input_value_regio_level = input$value_regio_level,
+                            input_value_region_selected = input$value_region_selected)
+          })
+        )
       
       funk_height <- eventReactive({
         input$button_ind

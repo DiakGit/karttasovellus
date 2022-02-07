@@ -107,11 +107,11 @@ create_alueprofiili_content <- function(input_value_region_profile = "Itä-Uuden
   dat[dat$regio_level %in% aluetaso1,] %>% 
     group_by(variable) %>% 
     arrange(desc(value)) %>%
-    mutate(sija = 1:n(),
+    mutate(asema = 1:n(),
            n = n()) %>% 
     ungroup() %>% 
     # filter(aluenimi %in% aluename2) %>% 
-    select(aika,aluenimi,variable,sija) -> rank_dat
+    select(aika,aluenimi,variable,asema) -> rank_dat
   
   bind_rows(tmpdat,max_dat,min_dat) %>% 
     left_join(rank_dat) %>% 
@@ -119,7 +119,7 @@ create_alueprofiili_content <- function(input_value_region_profile = "Itä-Uuden
     rename(muuttuja = variable,
            arvo = value) %>% 
     filter(!is.na(arvo)) %>% 
-    select(aika,muuttuja,arvo,sija,everything()) %>% 
+    select(aika,muuttuja,arvo,asema,everything()) %>% 
     distinct() -> tabdat
   # tmpdat -> tabdat
   return(tabdat)
@@ -160,8 +160,8 @@ alueprofiilikartta_html <- function(input_value_regio_level_profile = "Hyvinvoin
     filter(var_class == val_muuttujaluokka,
            muuttuja == val_muuttuja) %>%
     filter(rooli %in% c("naapuri","valinta")) %>% 
-    select(muuttuja,aluenimi,arvo,sija) %>%
-    arrange(muuttuja,sija)
+    select(muuttuja,aluenimi,arvo,asema) %>%
+    arrange(muuttuja,asema)
   mapdata_tmp <- left_join(region_data, lista1_tbl, by = c("region_name" = "aluenimi")) %>% 
     filter(!is.na(muuttuja))
   plot <- ggplot(data = mapdata_tmp, aes(fill = arvo)) +                    
@@ -224,9 +224,9 @@ alueprofiiliaikasarja_html <- function(input_value_regio_level_profile = "Hyvinv
   
   plotdata_tmp <- tabdat1 %>%
     filter(rooli %in% c("naapuri","valinta")) %>% 
-    select(aika,muuttuja,aluenimi,arvo,sija) %>%
+    select(aika,muuttuja,aluenimi,arvo,asema) %>%
     mutate(value = arvo) %>% 
-    arrange(muuttuja,sija)
+    arrange(muuttuja,asema)
   # plotdata_tmp <- lista1_tbl[lista1_tbl$muuttuja == vars[vii],]
   aika1 <- sort(unique(plotdata_tmp$aika)) - 1
   aika2 <- sort(unique(plotdata_tmp$aika)) + 1
@@ -278,9 +278,9 @@ create_raw_tbl <- function(dd1 = tabdat_tmp,
                            varnro = 1){
   dd2 <- dd1 %>% 
     mutate(aluenimi = paste0(aluenimi, " (", rooli, ") ")) %>% 
-    select(muuttuja,aluenimi,arvo,sija) %>%
-    arrange(muuttuja,sija) %>% 
-    mutate(sija = paste0(sija,"."))
+    select(muuttuja,aluenimi,arvo,asema) %>%
+    arrange(muuttuja,asema) %>% 
+    mutate(asema = paste0(asema,"."))
   dd3 <- dd2[dd2$muuttuja == muuttujanimi[varnro], ] %>% 
     select(-muuttuja)
   return(dd3)
@@ -394,8 +394,8 @@ print_create_table <- function(varclass = "Summamuuttujat",
     cat("\n\n")
     print(kable(tmptbl[tmptbl$muuttuja == vars[vi],] %>% 
                   mutate(aluenimi = paste0(aluenimi, " (", rooli, ") ")) %>%
-                  arrange(sija) %>% 
-                  select(aluenimi,arvo,sija),
+                  arrange(asema) %>% 
+                  select(aluenimi,arvo,asema),
                 
                 format = "pipe", 
                 row.names = FALSE))
@@ -411,11 +411,30 @@ print_create_table <- function(varclass = "Summamuuttujat",
 #' @param ncol a integer.
 #'
 #' @export
-print_create_map_plot <- function(varclass = "Summamuuttujat", 
+print_create_map_plot <- function(varclass = "Inhimillinen huono-osaisuus", 
                             reglevel = "Kunnat", 
                             regname = "Alajärvi", 
                             naapurit = c(91,92,924),
-                            valid_vars = "Huono-osaisuus yhteensä",
+                            valid_vars = c("Huono-osaisuus yhteensä", "Inhimillinen huono-osaisuus", 
+                                           "Koulutuksen ulkopuolelle jääneet 17–24-vuotiaat", "Nuorisotyöttömyys", 
+                                           "Pitkäaikaistyöttömyys", "Toimeentulotukea pitkäaikaisesti saaneet 18–24-vuotiaat", 
+                                           "Toimeentulotukea pitkäaikaisesti saaneet 25–64-vuotiaat", 
+                                           "Kunnan yleinen pienituloisuusaste", "Alkoholikuolleisuus 35-64 vuotiailla", 
+                                           "Itsemurhakuolleisuus", "Itsensä yksinäiseksi tuntevien osuus", 
+                                           "Psyykkisesti merkittävästi kuormittuneiden osuus", "Terveytensä keskitasoiseksi tai sitä huonommaksi kokevien osuus", 
+                                           "Huono-osaisuuden sosiaaliset seuraukset", "Kodin ulkopuolelle sijoitetut 0 – 17-vuotiaat", 
+                                           "Poliisin tietoon tulleet henkeen ja terveyteen kohdistuneet rikokset", 
+                                           "Päihteiden vaikutuksen alaisena tehdyistä rikoksista syyllisiksi epäillyt", 
+                                           "0 - 17-vuotiaat lapset, joista on tehty lastensuojeluilmoitus", 
+                                           "Rahanpuutteen vuoksi ruoasta, lääkkeistä tai lääkärikäynneistä tinkimään joutuneiden osuus", 
+                                           "Korkeat asiakasmaksut haitanneet hoidon saantia", "Huono-osaisuuden taloudelliset yhteydet", 
+                                           "Kunnan osarahoittama työmarkkinatuki", "Lastensuojelun laitos- ja perhehoidon nettokäyttökustannukset", 
+                                           "Aikuisten mielenterveyden avohoitokäynnit", "Päihteiden vuoksi sairaaloiden ja terveyskeskusten vuodeosastoilla hoidetut potilaat", 
+                                           "Päihdehuollon avopalveluissa asiakkaita", "Täydentävä toimeentulotuki", 
+                                           "Päihteiden vaikutuksen alaisena tehdyistä rikoksista syyllisiksi epäillyt", 
+                                           "Poliisin tietoon tulleet henkeen ja terveyteen kohdistuneet rikokset", 
+                                           "Lastensuojelun laitos- ja perhehoidon nettokäyttökustannukset", 
+                                           "Huono-osaisuuden sosiaaliset seuraukset"),
                             ncol = 2){
   
   datmpt <- get_dat() %>% filter(regio_level == reglevel)
@@ -425,51 +444,73 @@ print_create_map_plot <- function(varclass = "Summamuuttujat",
     filter(var_class %in% varclass, 
            variable %in% valid_vars)
   
-  vars <- dattemp %>% 
+  vars_original <- dattemp %>% 
     distinct(variable) %>% 
     pull(variable)
   
-  gg_x <- list()
-  for (i in 1:length(vars)){
-    
-    plot_dat <- dattemp %>% filter(variable %in% vars[i])
-    
-    dat_naapurit <- spatdat[spatdat$aluekoodi %in% naapurit,] %>% select(-value)
-    dat_naapurit2 <- left_join(dat_naapurit,
-                               plot_dat %>%
-                                 select(aluekoodi,value)
-    )
-    
-    p <- ggplot(data = dat_naapurit2, aes(fill = value, label = value)) +                    
-      geom_sf(color = alpha("white", 1/3))  +
-      theme_minimal(base_family = "PT Sans", base_size = 12) +
-      scale_fill_fermenter(palette = "YlGnBu", type = "seq", direction = 1) +
-      theme(axis.text = element_blank(),
-            axis.title = element_blank(),
-            plot.title.position = "plot",
-            panel.grid = element_blank()) +
-      labs(x = NULL, y = NULL, fill = NULL,
-           title = add_line_break2(vars[i], n = 35)) +
-      geom_label(data = dat_naapurit2 %>%  
-                   sf::st_set_geometry(NULL) %>%
-                   bind_cols(dat_naapurit2 %>%
-                               sf::st_centroid() %>%
-                               sf::st_coordinates() %>% as_tibble()),
-                 aes(label = paste0(aluenimi, "\n",
-                                    round(value,1)), x = X, y = Y),
-                 color = "black", fill = "white", family = "PT Sans", lineheight = .8)
-    
-    
-    gg_x[[i]] <- p
+if (length(vars_original) > 6) zz = 2 else zz = 1
+for (i in 1:zz){
+  if (zz == 1){
+    vars <- vars_original
+  } else if (i == 1){
+    vars <- vars_original[1:6]
+  } else {
+    vars <- vars_original[7:length(vars_original)]
   }
-  
-  gg_x2 <- purrr::compact(gg_x)
-  
-  wrap_plots(gg_x2, ncol = ncol) +
-    plot_annotation(
-      subtitle = glue("Kuhunkin kuvioon on merkitty alueen '{regname}' lisäksi alueen rajanaapurit"),
-      theme = theme_minimal() + theme(plot.background = element_rect(fill = NA, color = alpha(colour = "dim grey", 1/6)))
-    )
+    gg_x <- list()
+    for (i in 1:length(vars)){
+      plot_dat <- dattemp %>% filter(variable %in% vars[i]) 
+      dat_naapurit <- spatdat[spatdat$aluekoodi %in% naapurit,] %>% select(-value)
+      dat_naapurit2 <- left_join(dat_naapurit, plot_dat %>% select(aluekoodi,value)
+      )
+      gg_x[[i]] <- ggplot(data = dat_naapurit2, aes(fill = value, label = value)) +                    
+        geom_sf(color = alpha("white", 1/3))  +
+        theme_ipsum(base_family = "PT Sans", 
+                    base_size = 9, 
+                    plot_title_size = 10,
+                    plot_title_family = "PT Sans",
+                    subtitle_family = "PT Sans"
+        ) +
+        scale_fill_fermenter(palette = "YlGnBu", type = "seq", direction = 1) +
+        theme(axis.text.x = element_blank(),
+              axis.text.y = element_blank(),
+              axis.title.x =  element_blank(),
+              axis.title.y =  element_blank(),
+              plot.title.position = "plot",
+              panel.grid.minor = element_blank(),
+              panel.grid.major = element_blank()) +
+        labs(x = NULL, y = NULL, fill = NULL,
+             title = add_line_break2(vars[i], n = 35)) +
+        geom_label(data = dat_naapurit2 %>%  
+                     sf::st_set_geometry(NULL) %>%
+                     bind_cols(dat_naapurit2 %>%
+                                 sf::st_centroid() %>%
+                                 sf::st_coordinates() %>% as_tibble()),
+                   aes(label = paste0(aluenimi, "\n",
+                                      round(value,1)), x = X, y = Y),
+                   color = "black", fill = alpha("white", 2/3), size = 2.5, family = "PT Sans", lineheight = .8)
+    }
+    gg_x2 <- purrr::compact(gg_x)
+    blank <- ggplot() + theme_minimal()
+    if (length(gg_x2) == 3){
+      gg_x2[[4]] <- blank
+      gg_x2[[5]] <- blank
+      gg_x2[[6]] <- blank      
+    } else if (length(gg_x2) == 4){
+      gg_x2[[5]] <- blank
+      gg_x2[[6]] <- blank      
+    } else if (length(gg_x2) == 5){
+      gg_x2[[6]] <- blank      
+    }
+    p1 <- wrap_plots(gg_x2, ncol = ncol) +
+      plot_annotation(
+        subtitle = glue("Kuhunkin kuvioon on merkitty alueen '{regname}' lisäksi alueen rajanaapurit"),
+        theme = theme_minimal(base_family = "PT Sans", base_size = 10) + 
+          theme(plot.background = element_rect(fill = NA, color = alpha(colour = "dim grey", 1/6)),
+                plot.subtitle = element_text(size = 11))
+      )
+    print(p1)
+  }
 }
 
 #' Create table for print
@@ -485,18 +526,46 @@ print_create_timeseries_plot <- function(varclass = "Summamuuttujat",
                                          reglevel = "Kunnat", 
                                          regname = "Alajärvi", 
                                          naapurit = c(91,92),
-                                         valid_vars = "Huono-osaisuus yhteensä",
+                                         valid_vars = c("Huono-osaisuus yhteensä", "Inhimillinen huono-osaisuus", 
+                                                        "Koulutuksen ulkopuolelle jääneet 17–24-vuotiaat", "Nuorisotyöttömyys", 
+                                                        "Pitkäaikaistyöttömyys", "Toimeentulotukea pitkäaikaisesti saaneet 18–24-vuotiaat", 
+                                                        "Toimeentulotukea pitkäaikaisesti saaneet 25–64-vuotiaat", 
+                                                        "Kunnan yleinen pienituloisuusaste", "Alkoholikuolleisuus 35-64 vuotiailla", 
+                                                        "Itsemurhakuolleisuus", "Itsensä yksinäiseksi tuntevien osuus", 
+                                                        "Psyykkisesti merkittävästi kuormittuneiden osuus", "Terveytensä keskitasoiseksi tai sitä huonommaksi kokevien osuus", 
+                                                        "Huono-osaisuuden sosiaaliset seuraukset", "Kodin ulkopuolelle sijoitetut 0 – 17-vuotiaat", 
+                                                        "Poliisin tietoon tulleet henkeen ja terveyteen kohdistuneet rikokset", 
+                                                        "Päihteiden vaikutuksen alaisena tehdyistä rikoksista syyllisiksi epäillyt", 
+                                                        "0 - 17-vuotiaat lapset, joista on tehty lastensuojeluilmoitus", 
+                                                        "Rahanpuutteen vuoksi ruoasta, lääkkeistä tai lääkärikäynneistä tinkimään joutuneiden osuus", 
+                                                        "Korkeat asiakasmaksut haitanneet hoidon saantia", "Huono-osaisuuden taloudelliset yhteydet", 
+                                                        "Kunnan osarahoittama työmarkkinatuki", "Lastensuojelun laitos- ja perhehoidon nettokäyttökustannukset", 
+                                                        "Aikuisten mielenterveyden avohoitokäynnit", "Päihteiden vuoksi sairaaloiden ja terveyskeskusten vuodeosastoilla hoidetut potilaat", 
+                                                        "Päihdehuollon avopalveluissa asiakkaita", "Täydentävä toimeentulotuki", 
+                                                        "Päihteiden vaikutuksen alaisena tehdyistä rikoksista syyllisiksi epäillyt", 
+                                                        "Poliisin tietoon tulleet henkeen ja terveyteen kohdistuneet rikokset", 
+                                                        "Lastensuojelun laitos- ja perhehoidon nettokäyttökustannukset", 
+                                                        "Huono-osaisuuden sosiaaliset seuraukset"),
                                          ncol = 2){
   
   dattemp <- get_dat_timeseries() %>% filter(var_class %in% varclass, 
                                              regio_level %in% reglevel,
                                              variable %in% valid_vars)
-  vars <- dattemp %>% 
+  vars_original <- dattemp %>% 
     distinct(variable) %>% 
     pull(variable)
   
-  gg_x <- list()
-  for (i in 1:length(vars)){
+  if (length(vars_original) > 6) zz = 2 else zz = 1
+  for (i in 1:zz){
+    if (zz == 1){
+      vars <- vars_original
+    } else if (i == 1){
+      vars <- vars_original[1:6]
+    } else {
+      vars <- vars_original[7:length(vars_original)]
+    }
+    gg_x <- list()
+    for (i in 1:length(vars)){
     
     plot_dat <- dattemp %>% filter(variable %in% vars[i])
     
@@ -506,16 +575,16 @@ print_create_timeseries_plot <- function(varclass = "Summamuuttujat",
     aika2 <- sort(unique(plotdata_tmp$aika)) + 1
     labels <- paste0(aika1,"-\n",aika2)
     
-    p <- ggplot(data = plotdata_tmp,
+    gg_x[[i]] <- ggplot(data = plotdata_tmp,
                 aes(x = aika, y = value, color= aluenimi, fill= aluenimi)) +
       geom_line(show.legend = FALSE) +
-      geom_point(shape = 21, color = "white", stroke = 1, size = 2.5) +
+      geom_point(shape = 21, color = "white", stroke = 1, size = 2) +
       geom_text(data = plotdata_tmp %>% filter(aika == max(aika, na.rm = TRUE)),
-                aes(label = paste0(aluenimi, " ",round(value,1))), family = "PT Sans") +
+                aes(label = paste0(aluenimi, " ",round(value,1))), family = "PT Sans", size = 2.8) +
       scale_x_continuous(breaks = sort(unique(plotdata_tmp$aika)), labels = labels) +
       theme_ipsum(base_family = "PT Sans", 
-                  base_size = 12, 
-                  plot_title_size = 14,
+                  base_size = 9, 
+                  plot_title_size = 10,
                   plot_title_family = "PT Sans",
                   subtitle_family = "PT Sans"
       ) +
@@ -527,18 +596,29 @@ print_create_timeseries_plot <- function(varclass = "Summamuuttujat",
             axis.text.x = element_text(size = 9)) +
       labs(y = NULL, x = NULL,
            title = add_line_break2(vars[i], n = 35))
-    
-    
-    gg_x[[i]] <- p
   }
   
   gg_x2 <- purrr::compact(gg_x)
-  
-  wrap_plots(gg_x2, ncol = ncol) +
+  blank <- ggplot() + theme_minimal()
+  if (length(gg_x2) == 3){
+    gg_x2[[4]] <- blank
+    gg_x2[[5]] <- blank
+    gg_x2[[6]] <- blank      
+  } else if (length(gg_x2) == 4){
+    gg_x2[[5]] <- blank
+    gg_x2[[6]] <- blank      
+  } else if (length(gg_x2) == 5){
+    gg_x2[[6]] <- blank      
+  }
+  p1 <- wrap_plots(gg_x2, ncol = ncol) +
     plot_annotation(
       subtitle = glue("Kuhunkin kuvioon on merkitty alueen '{regname}' lisäksi alueen rajanaapurit"),
-      theme = theme_minimal() + theme(plot.background = element_rect(fill = NA, color = alpha(colour = "dim grey", 1/6)))
+      theme = theme_minimal(base_family = "PT Sans", base_size = 10) + 
+        theme(plot.background = element_rect(fill = NA, color = alpha(colour = "dim grey", 1/6)), 
+              plot.subtitle = element_text(size = 11))
     )
+  print(p1)
+  }
 }
 
 #' Create table for print
@@ -582,10 +662,10 @@ print_create_tabdat <- function(params_region_level = "Kunnat",
   dat[dat$regio_level %in% params_region_level,] %>% 
     group_by(variable) %>% 
     arrange(desc(value)) %>%
-    mutate(sija = 1:n(),
+    mutate(asema = 1:n(),
            n = n()) %>% 
     ungroup() %>% 
-    select(aluenimi,variable,sija) -> rank_dat
+    select(aluenimi,variable,asema) -> rank_dat
   
   bind_rows(tmpdat,max_dat,min_dat) %>% 
     left_join(rank_dat) %>% 
@@ -593,7 +673,7 @@ print_create_tabdat <- function(params_region_level = "Kunnat",
     rename(muuttuja = variable,
            arvo = value) %>% 
     filter(!is.na(arvo)) %>% 
-    select(muuttuja,arvo,sija,everything()) %>% 
+    select(muuttuja,arvo,asema,everything()) %>% 
     distinct() -> tabdat
   return(tabdat)
 }

@@ -14,7 +14,7 @@ mod_04alueprof_ui <- function(id){
              tags$div(class = "row grey-background",
                       tags$div(class = "col-lg-7",
                                tags$h2(id = "alueprofiili", "Alueprofiili"),
-                               tags$p("Alueprofiilissa näet kaikki aineiston osoittimet luokan mukaan ryhmiteltynä. Kustakin osoittimesta näytetään valitun alueen lisäksi sen rajanaapurit sekä osoittimen korkeimman ja matalimman arvon alueet. Alueet on järjestetty kunkin osoittimen kohdalla sijan mukaan."),
+                               tags$p("Alueprofiilissa näet kaikki aineiston osoittimet luokan mukaan ryhmiteltynä. Kustakin osoittimesta näytetään valitun alueen lisäksi sen rajanaapurit sekä osoittimen korkeimman ja matalimman arvon alueet. Alueet on järjestetty kunkin osoittimen kohdalla aseman mukaan."),
                                tags$p("Valitse ensin aluetaso, sitten alue ja paina lopuksi", tags$em("Luo alueprofiili"), "-painiketta. Alueprofiilin luominen kestää noin minuutin ajan. Voit tallentaa profiilin laitteellesi")
                       ),
                       tags$div(class = "col-lg-5",

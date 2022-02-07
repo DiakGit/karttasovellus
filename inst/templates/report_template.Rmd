@@ -48,16 +48,16 @@ if (TRUE){
 params_region <- params$region
 params_region_level <- params$region_level
 params_datetime <- params$datetime
-params_fig_width_default  <- params$fig_width_default
-params_fig_height_default <- params$fig_height_default
+# params_fig_width_default  <- params$fig_width_default
+# params_fig_height_default <- params$fig_height_default
 params_fig_dpi <- params$fig_dpi
 params_doc_format <- params$doc_format
 } else {
 params_region <- "Itä-Uudenmaan HVA"
 params_region_level <- "Hyvinvointialueet"
 params_datetime <- Sys.time()
-params_fig_width_default  <- 12
-params_fig_height_default <- 10
+params_fig_width_default  <- 8.3
+params_fig_height_default <- 11.7
 params_fig_dpi <- 192
 params_doc_format <- "docx"
 }
@@ -74,8 +74,9 @@ knitr::opts_chunk$set(list(echo=FALSE, # printtaa koodi outputtiin
                            cache=FALSE, # älä luo välimuistia (isoissa datoissa hyvin kätevä)
                            warning=FALSE, # älä printtaa varoituksia
                            message=FALSE, # älä printtaa pakettien viestejä
-                           fig.width = params_fig_width_default, # kuvien oletusleveys
-                           fig.height = params_fig_height_default, # kuvien oletuskorkeus
+                           fig.width = 8.3, # kuvien oletusleveys
+                           fig.height = 10.8, # kuvien oletuskorkeus
+                           dpi = 140,
                            out.width="100%",
                            dev = "ragg_png", 
                            fig.ext = "png"))
@@ -107,20 +108,20 @@ Tässä raportissa tarkastellaan tasolla `r params_region_level` aluetta `r para
 
 
 
-```{r kartta}
+```{r kartta, fig.height=6, fig.width=3.5}
 dat <- sf::st_transform(spatdat, crs = 3067)
 dat_region <- dat[dat$aluenimi == params_region,]
 dat_naapurit <- dat[dat$aluekoodi %in% naapurikoodit,]
 
 ggplot(data = dat) +                    
-    geom_sf(color = alpha("black", 1/8), fill = NA)  +
+    geom_sf(color = alpha("dim grey", 1/3), fill = NA, size = .3)  +
     theme_minimal(base_family = "PT Sans", base_size = 12) +
     labs(fill = NULL,
          title = NULL,
          subtitle = NULL,
          caption = NULL) +
-  geom_sf(data = dat_naapurit, fill = alpha("#3b0083", 1/6), color = NA) +
-  geom_sf(data = dat_region, fill = alpha("#3b0083", 1/3), color = NA) +
+  geom_sf(data = dat_naapurit, fill = alpha("#3b0083", 1/6), color = alpha("white", 1/3)) +
+  geom_sf(data = dat_region, fill = alpha("#3b0083", 1/3), color = alpha("white", 1/3)) +
  theme(axis.text = element_blank(),
           axis.title = element_blank(),
           panel.grid = element_blank(), 
@@ -133,23 +134,7 @@ ggplot(data = dat) +
 
 ```{r info_summa, include = FALSE}
 muuttujaluokka = "Summamuuttujat"
-varn <- tabdat %>% filter(var_class == muuttujaluokka) %>% distinct(muuttuja) %>% nrow()
-figu_height <- NA
 ncol = 2
-figu_height[varn <= 4] <- 9
-figu_height[varn > 4 & varn <= 6] <- 11
-figu_height[varn > 6 & varn <= 9] <- 13.3
-figu_height[varn > 9] <- 13.3
-ncol[varn > 9] <- 3
-```
-
-```{r summa_kartta, fig.height = figu_height}
-print_create_map_plot(varclass = muuttujaluokka, 
-                      reglevel = params_region_level, 
-                      regname = params_region, 
-                      naapurit = naapurikoodit,
-                      valid_vars = valid_variables,
-                      ncol = 2)
 ```
 
 ```{r summa_tbl, results = "asis"}
@@ -158,7 +143,17 @@ print_create_table(varclass = muuttujaluokka,
                    tabdat2 = tabdat)
 ```
 
-```{r summa_kuva, fig.height = figu_height}
+```{r summa_kartta}
+print_create_map_plot(varclass = muuttujaluokka, 
+                      reglevel = params_region_level, 
+                      regname = params_region, 
+                      naapurit = naapurikoodit,
+                      valid_vars = valid_variables,
+                      ncol = 2)
+```
+
+
+```{r summa_kuva}
 print_create_timeseries_plot(varclass = muuttujaluokka, 
                       reglevel = params_region_level, 
                       regname = params_region, 
@@ -168,23 +163,15 @@ print_create_timeseries_plot(varclass = muuttujaluokka,
 ```
 
 
-
 # Inhimillinen huono-osaisuus
 
 
 ```{r info_inhim, include = FALSE}
 muuttujaluokka = "Inhimillinen huono-osaisuus"
-varn <- tabdat %>% filter(var_class == muuttujaluokka) %>% distinct(muuttuja) %>% nrow()
-ncol = 2
-figu_height[varn <= 4] <- 9
-figu_height[varn > 4 & varn <= 6] <- 11
-figu_height[varn > 6 & varn <= 9] <- 13.3
-figu_height[varn > 9] <- 13.3
-ncol[varn > 9] <- 3
 ```
 
 
-```{r inhim_kartta,  fig.height = figu_height}
+```{r inhim_kartta}
 print_create_map_plot(varclass = muuttujaluokka, 
                       reglevel = params_region_level, 
                       valid_vars = valid_variables,
@@ -199,7 +186,7 @@ print_create_table(varclass = muuttujaluokka,
                    tabdat2 = tabdat)
 ```
 
-```{r inhim_kuva, fig.height = figu_height}
+```{r inhim_kuva}
 print_create_timeseries_plot(varclass = muuttujaluokka, 
                       reglevel = params_region_level, 
                       regname = params_region, 
@@ -213,16 +200,9 @@ print_create_timeseries_plot(varclass = muuttujaluokka,
 
 ```{r info_huono, include = FALSE}
 muuttujaluokka = "Huono-osaisuuden sosiaaliset seuraukset"
-varn <- tabdat %>% filter(var_class == muuttujaluokka) %>% distinct(muuttuja) %>% nrow()
-ncol = 2
-figu_height[varn <= 4] <- 9
-figu_height[varn > 4 & varn <= 6] <- 11
-figu_height[varn > 6 & varn <= 9] <- 13.3
-figu_height[varn > 9] <- 13.3
-ncol[varn > 9] <- 3
 ```
 
-```{r  sosial_kartta,  fig.height = figu_height}
+```{r  sosial_kartta}
 print_create_map_plot(varclass = muuttujaluokka, 
                       reglevel = params_region_level, 
                       regname = params_region, 
@@ -237,7 +217,7 @@ print_create_table(varclass = muuttujaluokka,
                    tabdat2 = tabdat)
 ```
 
-```{r sosial_kuva, fig.height = figu_height}
+```{r sosial_kuva}
 print_create_timeseries_plot(varclass = muuttujaluokka, 
                       reglevel = params_region_level, 
                       regname = params_region, 
@@ -251,18 +231,10 @@ print_create_timeseries_plot(varclass = muuttujaluokka,
 
 ```{r info_talous, include = FALSE}
 muuttujaluokka = "Huono-osaisuuden taloudelliset yhteydet"
-figu_height <- tabdat %>% filter(var_class == muuttujaluokka) %>% distinct(muuttuja) %>% nrow()
-varn <- tabdat %>% filter(var_class == muuttujaluokka) %>% distinct(muuttuja) %>% nrow()
-ncol = 2
-figu_height[varn <= 4] <- 9
-figu_height[varn > 4 & varn <= 6] <- 11
-figu_height[varn > 6 & varn <= 9] <- 13.3
-figu_height[varn > 9] <- 13.3
-ncol[varn > 9] <- 3
 ```
 
 
-```{r talous_kartta,  fig.height = figu_height}
+```{r talous_kartta}
 print_create_map_plot(varclass = muuttujaluokka, 
                       reglevel = params_region_level, 
                       regname = params_region, 
@@ -278,7 +250,7 @@ print_create_table(varclass = muuttujaluokka,
                    tabdat2 = tabdat)
 ```
 
-```{r talous_kuva, fig.height = figu_height}
+```{r talous_kuva}
 print_create_timeseries_plot(varclass = muuttujaluokka, 
                       reglevel = params_region_level, 
                       regname = params_region, 
@@ -304,21 +276,31 @@ table_zipcodes(input_value_region_selected = reg_code,
 ```
 
 
-```{r zip_kartta, fig.height=figu_height}
+```{r zip_kartta}
 map_zipcodes(input_value_region_selected = reg_code,
                                        input_value_regio_level = aluetaso1,
                                        input_value_variable = "Kokonaislukema",
+             alueprofiili = TRUE,
+             alueprofiili_doc = TRUE,
                                        leaflet = FALSE)
 map_zipcodes(input_value_region_selected = reg_code,
                                    input_value_regio_level = aluetaso1,
                                    input_value_variable = "Työttömät",
+             alueprofiili = TRUE,
+             alueprofiili_doc = TRUE,
                                    leaflet = FALSE)
 map_zipcodes(input_value_region_selected = reg_code,
                                    input_value_regio_level = aluetaso1,
                                    input_value_variable = "Alimpaan tuloluokkaan kuuluvat täysi-ikäiset",
+             alueprofiili = TRUE,
+             alueprofiili_doc = TRUE,
                                    leaflet = FALSE)
 map_zipcodes(input_value_region_selected = reg_code,
                                    input_value_regio_level = aluetaso1,
                                    input_value_variable = "Alimpaan tuloluokkaan kuuluvat taloudet",
+             alueprofiili = TRUE,
+             alueprofiili_doc = TRUE,
                                    leaflet = FALSE)
 ```
+
+

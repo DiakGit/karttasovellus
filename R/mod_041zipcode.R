@@ -144,7 +144,7 @@ mod_041zipcode_server <- function(id){
     
     output$map_plot_static <- renderPlot({
       plotReactiveMapStatic()
-    })
+    }, alt = "Postinumerokartan alt-teksi")
     
     output$ui_map_zip_plot <- renderUI({
       
@@ -174,7 +174,7 @@ mod_041zipcode_server <- function(id){
     
     output$bar_zip_plot <- renderPlot({
       funkBar()
-    })
+    }, alt = "Postinumeroalueen pistekuvion alt-teksti")
     
 
     plotZipReactive <- eventReactive({
@@ -202,6 +202,10 @@ mod_041zipcode_server <- function(id){
       plotZipReactive()
     })
     
+    alt_teksti <- function(){
+      Sys.time()
+    }
+    
     funkTimeSeries <- eventReactive({
       input$button_zip
     }, {
@@ -217,7 +221,7 @@ mod_041zipcode_server <- function(id){
     
     output$timeseries_zip_plot <- renderPlot({
       funkTimeSeries()
-    })
+    }, alt = alt_teksti())
 
   })
 }

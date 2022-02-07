@@ -427,50 +427,6 @@ plot_map <- function(input_value_regio_level = "Hyvinvointialueet",
 
 
 
-# alt = reactive({
-#   
-#   if (input_value_regio_show_mode == "kaikki tason alueet"){
-#     alt_teksti <- paste("Muuttujan", input$value_variable, 
-#                         "arvot aluetasolla",input$value_regio_level,
-#                         "esitetään pylväskuviossa pylvään pituutena ja täyttövärinä ja karttakuviossa alueen täyttövärinä.",
-#                         "Kuvioissa näytetään kaikki aluetason alueet ja korostettuna on",
-#                         input$value_region_selected
-#     )
-#   } else if (input$value_regio_show_mode == "valittu alue ja sen naapurit"){
-#     
-#     region_data <- get_region_data()
-#     naapurikoodit <- get_naapurikoodit(region_data = region_data,
-#                                        regio_lvl = input$value_regio_level,
-#                                        regio_selected = input$value_region_selected)
-#     region_nms <- region_data[region_data$level %in% input$value_regio_level & region_data$region_code %in% naapurikoodit, ]$region_name
-#     alt_teksti <-         paste("Muuttujan", input$value_variable, 
-#                                 "arvot esitetään pylväskuviossa pylväiden pituutena ja pylvään pituutena ja karttakuviossa alueen värinä. Aluetasona näytetään",
-#                                 input$value_regio_level,
-#                                 "ja alueina näytetään ",
-#                                 glue_collapse(region_nms, sep = ", ", last = " ja "), "korostettuna", 
-#                                 input$value_region_selected
-#     )
-#     
-#   } else if (input$value_regio_show_mode == "valitun alueen kunnat"){
-#     
-#     dat <- create_municipalities_within_region(varname = input$value_variable, 
-#                                                regio_level = input$value_regio_level,
-#                                                aluenimi = input$value_region_selected,
-#                                                timeseries = FALSE)
-#     
-#     alt_teksti <-         paste("Muuttujan ", input$value_variable, 
-#                                 "arvot esitetään pylväiden pituutena ja pylvään täyttövärinä ja karttakuviossa alueen värinä kuntatasolla käsittäen kunnat jotka kuuluvat alueeseen",
-#                                 input$value_region_selected, "tasolla", input$value_regio_level,
-#                                 "Kuntina näytetään",
-#                                 glue_collapse(unique(dat$aluenimi), sep = ", ", last = " ja ")
-#     )
-#     
-#   }
-
-
-
-
-
 
 #' Create timeseries plot
 #' 
@@ -691,57 +647,58 @@ plot_timeseries <- function(input_value_regio_level = "Kunnat",
 }
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-# alt_txt <- function(){
-#   # alt = reactive({
-#   #   
-#   #   if (input_value_regio_show_mode == "kaikki tason alueet"){
-#   #     alt_teksti <- paste("Muuttujan", input$value_variable, 
-#   #                         "arvot aluetasolla",input$value_regio_level,
-#   #                         "esitetään pylväskuviossa pylvään pituutena ja täyttövärinä ja karttakuviossa alueen täyttövärinä.",
-#   #                         "Kuvioissa näytetään kaikki aluetason alueet ja korostettuna on",
-#   #                         input$value_region_selected
-#   #     )
-#   #   } else if (input$value_regio_show_mode == "valittu alue ja sen naapurit"){
-#   #     
-#   #     region_data <- get_region_data()
-#   #     naapurikoodit <- get_naapurikoodit(region_data = region_data,
-#   #                                        regio_lvl = input$value_regio_level,
-#   #                                        regio_selected = input$value_region_selected)
-#   #     region_nms <- region_data[region_data$level %in% input$value_regio_level & region_data$region_code %in% naapurikoodit, ]$region_name
-#   #     alt_teksti <-         paste("Muuttujan", input$value_variable, 
-#   #                                 "arvot esitetään pylväskuviossa pylväiden pituutena ja pylvään pituutena ja karttakuviossa alueen värinä. Aluetasona näytetään",
-#   #                                 input$value_regio_level,
-#   #                                 "ja alueina näytetään ",
-#   #                                 glue_collapse(region_nms, sep = ", ", last = " ja "), "korostettuna", 
-#   #                                 input$value_region_selected
-#   #     )
-#   #     
-#   #   } else if (input$value_regio_show_mode == "valitun alueen kunnat"){
-#   #     
-#   #     dat <- create_municipalities_within_region(varname = input$value_variable, 
-#   #                                                regio_level = input$value_regio_level,
-#   #                                                aluenimi = input$value_region_selected,
-#   #                                                timeseries = FALSE)
-#   #     
-#   #     alt_teksti <-         paste("Muuttujan ", input$value_variable, 
-#   #                                 "arvot esitetään pylväiden pituutena ja pylvään täyttövärinä ja karttakuviossa alueen värinä kuntatasolla käsittäen kunnat jotka kuuluvat alueeseen",
-#   #                                 input$value_region_selected, "tasolla", input$value_regio_level,
-#   #                                 "Kuntina näytetään",
-#   #                                 glue_collapse(unique(dat$aluenimi), sep = ", ", last = " ja ")
-#   #     )
-#   #     
-#   #   }
-#   # }
-# }
+#' Alt text function
+#' 
+#' @param which_plot A string.
+#' @param input_value_regio_level A string.
+#' @param input_value_variable A string.
+#' @param input_value_region_selected A string.
+#' @param input_value_regio_show_mode A string.
+#'
+#' @export
+alt_txt_indicator <- function(
+                    which_plot = "dotplot", # map # timeseries
+                    input_value_regio_show_mode = "kaikki tason alueet",
+                    input_value_variable = "Muuttujan nimi",
+                    input_value_regio_level = "Hyvinvointialueet",
+                    input_value_region_selected = "Etelä-Karjan HVA"
+                    ){
+  if (input_value_regio_show_mode == "kaikki tason alueet"){
+    alt_teksti <- paste("Muuttujan", input_value_variable,
+                        "arvot aluetasolla",input_value_regio_level,
+                        "esitetään pylväskuviossa pylvään pituutena ja täyttövärinä ja karttakuviossa alueen täyttövärinä.",
+                        "Kuvioissa näytetään kaikki aluetason alueet ja korostettuna on",
+                        input_value_region_selected
+    )
+  } else if (input_value_regio_show_mode == "valittu alue ja sen naapurit"){
+    
+    region_data <- get_region_data()
+    naapurikoodit <- get_naapurikoodit(region_data = region_data,
+                                       regio_lvl = input_value_regio_level,
+                                       regio_selected = input_value_region_selected)
+    region_nms <- region_data[region_data$level %in% input_value_regio_level & region_data$region_code %in% naapurikoodit, ]$region_name
+    alt_teksti <-         paste("Muuttujan", input_value_variable,
+                                "arvot esitetään pylväskuviossa pylväiden pituutena ja pylvään pituutena ja karttakuviossa alueen värinä. Aluetasona näytetään",
+                                input_value_regio_level,
+                                "ja alueina näytetään ",
+                                glue_collapse(region_nms, sep = ", ", last = " ja "), "korostettuna",
+                                input_value_region_selected
+    )
+    
+  } else if (input_value_regio_show_mode == "valitun alueen kunnat"){
+    
+    dat <- create_municipalities_within_region(varname = input_value_variable,
+                                               regio_level = input_value_regio_level,
+                                               aluenimi = input_value_region_selected,
+                                               timeseries = FALSE)
+    
+    alt_teksti <-         paste("Muuttujan ", input_value_variable,
+                                "arvot esitetään pylväiden pituutena ja pylvään täyttövärinä ja karttakuviossa alueen värinä kuntatasolla käsittäen kunnat jotka kuuluvat alueeseen",
+                                input_value_region_selected, "tasolla", input_value_regio_level,
+                                "Kuntina näytetään",
+                                glue_collapse(unique(dat$aluenimi), sep = ", ", last = " ja ")
+    )
+    
+  }
+  return(alt_teksti)
+}

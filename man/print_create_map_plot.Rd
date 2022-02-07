@@ -5,11 +5,36 @@
 \title{Create table for print}
 \usage{
 print_create_map_plot(
-  varclass = "Summamuuttujat",
+  varclass = "Inhimillinen huono-osaisuus",
   reglevel = "Kunnat",
   regname = "Alajärvi",
   naapurit = c(91, 92, 924),
-  valid_vars = "Huono-osaisuus yhteensä",
+  valid_vars = c("Huono-osaisuus yhteensä", "Inhimillinen huono-osaisuus",
+    "Koulutuksen ulkopuolelle jääneet 17–24-vuotiaat", "Nuorisotyöttömyys",
+    "Pitkäaikaistyöttömyys",
+    "Toimeentulotukea pitkäaikaisesti saaneet 18–24-vuotiaat",
+    "Toimeentulotukea pitkäaikaisesti saaneet 25–64-vuotiaat",
+    "Kunnan yleinen pienituloisuusaste", "Alkoholikuolleisuus 35-64 vuotiailla",
+    "Itsemurhakuolleisuus", "Itsensä yksinäiseksi tuntevien osuus",
+    "Psyykkisesti merkittävästi kuormittuneiden osuus",
+    "Terveytensä keskitasoiseksi tai sitä huonommaksi kokevien osuus",     
+    "Huono-osaisuuden sosiaaliset seuraukset",
+    "Kodin ulkopuolelle sijoitetut 0 – 17-vuotiaat",
+    "Poliisin tietoon tulleet henkeen ja terveyteen kohdistuneet rikokset",
+    "Päihteiden vaikutuksen alaisena tehdyistä rikoksista syyllisiksi epäillyt",
+    "0 - 17-vuotiaat lapset, joista on tehty lastensuojeluilmoitus",
+    "Rahanpuutteen vuoksi ruoasta, lääkkeistä tai lääkärikäynneistä tinkimään joutuneiden osuus",
+    "Korkeat asiakasmaksut haitanneet hoidon saantia",
+    "Huono-osaisuuden taloudelliset yhteydet",     
+    "Kunnan osarahoittama työmarkkinatuki",
+    "Lastensuojelun laitos- ja perhehoidon nettokäyttökustannukset",
+    "Aikuisten mielenterveyden avohoitokäynnit",
+    "Päihteiden vuoksi sairaaloiden ja terveyskeskusten vuodeosastoilla hoidetut potilaat",
+    "Päihdehuollon avopalveluissa asiakkaita", "Täydentävä toimeentulotuki",
+    "Päihteiden vaikutuksen alaisena tehdyistä rikoksista syyllisiksi epäillyt",
+    "Poliisin tietoon tulleet henkeen ja terveyteen kohdistuneet rikokset",
+    "Lastensuojelun laitos- ja perhehoidon nettokäyttökustannukset",     
+    "Huono-osaisuuden sosiaaliset seuraukset"),
   ncol = 2
 )
 }

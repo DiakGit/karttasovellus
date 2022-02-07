@@ -80,6 +80,8 @@ get_koodit_zip <- function(regio_selected = 161,
 #' @param input_value_regio_show_mode A string
 #' @param input_value_variable A string
 #' @param leaflet A logical
+#' @param alueprofiili A logical
+#' @param alueprofiili_doc A logical
 #'
 #' @import leaflet
 #' @import leaflet.extras
@@ -89,7 +91,8 @@ map_zipcodes <- function(input_value_region_selected = 91,
                          input_value_regio_level = "Kunnat",
                          input_value_variable = "Kokonaislukema",
                          leaflet = FALSE, 
-                         alueprofiili = FALSE){
+                         alueprofiili = FALSE,
+                         alueprofiili_doc = FALSE){
   
   
   # input_value_regio_level <- "Postinumeroalueet"
@@ -141,8 +144,19 @@ map_zipcodes <- function(input_value_region_selected = 91,
                                               sf::st_centroid() %>%
                                               sf::st_coordinates() %>% as_tibble()),
                                 aes(label = paste0(aluenimi, "\n",
-                                                   round(value,1)), x = X, y = Y),
+                                                   round(value)), x = X, y = Y),
                                 color = "black", fill = "white", family = "PT Sans", lineheight = .8)      
+    } 
+    if (alueprofiili_doc){
+      p <- p + ggrepel::geom_label_repel(data = dat %>%  
+                                           sf::st_set_geometry(NULL) %>%
+                                           bind_cols(dat %>%
+                                                       sf::st_centroid() %>%
+                                                       sf::st_coordinates() %>% as_tibble()),
+                                         aes(label = paste0(aluenimi, "\n",
+                                                            round(value)), x = X, y = Y),
+                                         color = "black", fill = "white", family = "PT Sans", lineheight = .8, size = 2.5)      
+      
     }
     p
   } else {

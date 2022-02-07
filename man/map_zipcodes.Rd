@@ -9,7 +9,8 @@ map_zipcodes(
   input_value_regio_level = "Kunnat",
   input_value_variable = "Kokonaislukema",
   leaflet = FALSE,
-  alueprofiili = FALSE
+  alueprofiili = FALSE,
+  alueprofiili_doc = FALSE
 )
 }
 \arguments{
@@ -18,6 +19,10 @@ map_zipcodes(
 \item{input_value_variable}{A string}
 
 \item{leaflet}{A logical}
+
+\item{alueprofiili}{A logical}
+
+\item{alueprofiili_doc}{A logical}
 
 \item{input_value_regio_show_mode}{A string}
 }
