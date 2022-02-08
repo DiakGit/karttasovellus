@@ -137,12 +137,6 @@ muuttujaluokka = "Summamuuttujat"
 ncol = 2
 ```
 
-```{r summa_tbl, results = "asis"}
-print_create_table(varclass = muuttujaluokka,
-                   valid_vars = valid_variables,
-                   tabdat2 = tabdat)
-```
-
 ```{r summa_kartta}
 print_create_map_plot(varclass = muuttujaluokka, 
                       reglevel = params_region_level, 
@@ -150,6 +144,13 @@ print_create_map_plot(varclass = muuttujaluokka,
                       naapurit = naapurikoodit,
                       valid_vars = valid_variables,
                       ncol = 2)
+```
+
+
+```{r summa_tbl, results = "asis"}
+print_create_table(varclass = muuttujaluokka,
+                   valid_vars = valid_variables,
+                   tabdat2 = tabdat)
 ```
 
 

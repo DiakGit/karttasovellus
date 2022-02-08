@@ -593,7 +593,7 @@ print_create_timeseries_plot <- function(varclass = "Summamuuttujat",
             panel.grid.major.x = element_line(),
             panel.grid.minor.x = element_blank(),
             panel.grid.major.y = element_blank(),
-            axis.text.x = element_text(size = 9)) +
+            axis.text.x = element_text(size = 7)) +
       labs(y = NULL, x = NULL,
            title = add_line_break2(vars[i], n = 35))
   }
