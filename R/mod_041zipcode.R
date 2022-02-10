@@ -22,7 +22,7 @@ mod_041zipcode_ui <- function(id){
                                tags$h2(id = "zipcode", "Postinumeroalueet"),
                                tags$p("Postinumeroalueittainen data näytetään valitun alueen (hyvinvointialue, seutukunta, kunta) mukaisesti. Postinumerodatassa on sama mediaanisuhteutus kuin huono-osaisuusindikaattoreissa: 100 kuvastaa mediaanipostinumeroaluetta, sitä suurempi lukema heikompaa ja pienempi parempaa tilannetta."),
                                radioButtons(inputId = ns("value_regio_level"), 
-                                            label = "Valitse aluetaso", 
+                                            label = tags$strong("Valitse aluetaso"), 
                                             inline = FALSE,
                                             choices = c("Hyvinvointialueet","Seutukunnat","Kunnat"), 
                                             selected = "Hyvinvointialueet"),
@@ -31,13 +31,13 @@ mod_041zipcode_ui <- function(id){
                                
                                selectInput(
                                  inputId = ns("value_region_selected"),
-                                 label = "Valitse alue",
+                                 label = tags$strong("Valitse alue"),
                                  choices = init_val,
                                  selected = init_val), 
                                # uiOutput(ns("output_region_selected")),
                                selectInput(
                                  inputId = ns("value_variable"), 
-                                 label = "Valitse muuttuja", 
+                                 label = tags$strong("Valitse muuttuja"), 
                                  choices = c('Kokonaislukema',
                                              'Alimpaan tuloluokkaan kuuluvat taloudet',
                                              'Alimpaan tuloluokkaan kuuluvat täysi-ikäiset',
@@ -47,7 +47,7 @@ mod_041zipcode_ui <- function(id){
                                  selected = "Kokonaislukema"),
                                # uiOutput(ns("output_variable")),
                                actionButton(ns("button_zip"), 
-                                            label = "Päivitä kuvat", 
+                                            label = tags$strong("Päivitä kuvat"), 
                                             class="btn btn-outline-primary"#,  
                                             # icon("fas fa-sync")
                                             ),
@@ -100,10 +100,13 @@ mod_041zipcode_server <- function(id){
       load(system.file("data", "region_data.rda", package="karttasovellus"))
       reg <- sf::st_drop_geometry(region_data)
       reg <- reg[reg$level %in% input$value_regio_level,]
-      reg <- arrange(reg, region_name)
-      # reg <- reg[reg$level %in% "Hyvinvointialueet",]
+      # reg <- reg[reg$level %in% "Kunnat",]
+      
+      reg_levelit <- stringr::str_sort(reg$region_name, locale = "fi")
+      reg <- arrange(reg, factor(region_name, levels = reg_levelit))
       opt_indicator <- reg$region_code
       names(opt_indicator) <- reg$region_name
+
       updateSelectInput(inputId = "value_region_selected", 
                          choices = opt_indicator,
                          selected = opt_indicator[1])
@@ -141,10 +144,20 @@ mod_041zipcode_server <- function(id){
                    leaflet = FALSE)
     }, ignoreNULL = FALSE)
     
+    alt_txt_zip_react_map <- eventReactive({
+      input$button_zip
+    }, {
+      alt_txt_zipcode(which_plot = "map",
+                        input_value_variable = input$value_variable,
+                        input_value_regio_level = input$value_regio_level,
+                        input_value_region_selected = input$value_region_selected)
+    }, ignoreNULL = FALSE)
+    
     
     output$map_plot_static <- renderPlot({
       plotReactiveMapStatic()
-    }, alt = "Postinumerokartan alt-teksi")
+    }, alt = reactive({alt_txt_zip_react_map()})
+    )
     
     output$ui_map_zip_plot <- renderUI({
       
@@ -172,9 +185,19 @@ mod_041zipcode_server <- function(id){
       )
     }, ignoreNULL = FALSE)
     
+    alt_txt_zip_react_dotplot <- eventReactive({
+      input$button_zip
+    }, {
+      alt_txt_zipcode(which_plot = "dotplot",
+                      input_value_variable = input$value_variable,
+                      input_value_regio_level = input$value_regio_level,
+                      input_value_region_selected = input$value_region_selected)
+    }, ignoreNULL = FALSE)
+    
+    
     output$bar_zip_plot <- renderPlot({
       funkBar()
-    }, alt = "Postinumeroalueen pistekuvion alt-teksti")
+    }, alt = reactive({alt_txt_zip_react_dotplot()}))
     
 
     plotZipReactive <- eventReactive({
@@ -219,9 +242,19 @@ mod_041zipcode_server <- function(id){
       )
     }, ignoreNULL = FALSE)
     
+    alt_txt_zip_react_timeseries <- eventReactive({
+      input$button_zip
+    }, {
+      alt_txt_zipcode(which_plot = "timeseries",
+                      input_value_variable = input$value_variable,
+                      input_value_regio_level = input$value_regio_level,
+                      input_value_region_selected = input$value_region_selected)
+    }, ignoreNULL = FALSE)
+    
+    
     output$timeseries_zip_plot <- renderPlot({
       funkTimeSeries()
-    }, alt = alt_teksti())
+    }, alt = reactive({alt_txt_zip_react_timeseries()}))
 
   })
 }

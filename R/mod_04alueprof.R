@@ -57,7 +57,8 @@ mod_04alueprof_server <- function(id){
       
       tagList(
         radioButtons(inputId = ns("value_regio_level_profile"), 
-                     label = "Valitse aluetaso", inline = TRUE,
+                     label = tags$strong("Valitse aluetaso"), 
+                     inline = TRUE,
                      choices = opt_indicator, selected = "Hyvinvointialueet")
       )
     })
@@ -68,11 +69,11 @@ mod_04alueprof_server <- function(id){
       
       region_data <- get_region_data()
       tmpdat <- region_data[region_data$level %in% input$value_regio_level_profile,]
-      choices <- sort(tmpdat$region_name)
+      choices <- stringr::str_sort(tmpdat$region_name, locale = "fi")
       
       tagList(
         selectInput(inputId = ns("value_region_profile"), 
-                    label = "Valitse alue",
+                    label = tags$strong("Valitse alue"),
                     choices = choices, 
                     selected = choices[1])
       )
@@ -82,7 +83,7 @@ mod_04alueprof_server <- function(id){
     output$output_button_profile <- renderUI({
       tagList(
         actionButton(ns("button"), 
-                     label = "Luo alueprofiili", 
+                     label = tags$strong("Luo alueprofiili"), 
                      class="btn btn-outline-primary")
       )
     })
@@ -125,8 +126,8 @@ mod_04alueprof_server <- function(id){
       # Summamuuttujat
       muuttujaluokka <- c("Summamuuttujat",
                           "Inhimillinen huono-osaisuus",
-                           "Huono-osaisuuden sosiaaliset seuraukset",
-                           "Huono-osaisuuden taloudelliset yhteydet"
+                          "Huono-osaisuuden sosiaaliset seuraukset",
+                          "Huono-osaisuuden taloudelliset yhteydet"
                           )
       # ii <- 1
       lapply(seq_along(muuttujaluokka), function(ii) {

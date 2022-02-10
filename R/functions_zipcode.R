@@ -544,6 +544,41 @@ table_zipcodes <- function(input_value_region_selected = 91,
   } else {
     gt::gt(tmpt)
   }
-    
+}
+
+
+#' Alt text function
+#' 
+#' @param which_plot A string.
+#' @param input_value_regio_level A string.
+#' @param input_value_variable A string.
+#' @param input_value_region_selected A string.
+#'
+#' @export
+alt_txt_zipcode <- function(
+  which_plot = "dotplot", # map # timeseries
+  input_value_variable = "Huono-osaisuus yhteensä",
+  input_value_regio_level = "Hyvinvointialueet",
+  input_value_region_selected = "Etelä-Karjalan HVA"
+){
+  kuvatyyppi <- ifelse(which_plot == "dotplot", "Pistekuviossa", 
+                       ifelse(which_plot == "map", "Kartassa", "Aikasarjakuviossa"))
+  taytto <- ifelse(which_plot == "dotplot", "pisteiden väri", 
+                   ifelse(which_plot == "map", "alueiden väri", "pisteiden ja viivan väri"))
+  spessu <- ifelse(which_plot == "dotplot", 
+                   "\nPistekuviossa vaaka-akselilla on osoittimen arvo ja pystyakselilla postinumeroalueiden nimet laskevassa järjestyksessä osoittimen arvon mukaan. Kunkin alueen pisteestä on vaakaviiva osoittimen mediaaniarvoon 100, jonka kohdalla on pystyviiva.", 
+                   ifelse(which_plot == "map", 
+                          "", 
+                          ""))
+  kertoo_mista <- ifelse(which_plot == "timeseries",
+                         "erottaa alueiden aikasarjat toisistaan",
+                         "kertoo osoittimen arvon niin että tummempi väri kertoo korkeammasta osoittimen arvosta")
+  region_data <- get_region_data()
+  regioname <- region_data[region_data$level == input_value_regio_level & region_data$region_code == input_value_region_selected, ]$region_name
   
+  alt_teksti <- glue::glue("
+{kuvatyyppi} näytetään osoittimen {input_value_variable} arvot kaikilla postinumeroalueilla, jotka kuuluvat alueeseen {regioname} aluetasolla {input_value_regio_level}. 
+{kuvatyyppi} {taytto} {kertoo_mista}.{spessu}")
+  
+  return(alt_teksti)
 }
