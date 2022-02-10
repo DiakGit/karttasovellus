@@ -27,7 +27,11 @@ df_tmp <- dd %>%
   # hyvinvointialue -> hyvinvointialueet
   mutate(regio_level = ifelse(regio_level == "Hyvinvointialue", "Hyvinvointialueet", regio_level)) %>% 
   mutate(aluenimi = ifelse(aluenimi == "Helsinki (sosiaali- ja terveydenhuolto, sekä pelastustoimi)", 
-                           "Helsingin kaupunki", aluenimi)) %>% 
+                           "Helsingin kaupunki", aluenimi),
+         aluenimi = ifelse(aluenimi == "Vantaa-Keravan hyvinvointialue", 
+                           "Vantaan ja Keravan hyvinvointialue", 
+                           aluenimi)
+         ) %>% 
   mutate(aluenimi = ifelse(grepl("hyvinvointialue", aluenimi), 
                            sub("hyvinvointialue", "HVA", aluenimi),
                            aluenimi),
@@ -207,7 +211,9 @@ df_tmp <- dd %>%
   # # hyvinvointialue -> hyvinvointialueet
   mutate(regio_level = ifelse(regio_level == "Hyvinvointialue", "Hyvinvointialueet", regio_level)) %>% 
 mutate(aluenimi = ifelse(aluenimi == "Helsinki (sosiaali- ja terveydenhuolto, sekä pelastustoimi)", 
-                         "Helsingin kaupunki", aluenimi))  %>% 
+                         "Helsingin kaupunki", aluenimi),
+       aluenimi = ifelse(aluenimi == "Vantaa-Keravan hyvinvointialue", 
+                         "Vantaan ja Keravan hyvinvointialue", aluenimi))  %>% 
   mutate(aluenimi = ifelse(grepl("hyvinvointialue", aluenimi), 
                               sub("hyvinvointialue", "HVA", aluenimi),
                            aluenimi),
