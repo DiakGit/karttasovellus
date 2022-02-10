@@ -3,6 +3,7 @@
 export(add_line_break)
 export(add_line_break2)
 export(alt_txt_indicator)
+export(alt_txt_zipcode)
 export(alueprofiiliaikasarja_html)
 export(alueprofiilikartta_html)
 export(create_alt_text_aikasarja)

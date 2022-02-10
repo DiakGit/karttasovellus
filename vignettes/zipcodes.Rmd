@@ -2,13 +2,14 @@
 title: "Postinumeroalueet"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{karttasovellus}
+  %\VignetteIndexEntry{postinumeroalueet}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
 
 ```{r, include = FALSE}
 knitr::opts_chunk$set(
+  eval = FALSE,
   collapse = TRUE,
   comment = "#>"
 )
