@@ -244,7 +244,7 @@ plot_rank_bar <- function(input_value_regio_level = "Seutukunnat",
                  show.legend = FALSE) +
     geom_point(aes(fill = value), color = "dim grey", shape = 21, size = 5, show.legend = FALSE) + 
     geom_point(data = dat[dat$color,], 
-               fill = NA, color = "purple", shape = 21, size = 5, stroke = 1.5, show.legend = FALSE) + 
+               fill = NA, color = "#FF00FF", shape = 21, size = 5, stroke = 1.5, show.legend = FALSE) + 
     
     
     scale_fill_fermenter(palette = "YlGnBu", type = "seq", direction = 1) -> plot
@@ -331,7 +331,7 @@ plot_map <- function(input_value_regio_level = "Hyvinvointialueet",
     geom_sf(color = alpha("white", 1/3))  +
     geom_sf(aes(color = color), fill = NA, show.legend = FALSE)  +    
     scale_fill_fermenter(palette = "YlGnBu", type = "seq", direction = 1) +
-    scale_color_manual(values = c(alpha("white", 1/3), "purple")) +
+    scale_color_manual(values = c(alpha("white", 1/3), "#FF00FF")) +
     theme_ipsum(base_family = "PT Sans",
                 plot_title_family = "PT Sans",
                 subtitle_family = "PT Sans",
@@ -487,16 +487,16 @@ plot_timeseries <- function(input_value_regio_level = "Kunnat",
     
     plot0 <- plot0 + 
       geom_line(data = df, aes(x = aika, y = value, color= aluenimi), show.legend = FALSE) +
-      geom_line(data = df_selected_ts, aes(x = aika, y = value), color = "purple") +
+      geom_line(data = df_selected_ts, aes(x = aika, y = value), color = "#FF00FF") +
       geom_point(data = df_selected_ts, aes(x = aika, y =  value),
-                 fill = "purple", 
+                 fill = "#FF00FF", 
                  color = "white", shape = 21, size = 3, stroke = 1.2) +
       geom_text(data = df_selected_cs,
                 aes(x = aika, 
                     y = value, 
                     color= aluenimi, 
                     label = paste(aluenimi, round(value,1))),
-                color = "purple", 
+                color = "#FF00FF", 
                 family = "PT Sans", 
                 nudge_x = .3)
     
@@ -526,9 +526,9 @@ plot_timeseries <- function(input_value_regio_level = "Kunnat",
         aes(x = aika, y = value, color= aluenimi, 
             label = paste(aluenimi, round(value,1))), 
                                family = "PT Sans", nudge_x = .3) +
-      geom_line(data = df_selected_ts, aes(x = aika, y = value), color = "purple") +
+      geom_line(data = df_selected_ts, aes(x = aika, y = value), color = "#FF00FF") +
       geom_point(data = df_selected_ts, aes(x = aika, y = value),
-                 fill = "purple", 
+                 fill = "#FF00FF", 
                  color = "white", shape = 21, size = 3, stroke = 1.2) +
       
       geom_text(data = df_selected_cs,
@@ -659,46 +659,58 @@ plot_timeseries <- function(input_value_regio_level = "Kunnat",
 alt_txt_indicator <- function(
                     which_plot = "dotplot", # map # timeseries
                     input_value_regio_show_mode = "kaikki tason alueet",
-                    input_value_variable = "Muuttujan nimi",
+                    input_value_variable = "Huono-osaisuus yhteensä",
                     input_value_regio_level = "Hyvinvointialueet",
-                    input_value_region_selected = "Etelä-Karjan HVA"
+                    input_value_region_selected = "Etelä-Karjalan HVA"
                     ){
+  
+  kuvatyyppi <- ifelse(which_plot == "dotplot", "Pistekuviossa", 
+                       ifelse(which_plot == "map", "Kartassa", "Aikasarjakuviossa"))
+  taytto <- ifelse(which_plot == "dotplot", "pisteiden väri", 
+                       ifelse(which_plot == "map", "alueiden väri", "pisteiden ja viivan väri"))
+  spessu <- ifelse(which_plot == "dotplot", 
+"\nPistekuviossa vaaka-akselilla on osoittimen arvo ja pystyakselilla alueiden nimet laskevassa järjestyksessä osoittimen arvon mukaan. Kunkin alueen pisteestä on vaakaviiva osoittimen mediaaniarvoon 100, jonka kohdalla on pystyviiva.", 
+                   ifelse(which_plot == "map", 
+                          "", 
+                          ""))
+  giniteksti <- ifelse(input_value_regio_level == "Hyvinvointialueet" & which_plot == "timeseries", 
+                       "Aikasarjakuvion alla näytetään kunkin hyvinvointialueen kuntien välinen eriarvoisuus gini-kertoimena. Kerroin näytetään vain alueilta joihin kuuluu vähintään viisi kuntaa.", 
+                       "")
+  
+  kertoo_mista <- ifelse(which_plot == "timeseries",
+                         "erottaa alueiden aikasarjat toisistaan",
+                         "kertoo osoittimen arvon niin että tummempi väri kertoo korkeammasta osoittimen arvosta")
+  
+  
   if (input_value_regio_show_mode == "kaikki tason alueet"){
-    alt_teksti <- paste("Muuttujan", input_value_variable,
-                        "arvot aluetasolla",input_value_regio_level,
-                        "esitetään pylväskuviossa pylvään pituutena ja täyttövärinä ja karttakuviossa alueen täyttövärinä.",
-                        "Kuvioissa näytetään kaikki aluetason alueet ja korostettuna on",
-                        input_value_region_selected
-    )
+    
+    regio_show_mode <- glue::glue("{kuvatyyppi} näytetään kaikki aluetason alueet ja korostettuna on {input_value_region_selected}")
+    
+    
   } else if (input_value_regio_show_mode == "valittu alue ja sen naapurit"){
     
     region_data <- get_region_data()
-    naapurikoodit <- get_naapurikoodit(region_data = region_data,
-                                       regio_lvl = input_value_regio_level,
-                                       regio_selected = input_value_region_selected)
+    naapurikoodit <- get_naapurikoodit(input_value_regio_level = input_value_regio_level,
+                                       input_value_region_selected = input_value_region_selected)
     region_nms <- region_data[region_data$level %in% input_value_regio_level & region_data$region_code %in% naapurikoodit, ]$region_name
-    alt_teksti <-         paste("Muuttujan", input_value_variable,
-                                "arvot esitetään pylväskuviossa pylväiden pituutena ja pylvään pituutena ja karttakuviossa alueen värinä. Aluetasona näytetään",
-                                input_value_regio_level,
-                                "ja alueina näytetään ",
-                                glue_collapse(region_nms, sep = ", ", last = " ja "), "korostettuna",
-                                input_value_region_selected
-    )
+    regio_show_mode <- glue::glue('{kuvatyyppi} näytetään alueet {glue::glue_collapse(region_nms, sep = ", ", last = " ja ")}, korostettuna {input_value_region_selected}')
     
   } else if (input_value_regio_show_mode == "valitun alueen kunnat"){
     
-    dat <- create_municipalities_within_region(varname = input_value_variable,
-                                               regio_level = input_value_regio_level,
-                                               aluenimi = input_value_region_selected,
+    dat <- create_municipalities_within_region(input_value_variable =  input_value_variable,
+                                               input_value_regio_level = input_value_regio_level,
+                                               input_value_region_selected = input_value_region_selected,
                                                timeseries = FALSE)
-    
-    alt_teksti <-         paste("Muuttujan ", input_value_variable,
-                                "arvot esitetään pylväiden pituutena ja pylvään täyttövärinä ja karttakuviossa alueen värinä kuntatasolla käsittäen kunnat jotka kuuluvat alueeseen",
-                                input_value_region_selected, "tasolla", input_value_regio_level,
-                                "Kuntina näytetään",
-                                glue_collapse(unique(dat$aluenimi), sep = ", ", last = " ja ")
-    )
-    
+    regio_show_mode <- glue::glue('{kuvatyyppi} näytetään alueen {input_value_region_selected} kunnat {glue::glue_collapse(unique(dat$aluenimi), sep = ", ", last = " ja ")}')    
   }
+  
+  alt_teksti <- glue::glue("
+{kuvatyyppi} {input_value_variable} osoittimen arvot aluetasolla {input_value_regio_level}. 
+{regio_show_mode}.
+{kuvatyyppi} {taytto} {kertoo_mista}.{spessu}
+{giniteksti}")
+  
   return(alt_teksti)
 }
+
+
