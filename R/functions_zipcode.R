@@ -119,9 +119,9 @@ map_zipcodes <- function(input_value_region_selected = 91,
       geom_sf(aes(color = color), fill = NA, show.legend = FALSE)  +    
       scale_fill_fermenter(palette = "YlGnBu", type = "seq", direction = 1) +
       scale_color_manual(values = c(alpha("white", 1/3), "black")) +
-      theme_ipsum(base_family = "PT Sans",
-                  plot_title_family = "PT Sans",
-                  subtitle_family = "PT Sans",
+      theme_ipsum(base_family = "Lato",
+                  plot_title_family = "Lato",
+                  subtitle_family = "Lato",
                   grid_col = "white",
                   plot_title_face = "plain") -> p
     
@@ -131,7 +131,7 @@ map_zipcodes <- function(input_value_region_selected = 91,
               axis.title.y = element_blank(),
               panel.grid.major = element_blank(),
               panel.grid.minor = element_blank(),
-              legend.position = c(0.1, 0.5),
+              legend.position = c(0.1, 0.1),
               plot.title.position = "plot") +
       labs(title = glue("{input_value_variable}"),
            subtitle = kuvan_subtitle,
@@ -144,18 +144,22 @@ map_zipcodes <- function(input_value_region_selected = 91,
                                               sf::st_centroid() %>%
                                               sf::st_coordinates() %>% as_tibble()),
                                 aes(label = paste0(aluenimi, "\n",
-                                                   round(value)), x = X, y = Y),
-                                color = "black", fill = "white", family = "PT Sans", lineheight = .8)      
+                                                   round(value)), x = X, y = Y), label.size = 0, label.padding = 0,
+                                color = "black", fill = "white", family = "Lato", lineheight = .8)      
     } 
     if (alueprofiili_doc){
-      p <- p + ggrepel::geom_label_repel(data = dat %>%  
-                                           sf::st_set_geometry(NULL) %>%
+      p <- p + ggrepel::geom_label_repel(data = dat %>% sf::st_set_geometry(NULL) %>%
+      # p <- p + geom_label(data = dat %>%  sf::st_set_geometry(NULL) %>%
                                            bind_cols(dat %>%
                                                        sf::st_centroid() %>%
-                                                       sf::st_coordinates() %>% as_tibble()),
-                                         aes(label = paste0(aluenimi, "\n",
+                                                       sf::st_coordinates() %>% as_tibble()
+                                                     ),
+                                         aes(label = paste(aluenimi, 
                                                             round(value)), x = X, y = Y),
-                                         color = "black", fill = "white", family = "PT Sans", lineheight = .8, size = 2.5)      
+                                         color = "black", 
+                          fill = "white",
+                          label.size = 0,  
+                          family = "Lato", size = 2.5)      
       
     }
     p
@@ -351,12 +355,12 @@ plot_zipcodes_bar <- function(input_value_region_selected = 5,
     geom_text(aes(label = round(value,0), 
                   x = value_nudge), 
               color = "black", 
-              family = "PT Sans") +
+              family = "Lato") +
     scale_fill_fermenter(palette = "YlGnBu", type = "seq", direction = 1) +
     scale_color_fermenter(palette = "YlGnBu", type = "seq", direction = 1) +
-    theme_ipsum(base_family = "PT Sans",
-                plot_title_family = "PT Sans",
-                subtitle_family = "PT Sans",
+    theme_ipsum(base_family = "Lato",
+                plot_title_family = "Lato",
+                subtitle_family = "Lato",
                 grid_col = "white",
                 plot_title_face = "plain") + 
   theme(plot.title.position = "plot",
@@ -424,12 +428,12 @@ plot_zipcodes_dotplot_alueprofiili <- function(input_value_region_selected = 5,
     geom_text(aes(label = round(value,0), 
                   x = value_nudge),
               color = "black", 
-              family = "PT Sans") +
+              family = "Lato") +
     scale_fill_fermenter(palette = "YlGnBu", type = "seq", direction = 1) +
     scale_color_fermenter(palette = "YlGnBu", type = "seq", direction = 1) +
-    theme_ipsum(base_family = "PT Sans",
-                plot_title_family = "PT Sans",
-                subtitle_family = "PT Sans",
+    theme_ipsum(base_family = "Lato",
+                plot_title_family = "Lato",
+                subtitle_family = "Lato",
                 grid_col = "white",
                 plot_title_face = "plain") + 
     theme(plot.title.position = "plot",
@@ -482,9 +486,9 @@ plot_zipcodes_line <- function(input_value_region_selected = 91,
     geom_line() +
     # scale_fill_fermenter(palette = "YlGnBu", type = "seq", direction = 1) +
     # scale_color_fermenter(palette = "YlGnBu", type = "seq", direction = 1) +
-    theme_ipsum(base_family = "PT Sans",
-                plot_title_family = "PT Sans",
-                subtitle_family = "PT Sans",
+    theme_ipsum(base_family = "Lato",
+                plot_title_family = "Lato",
+                subtitle_family = "Lato",
                 plot_title_face = "plain") -> p
   
   # if (input_value_regio_show_mode == "kaikki tason alueet"){
@@ -496,7 +500,7 @@ plot_zipcodes_line <- function(input_value_region_selected = 91,
       data = dat %>% filter(aika == max(aika, na.rm = TRUE)),
       aes(x = aika, y = value, color= aluenimi,
           label = paste(aluenimi, round(value,1))),
-      family = "PT Sans", nudge_x = .3)
+      family = "Lato", nudge_x = .3)
   # }
   p + theme(plot.title.position = "plot",
             legend.position = "none",

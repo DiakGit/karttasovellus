@@ -71,7 +71,7 @@ mod_05etc_ui <- function(id){
     tags$h3("Digipalvelun saavutettavuuden tila"),
     tags$p(tags$a(href ="https://diak.shinyapps.io/karttasovellus/", "Karttasivusto"),"täyttää pääosin WCAG 2.1 -kriteeristön A & AA -saavutettavuusvaatimukset."),
     tags$h3("Saavutettavuusselosteen laatiminen"),
-    tags$p("Karttasivustoa koskeva seloste on laadittu 19.9.2020 ja sitä on päivitetty 3.11.2020. 
+    tags$p("Karttasivustoa koskeva seloste on laadittu 19.9.2020 ja sitä on päivitetty 11.2.2022. 
     Seloste perustuu itsearvioon, Poutapilvi Oy:n tekemään auditointiraporttiin sekä 
     seuraavilla testausohjelmistoilla suoritettuun tarkastukseen."),
     tags$strong("Ruudunlukijat"),

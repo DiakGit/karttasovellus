@@ -166,7 +166,7 @@ alueprofiilikartta_html <- function(input_value_regio_level_profile = "Hyvinvoin
     filter(!is.na(muuttuja))
   plot <- ggplot(data = mapdata_tmp, aes(fill = arvo)) +                    
     geom_sf(color = alpha("white", 1/3))  +
-    hrbrthemes::theme_ipsum(base_family = "PT Sans", 
+    hrbrthemes::theme_ipsum(base_family = "Lato", 
                             base_size = 11, 
                             plot_title_size = 12) +
     # scale_fill_viridis_c(option = "plasma") +
@@ -186,7 +186,7 @@ alueprofiilikartta_html <- function(input_value_regio_level_profile = "Hyvinvoin
          title = val_muuttuja
     ) +
     geom_sf_label(aes(label = paste0(region_name, "\n", round(arvo,1))), 
-                  color = "black", fill = "white", family = "PT Sans", size = 3)
+                  color = "black", fill = "white", family = "Lato", size = 3, label.size = 0)
   plot
 }
 
@@ -237,16 +237,16 @@ alueprofiiliaikasarja_html <- function(input_value_regio_level_profile = "Hyvinv
     geom_line(show.legend = FALSE) +
     geom_point(shape = 21, color = "white", stroke = 1, size = 2.5) +
     ggrepel::geom_text_repel(data = plotdata_tmp %>% filter(aika == max(aika, na.rm = TRUE)),
-                             aes(label = paste(aluenimi, round(value,1))), family = "PT Sans") +
+                             aes(label = paste(aluenimi, round(value,1))), family = "Lato") +
     # ggrepel::geom_text_repel(data = plotdata_tmp %>% filter(aika == max(aika, na.rm = TRUE)-1),
-    #                          aes(label = aluenimi), family = "PT Sans", nudge_x = -1) +
+    #                          aes(label = aluenimi), family = "Lato", nudge_x = -1) +
     
     scale_x_continuous(breaks = sort(unique(plotdata_tmp$aika)), labels = labels) +
-    theme_ipsum(base_family = "PT Sans", 
+    theme_ipsum(base_family = "Lato", 
                 base_size = 11, 
                 plot_title_size = 12,
-                plot_title_family = "PT Sans",
-                subtitle_family = "PT Sans"#,
+                plot_title_family = "Lato",
+                subtitle_family = "Lato"#,
                 # grid_col = "white"
     ) +
     theme(legend.position = "none",
@@ -465,11 +465,11 @@ for (i in 1:zz){
       )
       gg_x[[i]] <- ggplot(data = dat_naapurit2, aes(fill = value, label = value)) +                    
         geom_sf(color = alpha("white", 1/3))  +
-        theme_ipsum(base_family = "PT Sans", 
+        theme_ipsum(base_family = "Lato", 
                     base_size = 9, 
                     plot_title_size = 10,
-                    plot_title_family = "PT Sans",
-                    subtitle_family = "PT Sans"
+                    plot_title_family = "Lato",
+                    subtitle_family = "Lato"
         ) +
         scale_fill_fermenter(palette = "YlGnBu", type = "seq", direction = 1) +
         theme(axis.text.x = element_blank(),
@@ -488,7 +488,7 @@ for (i in 1:zz){
                                  sf::st_coordinates() %>% as_tibble()),
                    aes(label = paste0(aluenimi, "\n",
                                       round(value,1)), x = X, y = Y),
-                   color = "black", fill = alpha("white", 2/3), size = 2.5, family = "PT Sans", lineheight = .8)
+                   color = "black", fill = alpha("white", 2/3), size = 2.5, label.size = 0, family = "Lato", lineheight = .8)
     }
     gg_x2 <- purrr::compact(gg_x)
     blank <- ggplot() + theme_minimal()
@@ -505,7 +505,7 @@ for (i in 1:zz){
     p1 <- wrap_plots(gg_x2, ncol = ncol) +
       plot_annotation(
         subtitle = glue("Kuhunkin kuvioon on merkitty alueen '{regname}' lisäksi alueen rajanaapurit"),
-        theme = theme_minimal(base_family = "PT Sans", base_size = 10) + 
+        theme = theme_minimal(base_family = "Lato", base_size = 10) + 
           theme(plot.background = element_rect(fill = NA, color = alpha(colour = "dim grey", 1/6)),
                 plot.subtitle = element_text(size = 11))
       )
@@ -580,13 +580,13 @@ print_create_timeseries_plot <- function(varclass = "Summamuuttujat",
       geom_line(show.legend = FALSE) +
       geom_point(shape = 21, color = "white", stroke = 1, size = 2) +
       geom_text(data = plotdata_tmp %>% filter(aika == max(aika, na.rm = TRUE)),
-                aes(label = paste0(aluenimi, " ",round(value,1))), family = "PT Sans", size = 2.8) +
+                aes(label = paste0(aluenimi, " ",round(value,1))), family = "Lato", size = 2.8) +
       scale_x_continuous(breaks = sort(unique(plotdata_tmp$aika)), labels = labels) +
-      theme_ipsum(base_family = "PT Sans", 
+      theme_ipsum(base_family = "Lato", 
                   base_size = 9, 
                   plot_title_size = 10,
-                  plot_title_family = "PT Sans",
-                  subtitle_family = "PT Sans"
+                  plot_title_family = "Lato",
+                  subtitle_family = "Lato"
       ) +
       theme(legend.position = "none",
             plot.title.position = "plot",
@@ -613,7 +613,7 @@ print_create_timeseries_plot <- function(varclass = "Summamuuttujat",
   p1 <- wrap_plots(gg_x2, ncol = ncol) +
     plot_annotation(
       subtitle = glue("Kuhunkin kuvioon on merkitty alueen '{regname}' lisäksi alueen rajanaapurit"),
-      theme = theme_minimal(base_family = "PT Sans", base_size = 10) + 
+      theme = theme_minimal(base_family = "Lato", base_size = 10) + 
         theme(plot.background = element_rect(fill = NA, color = alpha(colour = "dim grey", 1/6)), 
               plot.subtitle = element_text(size = 11))
     )

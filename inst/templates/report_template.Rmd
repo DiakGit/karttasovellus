@@ -1,8 +1,8 @@
 ---
-#title: "Alueprofiili test"
+# title: "Alueprofiili test"
 title: "Alueprofiili `r params$region` (`r params$region_level`)"
-#author: "Author test"
-author: "Diakin karttasovellus `r params$datetime`" 
+# author: "Author test"
+author: "Diakin karttasovellus `r params$datetime`"
 output: 
   word_document:
     reference_docx: diak_karttasovellus.dotx
@@ -32,7 +32,7 @@ libs <- c("ggplot2",
 lapply(libs, require, character.only = TRUE)
 
 theme_set(
-  theme_minimal(base_family = "PT Sans", base_size = 7) +
+  theme_minimal(base_family = "Lato", base_size = 7) +
     theme(axis.text.y = element_blank(), 
           panel.grid = element_blank(),
           plot.title = element_text(size = 9, family = "bold"),
@@ -108,24 +108,59 @@ Tässä raportissa tarkastellaan tasolla `r params_region_level` aluetta `r para
 
 
 
-```{r kartta, fig.height=6, fig.width=3.5}
+```{r kartta, fig.height=5.5, fig.width=3}
 dat <- sf::st_transform(spatdat, crs = 3067)
 dat_region <- dat[dat$aluenimi == params_region,]
 dat_naapurit <- dat[dat$aluekoodi %in% naapurikoodit,]
+# 
+# sf::st_coordinates(dat_naapurit) %>% 
+#   as_tibble() %>% 
+#   summarise(max_x = max(X, na.rm = TRUE),
+#             max_y = max(Y, na.rm = TRUE),
+#             min_x = min(X, na.rm = TRUE),
+#             min_y = min(Y, na.rm = TRUE),
+#             median_x = median(X, na.rm = TRUE),
+#             median_y = median(Y, na.rm = TRUE)) -> crd_sum
 
-ggplot(data = dat) +                    
-    geom_sf(color = alpha("dim grey", 1/3), fill = NA, size = .3)  +
-    theme_minimal(base_family = "PT Sans", base_size = 12) +
+ggplot() +                    
+    geom_sf(data = dat %>% sf::st_union(), color = alpha("dim grey", 1/3), 
+            fill = NA, size = .3)  +
+    theme_void() +
     labs(fill = NULL,
          title = NULL,
          subtitle = NULL,
          caption = NULL) +
-  geom_sf(data = dat_naapurit, fill = alpha("#3b0083", 1/6), color = alpha("white", 1/3)) +
-  geom_sf(data = dat_region, fill = alpha("#3b0083", 1/3), color = alpha("white", 1/3)) +
+  geom_sf(data = dat_naapurit %>% filter(variable == "Huono-osaisuus yhteensä"), fill = alpha("#3b0083", 1/3), color = alpha("white", 1/3)) +
+  geom_sf(data = dat_region %>% filter(variable == "Huono-osaisuus yhteensä"), 
+          fill = "#3b0083", color = alpha("white", 1/3)) +
  theme(axis.text = element_blank(),
           axis.title = element_blank(),
           panel.grid = element_blank(), 
-          legend.position = "none")
+          legend.position = "none") -> p
+# if (F){
+#  p + geom_label(
+#     aes(
+#       x = crd_sum$max_x , y = crd_sum$median_y,
+#       label = glue('{glue_collapse(unique(dat_naapurit$aluenimi), sep = ",\n", last = " ja\n")}\n<-')
+#     ),family = "Fira Code",
+#     label.size = 0, 
+#     hjust = 0, 
+#     vjust = 0
+#   ) 
+# } else {
+  dat_naapurit_1 <- dat_naapurit %>%  filter(variable == "Huono-osaisuus yhteensä")
+  p + ggrepel::geom_label_repel(data = dat_naapurit_1 %>% 
+                                           sf::st_set_geometry(NULL) %>%
+                                           bind_cols(dat_naapurit_1 %>%
+                                                       sf::st_centroid() %>%
+                                                       sf::st_coordinates() %>% as_tibble()),
+                                         aes(label = aluenimi, x = X, y = Y),
+                                         color = "black", fill = "white", 
+                               label.size = 0 ,  family = "Lato",
+                               lineheight = .8, size = 2.5, 
+                               min.segment.length = unit(5, "mm"), max.overlaps = 20)
+# }
+
 ```
 
 

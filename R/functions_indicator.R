@@ -223,9 +223,9 @@ plot_rank_bar <- function(input_value_regio_level = "Seutukunnat",
                             dat$value + med*.15, 
                             dat$value - med*.15)
   ggplot(dat, aes(x = value, y = reorder(aluenimi, -rank))) + 
-    theme_ipsum(base_family = "PT Sans",
-                plot_title_family = "PT Sans",
-                subtitle_family = "PT Sans",
+    theme_ipsum(base_family = "Lato",
+                plot_title_family = "Lato",
+                subtitle_family = "Lato",
                 grid_col = "white",
                 plot_title_face = "plain") +
     xlim(c(min(dat$value, na.rm = TRUE)*0.6,max(dat$value, na.rm = TRUE)*1.3)) +
@@ -252,11 +252,11 @@ plot_rank_bar <- function(input_value_regio_level = "Seutukunnat",
   plot <- plot + geom_text(aes(label = round(value), 
                                x = value_nudge), 
                            color = "black", 
-                           family = "PT Sans")
+                           family = "Lato")
   
   plot + scale_y_discrete(expand = expansion(add = 2)) +
     labs(x = NULL, y = NULL, fill = NULL) +
-    labs(title = glue("{input_value_variable}"),
+    labs(title = add_line_break2(glue("{input_value_variable}"), 50),
          subtitle = kuvan_subtitle,
          caption = glue("Huono-osaisuus Suomessa -karttasovellus (Diak)\nData: THL (perusdata) & Diak (mediaanisuhteutus)\nTiedot haettu:{Sys.Date()}"))
 
@@ -332,9 +332,9 @@ plot_map <- function(input_value_regio_level = "Hyvinvointialueet",
     geom_sf(aes(color = color), fill = NA, show.legend = FALSE)  +    
     scale_fill_fermenter(palette = "YlGnBu", type = "seq", direction = 1) +
     scale_color_manual(values = c(alpha("white", 1/3), "#FF00FF")) +
-    theme_ipsum(base_family = "PT Sans",
-                plot_title_family = "PT Sans",
-                subtitle_family = "PT Sans",
+    theme_ipsum(base_family = "Lato",
+                plot_title_family = "Lato",
+                subtitle_family = "Lato",
                 grid_col = "white",
                 plot_title_face = "plain") -> p
   
@@ -342,19 +342,19 @@ plot_map <- function(input_value_regio_level = "Hyvinvointialueet",
     if (input_value_regio_level != "Kunnat"){
       p + geom_sf_label(data = dat %>% filter(!aluenimi %in% input_value_region_selected), 
                         aes(label = value), 
-                        family = "PT Sans", 
+                        family = "Lato", 
                         color = "black", 
                         fill = "white", 
                         size = 2.5) -> p
     }
     p <- p + geom_sf_label(data = dat %>% filter(aluenimi == input_value_region_selected),
                            aes(label = paste(aluenimi, value)),
-                           fill = "white", color = "black", family = "PT Sans")
+                           fill = "white", color = "black", family = "Lato")
     
   } else if (input_value_regio_show_mode == "valittu alue ja sen naapurit"){
     p + geom_sf_label(data = dat,
                       aes(label = paste(aluenimi, value)),
-                      fill = "white", color = "black", family = "PT Sans") -> p
+                      fill = "white", color = "black", family = "Lato") -> p
   } else if (input_value_regio_show_mode == "valitun alueen kunnat"){
     # p + ggrepel::geom_label_repel(
       p + geom_label(
@@ -363,7 +363,7 @@ plot_map <- function(input_value_regio_level = "Hyvinvointialueet",
                                     bind_cols(dat %>% sf::st_centroid() %>% sf::st_coordinates() %>% as_tibble()),
                                   aes(label = paste0(aluenimi,"\n", value), x = X, y = Y),
                                   color = "black", fill = alpha("white", 2/3),
-                                  family = "PT Sans", size = 3, lineheight = .8) -> p
+                                  family = "Lato", size = 3, lineheight = .8) -> p
     
   }
   p + theme(axis.text.x = element_blank(),
@@ -374,7 +374,7 @@ plot_map <- function(input_value_regio_level = "Hyvinvointialueet",
             panel.grid.minor = element_blank(),
             legend.position = c(0.1, 0.5),
             plot.title.position = "plot") +
-    labs(title = glue("{input_value_variable}"),
+    labs(title = add_line_break2(glue("{input_value_variable}"), 50),
          subtitle = kuvan_subtitle,
          caption = glue("Huono-osaisuus Suomessa -karttasovellus (Diak)\nData: THL (perusdata) & Diak (mediaanisuhteutus)\nTiedot haettu:{Sys.Date()}"),
          fill = paste0(add_line_break2(input_value_variable, 20), "\n(suhdeluku)"))
@@ -497,7 +497,7 @@ plot_timeseries <- function(input_value_regio_level = "Kunnat",
                     color= aluenimi, 
                     label = paste(aluenimi, round(value,1))),
                 color = "#FF00FF", 
-                family = "PT Sans", 
+                family = "Lato", 
                 nudge_x = .3)
     
     if (input_value_regio_level == "Hyvinvointialueet"){
@@ -506,7 +506,7 @@ plot_timeseries <- function(input_value_regio_level = "Kunnat",
         geom_text(
         # ggrepel::geom_text_repel(
           data = df_gini %>% filter(aika == max(aika, na.rm = TRUE)),
-          aes(x = aika, y = gini, color= aluenimi, label = paste(aluenimi, round(gini,2))), nudge_x = .2, family = "PT Sans")
+          aes(x = aika, y = gini, color= aluenimi, label = paste(aluenimi, round(gini,2))), nudge_x = .2, family = "Lato")
       
     }
     
@@ -525,7 +525,7 @@ plot_timeseries <- function(input_value_regio_level = "Kunnat",
         data = df2 %>% filter(aika == max(aika, na.rm = TRUE)),
         aes(x = aika, y = value, color= aluenimi, 
             label = paste(aluenimi, round(value,1))), 
-                               family = "PT Sans", nudge_x = .3) +
+                               family = "Lato", nudge_x = .3) +
       geom_line(data = df_selected_ts, aes(x = aika, y = value), color = "#FF00FF") +
       geom_point(data = df_selected_ts, aes(x = aika, y = value),
                  fill = "#FF00FF", 
@@ -537,7 +537,7 @@ plot_timeseries <- function(input_value_regio_level = "Kunnat",
                     color= aluenimi, 
                     label = paste(aluenimi, round(value,1))),
                 color = "black", 
-                family = "PT Sans", 
+                family = "Lato", 
                 nudge_x = .3)
     
     # gini
@@ -550,7 +550,7 @@ plot_timeseries <- function(input_value_regio_level = "Kunnat",
         data = df_gini2 %>% filter(aika == max(aika, na.rm = TRUE)),
         aes(x = aika, y = gini, color= aluenimi, 
             label = paste(aluenimi, round(gini,1))), 
-                               family = "PT Sans", nudge_x = .3)
+                               family = "Lato", nudge_x = .3)
     }
     
   } else if (input_value_regio_show_mode == "valitun alueen kunnat"){
@@ -574,7 +574,7 @@ plot_timeseries <- function(input_value_regio_level = "Kunnat",
       geom_text(
         data = df_gini2 %>% filter(aika == max(aika, na.rm = TRUE)),
         aes(x = aika, y = gini, color= aluenimi, 
-            label = paste(aluenimi, round(gini,1))), family = "PT Sans", nudge_x = .3)
+            label = paste(aluenimi, round(gini,1))), family = "Lato", nudge_x = .3)
     }
     
     plot0 <- plot0 + 
@@ -584,7 +584,7 @@ plot_timeseries <- function(input_value_regio_level = "Kunnat",
       geom_text(
         data = dat2 %>% filter(aika == max(aika, na.rm = TRUE)),
         aes(x = aika, y = value, color= aluenimi, label = paste(aluenimi, round(value,1))), 
-        nudge_x = .2, family = "PT Sans")
+        nudge_x = .2, family = "Lato")
     
     
   }
@@ -597,9 +597,9 @@ plot_timeseries <- function(input_value_regio_level = "Kunnat",
   
   plot0 +
     scale_x_continuous(breaks = sort(unique(df$aika)), labels = labels) +
-    theme_ipsum(base_family = "PT Sans",
-                plot_title_family = "PT Sans",
-                subtitle_family = "PT Sans",
+    theme_ipsum(base_family = "Lato",
+                plot_title_family = "Lato",
+                subtitle_family = "Lato",
                 base_size = 14,
                 plot_title_face = "plain") +
     labs(fill = NULL,
@@ -623,9 +623,9 @@ plot_timeseries <- function(input_value_regio_level = "Kunnat",
   
   if (input_value_regio_level == "Hyvinvointialueet"){
   plot_gini <- plot_gini + scale_x_continuous(breaks = sort(unique(df$aika)), labels = labels) +
-    theme_ipsum(base_family = "PT Sans",
-                plot_title_family = "PT Sans",
-                subtitle_family = "PT Sans",
+    theme_ipsum(base_family = "Lato",
+                plot_title_family = "Lato",
+                subtitle_family = "Lato",
                 base_size = 14,
                 plot_title_face = "plain") + labsit + 
     labs(subtitle = paste0("Indikaattorin ", add_line_break2(input_value_variable, 50), "\neriarvoisuuden kuntatason gini-kerroin aluetasolla: ", input_value_regio_level)) +
