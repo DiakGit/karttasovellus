@@ -5,6 +5,5 @@
 pkgload::load_all(export_all = FALSE,helpers = FALSE,attach_testthat = FALSE)
 options( "golem.app.prod" = TRUE)
 options( "shiny.useragg" = TRUE)
-Sys.setenv(LANG = "fi_FI.UTF-8")
 # karttasovellus::run_app(enableBookmarking = "url") # add parameters here (if any)
 karttasovellus::run_app() # add parameters here (if any)

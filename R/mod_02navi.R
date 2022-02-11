@@ -12,7 +12,7 @@ mod_02navi_ui <- function(id){
   tagList(
     HTML('<a class="sr-only sr-only-focusable" href="#maincontent">Skip to main</a>'),
     tags$header(
-      tags$div(class = "navbar navbar-expand-lg  navbar-light navbar-fixed-top navbar-xyz navbar-light", role="navigation",
+      tags$div(class = "navbar navbar-expand-lg navbar-light navbar-fixed-top navbar-xyz navbar-light", role="navigation",
                tags$div(class = "container",
                         tags$a(class="navbar-brand ", role="brand", href = "#",
                                              tags$img(src = "https://www.diak.fi/wp-content/themes/diak/dist/images/diak-logo-1.svg",

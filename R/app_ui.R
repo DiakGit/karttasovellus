@@ -24,10 +24,12 @@ app_ui <- function(request) {
                         twitter_card_type = "summary_large_image",
                         twitter_site = "@muuankarski"
                     ),
-                theme = bslib::bs_theme(#bootswatch = "cosmo",
+                theme = bslib::bs_theme(#version = 5,
+                                        #bootswatch = "cosmo",
+                                        # bootswatch = "minty",
                                         base_font = font_google("Source Sans Pro"),
                                         code_font = font_google("Space Mono")
-                  ),
+                ),
       mod_01meta_ui("meta_ui_1"),
       mod_02navi_ui("02navi_ui_1"),
       mod_03indi_ui("03indi_ui_1"),
@@ -65,20 +67,22 @@ golem_add_external_resources <- function(){
                       # tags$link(rel="shortcut icon", href="favicon.ico"),
     tags$link(rel="stylesheet", href="custom.css"),
     # # **<!-- CSS only -->**
-      # tags$link(rel="stylesheet",
-      #           href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.2/dist/css/bootstrap.min.css",
-      #           integrity="sha384-uWxY/CJNBR+1zjPWmfnSnVxwRheevXITnMqoEIeG1LJrdI0GlVs/9cVSyPYXdcSF",
-      #           crossorigin="anonymous"),
-    #   # **<!-- JavaScript Bundle with Popper -->**
+    #   tags$link(rel="stylesheet",
+    #             href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.2/dist/css/bootstrap.min.css",
+    #             integrity="sha384-uWxY/CJNBR+1zjPWmfnSnVxwRheevXITnMqoEIeG1LJrdI0GlVs/9cVSyPYXdcSF",
+    #             crossorigin="anonymous"),
+    # #   # **<!-- JavaScript Bundle with Popper -->**
       tags$script(src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.2/dist/js/bootstrap.bundle.min.js",
                   integrity="sha384-kQtW33rZJAHjgefvhyyzcGF3C5TFyBQBA13V1RKPf4uH+bwyzQxZ6CmMZHmNBEfJ",
                   crossorigin="anonymous"),
     tags$script(src="https://cdnjs.cloudflare.com/ajax/libs/headroom/0.11.0/headroom.min.js",
                 integrity="sha256-AsUX4SJE1+yuDu5+mAVzJbuYNPHj/WroHuZ8Ir/CkE0=",
-                crossorigin="anonymous"),
+    crossorigin="anonymous"),
     tags$script(src="https://cdnjs.cloudflare.com/ajax/libs/headroom/0.11.0/jQuery.headroom.min.js",
                 integrity="sha256-ZX/yNShbjqsohH1k95liqY9Gd8uOiE1S4vZc+9KQ1K4=",
                 crossorigin="anonymous"),
+    
+
     tags$script(src="https://dplyr.tidyverse.org/pkgdown.js")#,
     # tags$link(rel="stylesheet",
     #           href="https://dplyr.tidyverse.org/tidyverse-2.css")
