@@ -36,9 +36,9 @@ mod_05etc_ui <- function(id){
                                tags$strong("Huono-osaisuus Suomessa -verkkosovellus"),
                                tags$ul(
                                  tags$li("Sovellusversio",
-                                         tags$code("0.3.0")),
+                                         tags$code("0.9.0001")),
                                  tags$li("Aineistoversio",
-                                         tags$code("0.2.0"))
+                                         tags$code("0.9.0001"))
                                ),
                                tags$p("Tämä verkkosovellus on tehty", 
                                       tags$a(href = "https://www.r-project.org", "R"), "-kielellä", 
