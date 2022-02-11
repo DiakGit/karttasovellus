@@ -1,7 +1,6 @@
 FROM rocker/geospatial:latest
-RUN echo 'options(repos = c(CRAN = "https://cran.uni-muenster.de/"))' >> ${R_HOME}/etc/Rprofile.site
 
-RUN install2.r shiny remotes magrittr glue processx htmltools ggplot2 stringr dplyr knitr pkgload bslib xtable attempt hunspell shiny leaflet svglite rmarkdown tidyr testthat config sf spelling shinycssloaders readr ragg patchwork metathis leaflet.extras kableExtra janitor ineq hrbrthemes gt golem ggrepel geofi forcats DT acid
+RUN install2.r shiny remotes magrittr glue processx htmltools ggplot2 stringr dplyr knitr pkgload bslib xtable attempt hunspell shiny leaflet svglite rmarkdown tidyr testthat config sf spelling shinycssloaders readr ragg patchwork metathis leaflet.extras kableExtra janitor ineq hrbrthemes gt golem ggrepel geofi forcats acid
 
 RUN mkdir /build_zone
 ADD . /build_zone
