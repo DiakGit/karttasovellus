@@ -107,7 +107,7 @@ map_zipcodes <- function(input_value_region_selected = 91,
     zipcodes <- get_koodit_zip(regio_selected = input_value_region_selected, 
                                     value_regio_level = input_value_regio_level)
     dat <- dat %>% filter(aluekoodi %in% zipcodes)
-
+  nregios <- nrow(dat)
   
   # luodaan alaotsikko
   kuvan_subtitle <- glue("Aluetaso: {input_value_regio_level}")
@@ -117,7 +117,8 @@ map_zipcodes <- function(input_value_region_selected = 91,
     ggplot(data = dat, aes(fill = value)) +
       geom_sf(color = alpha("white", 1/3))  +
       geom_sf(aes(color = color), fill = NA, show.legend = FALSE)  +    
-      scale_fill_fermenter(palette = "YlGnBu", type = "seq", direction = 1) +
+      scale_fill_fermenter(palette = "YlGnBu", type = "seq", direction = 1, 
+                           guide = guide_colourbar(direction = "horizontal", title.position = "top", barwidth = 10)) +
       scale_color_manual(values = c(alpha("white", 1/3), "black")) +
       theme_ipsum(base_family = "Lato",
                   plot_title_family = "Lato",
@@ -131,12 +132,13 @@ map_zipcodes <- function(input_value_region_selected = 91,
               axis.title.y = element_blank(),
               panel.grid.major = element_blank(),
               panel.grid.minor = element_blank(),
-              legend.position = c(0.1, 0.1),
+              # legend.position = c(0.1, 0.9),
+              legend.position = "top",
               plot.title.position = "plot") +
-      labs(title = glue("{input_value_variable}"),
+      labs(title = add_line_break2(glue("{input_value_variable}"),30),
            subtitle = kuvan_subtitle,
            caption = glue("Huono-osaisuus Suomessa -karttasovellus (Diak)\nData: Tilastokeskus Paavo (perusdata) & Diak (mediaanisuhteutus)\nTiedot haettu:{Sys.Date()}"),
-           fill = paste0(add_line_break2(input_value_variable, 20), "\n(suhdeluku)"))
+           fill = paste0(add_line_break2(input_value_variable, 38), " (suhdeluku)"))
     if (!alueprofiili){
     p <- p + ggrepel::geom_label_repel(data = dat %>%  
                                   sf::st_set_geometry(NULL) %>%
@@ -146,7 +148,17 @@ map_zipcodes <- function(input_value_region_selected = 91,
                                 aes(label = paste0(aluenimi, "\n",
                                                    round(value)), x = X, y = Y), label.size = 0, label.padding = 0,
                                 color = "black", fill = "white", family = "Lato", lineheight = .8)      
-    } 
+    }
+    if (!alueprofiili_doc & nregios <= 20){
+      p <- p + ggrepel::geom_label_repel(data = dat %>%  
+                                           sf::st_set_geometry(NULL) %>%
+                                           bind_cols(dat %>%
+                                                       sf::st_centroid() %>%
+                                                       sf::st_coordinates() %>% as_tibble()),
+                                         aes(label = paste0(aluenimi, "\n",
+                                                            round(value)), x = X, y = Y), label.size = 0, label.padding = 0,
+                                         color = "black", fill = "white", family = "Lato", lineheight = .8)      
+    }
     if (alueprofiili_doc){
       p <- p + ggrepel::geom_label_repel(data = dat %>% sf::st_set_geometry(NULL) %>%
       # p <- p + geom_label(data = dat %>%  sf::st_set_geometry(NULL) %>%

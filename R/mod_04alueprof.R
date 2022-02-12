@@ -129,11 +129,18 @@ mod_04alueprof_server <- function(id){
                           "Huono-osaisuuden sosiaaliset seuraukset",
                           "Huono-osaisuuden taloudelliset yhteydet"
                           )
+      
+      # Eri aluetasoilla on eri muuttujat
+      valid_variables <- tabdat_base %>% filter(aluenimi %in% aluename,
+                        !is.na(arvo)) %>% pull(muuttuja)
+      
       # ii <- 1
       lapply(seq_along(muuttujaluokka), function(ii) {
       tabdat_tmp <- tabdat_base %>% 
-        filter(var_class == muuttujaluokka[ii])
+        filter(var_class == muuttujaluokka[ii], 
+               muuttuja %in% valid_variables)
       muuttujanimi <- unique(tabdat_tmp$muuttuja)
+
       profile_plot_height <- paste0(400 + length(naapurikoodit_base)*20, "px")
       
 
@@ -290,10 +297,10 @@ mod_04alueprof_server <- function(id){
       })
       
       tagList(
-        fluidRow(column(width = 6,
-                 withSpinner(plotOutput(ns("map_zipcode_01"),height = "1400px", width = "100%"))),
-          column(width = 6,
-                 withSpinner(leafletOutput(ns("map_zipcode_leaflet"),height = "900px", width = "100%")))
+        fluidRow(column(width = 7,
+                 withSpinner(plotOutput(ns("map_zipcode_01"),height = "1700px", width = "100%"))),
+          column(width = 5,
+                 withSpinner(leafletOutput(ns("map_zipcode_leaflet"),height = "1200px", width = "95%")))
       )
       )
     })
@@ -351,7 +358,7 @@ mod_04alueprof_server <- function(id){
                   tags$a(class="toc-alueprof", href="#zipmap", "Kartat")
           ),
         ),
-        # ## ## ##
+        ## ## ##
         uiOutput(ns("alueprofiili_html")),
         # # ## ## ##
         tags$h4("Postinumeroalueittainen tieto", id = "postinumerotieto"),
