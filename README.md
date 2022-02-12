@@ -63,7 +63,7 @@ citation("karttasovellus")
 #> To cite package 'karttasovellus' in publications use:
 #> 
 #>   Diakonia-ammattikorkeakoulu (2022). karttasovellus: Huono-osaisuus
-#>   Suomessa verkkosovellus. R package version 0.0.0.9003.
+#>   Suomessa verkkosovellus. R package version 1.0.
 #>   https://github.com/DiakGit/karttasovellus
 #> 
 #> A BibTeX entry for LaTeX users is
@@ -72,7 +72,7 @@ citation("karttasovellus")
 #>     title = {karttasovellus: Huono-osaisuus Suomessa verkkosovellus},
 #>     author = {{Diakonia-ammattikorkeakoulu}},
 #>     year = {2022},
-#>     note = {R package version 0.0.0.9003},
+#>     note = {R package version 1.0},
 #>     url = {https://github.com/DiakGit/karttasovellus},
 #>   }
 ```
