@@ -87,7 +87,7 @@ get_koodit_zip <- function(regio_selected = 161,
 #' @import leaflet.extras
 #'
 #' @export
-map_zipcodes <- function(input_value_region_selected = 91,
+map_zipcodes <- function(input_value_region_selected = 72,
                          input_value_regio_level = "Kunnat",
                          input_value_variable = "Kokonaislukema",
                          leaflet = FALSE, 
@@ -99,7 +99,7 @@ map_zipcodes <- function(input_value_region_selected = 91,
   region_data <- get_region_zipdata()
   dat <- process_zipdata(varname = input_value_variable)
   dat <- left_join(region_data %>% select(-kuntanro),
-                   dat,by = c("region_name" = "aluenimi"), keep = TRUE) 
+                   dat,by = c("region_code" = "aluekoodi"), keep = TRUE) 
 
   dat <- dat %>%
     mutate(color = ifelse(aluenimi %in% input_value_region_selected, TRUE, FALSE))
@@ -117,14 +117,17 @@ map_zipcodes <- function(input_value_region_selected = 91,
     ggplot(data = dat, aes(fill = value)) +
       geom_sf(color = alpha("white", 1/3))  +
       geom_sf(aes(color = color), fill = NA, show.legend = FALSE)  +    
-      scale_fill_fermenter(palette = "YlGnBu", type = "seq", direction = 1, 
-                           guide = guide_colourbar(direction = "horizontal", title.position = "top", barwidth = 10)) +
       scale_color_manual(values = c(alpha("white", 1/3), "black")) +
       theme_ipsum(base_family = "Lato",
                   plot_title_family = "Lato",
                   subtitle_family = "Lato",
                   grid_col = "white",
                   plot_title_face = "plain") -> p
+    
+    if (nregios > 1){
+      p <- p +  scale_fill_fermenter(palette = "YlGnBu", type = "seq", direction = 1, 
+                                     guide = guide_colourbar(direction = "horizontal", title.position = "top", barwidth = 10))
+      }
     
     p <- p + theme(axis.text.x = element_blank(),
               axis.text.y = element_blank(),
@@ -145,7 +148,7 @@ map_zipcodes <- function(input_value_region_selected = 91,
                                   bind_cols(dat %>%
                                               sf::st_centroid() %>%
                                               sf::st_coordinates() %>% as_tibble()),
-                                aes(label = paste0(aluenimi, "\n",
+                                aes(label = paste0(aluenimi,aluekoodi,"\n",
                                                    round(value)), x = X, y = Y), label.size = 0, label.padding = 0,
                                 color = "black", fill = "white", family = "Lato", lineheight = .8)      
     }
@@ -155,7 +158,7 @@ map_zipcodes <- function(input_value_region_selected = 91,
                                            bind_cols(dat %>%
                                                        sf::st_centroid() %>%
                                                        sf::st_coordinates() %>% as_tibble()),
-                                         aes(label = paste0(aluenimi, "\n",
+                                         aes(label = paste0(aluenimi,aluekoodi, "\n",
                                                             round(value)), x = X, y = Y), label.size = 0, label.padding = 0,
                                          color = "black", fill = "white", family = "Lato", lineheight = .8)      
     }
@@ -166,7 +169,7 @@ map_zipcodes <- function(input_value_region_selected = 91,
                                                        sf::st_centroid() %>%
                                                        sf::st_coordinates() %>% as_tibble()
                                                      ),
-                                         aes(label = paste(aluenimi, 
+                                         aes(label = paste(aluenimi,"(",aluekoodi,")", 
                                                             round(value)), x = X, y = Y),
                                          color = "black", 
                           fill = "white",

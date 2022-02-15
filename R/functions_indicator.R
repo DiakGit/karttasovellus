@@ -318,6 +318,8 @@ plot_map <- function(input_value_regio_level = "Hyvinvointialueet",
              color = TRUE) 
   }
   
+  nregs <- length(unique(dat$aluenimi))
+  
   if (!leaflet){
   
   # luodaan alaotsikko
@@ -330,13 +332,16 @@ plot_map <- function(input_value_regio_level = "Hyvinvointialueet",
   ggplot(data = dat, aes(fill = value)) +
     geom_sf(color = alpha("white", 1/3))  +
     geom_sf(aes(color = color), fill = NA, show.legend = FALSE)  +    
-    scale_fill_fermenter(palette = "YlGnBu", type = "seq", direction = 1) +
     scale_color_manual(values = c(alpha("white", 1/3), "#FF00FF")) +
     theme_ipsum(base_family = "Lato",
                 plot_title_family = "Lato",
                 subtitle_family = "Lato",
                 grid_col = "white",
                 plot_title_face = "plain") -> p
+  
+  if (nregs > 1){
+    p <- p + scale_fill_fermenter(palette = "YlGnBu", type = "seq", direction = 1)
+  }
   
   if (input_value_regio_show_mode == "kaikki tason alueet"){
     if (input_value_regio_level != "Kunnat"){

@@ -20,7 +20,8 @@ mod_04alueprof_ui <- function(id){
                       tags$div(class = "col-lg-5",
                                uiOutput(ns("output_regio_level_profile")),
                                shinycssloaders::withSpinner(uiOutput(ns("output_region_profile"))),
-                               uiOutput(ns("output_button_profile"))
+                               uiOutput(ns("output_button_profile")),
+                               uiOutput(ns("output_save_word"))
                       )
                       ),
              tags$div(class = "row",
@@ -83,7 +84,7 @@ mod_04alueprof_server <- function(id){
     output$output_button_profile <- renderUI({
       tagList(
         actionButton(ns("button"), 
-                     label = tags$strong("Luo alueprofiili"), 
+                     label = tags$strong("Luo alueprofiili sovellukseen"), 
                      class="btn btn-outline-primary")
       )
     })
@@ -326,8 +327,8 @@ mod_04alueprof_server <- function(id){
                         tags$p("Analyysissä mukana naapurit: ", 
                                glue_collapse(unique(tabdat[tabdat$rooli == "naapuri",]$aluenimi), sep = ", ", last = " ja "))
         ),
-        column(width = 6,
-               withSpinner(uiOutput(ns("output_save_word")), proxy.height = "100px")
+        column(width = 6#,
+               # withSpinner(uiOutput(ns("output_save_word")), proxy.height = "100px")
         )
         ),
         tags$hr(),
@@ -344,38 +345,38 @@ mod_04alueprof_server <- function(id){
         tags$li(class = "nav-item",
                 tags$a(class="toc-alueprof", href="#huono_osaisuuden_taloudelliset_yhteydet", "Huono-osaisuuden taloudelliset yhteydet")
         ),
-        tags$li(class = "nav-item",
-                tags$a(class="toc-alueprof", href="#postinumerotieto", "Postinumeroalueittainen tieto")
-        ),
-        tags$ul(
-          tags$li(class = "nav-item",
-                  tags$a(class="toc-alueprof", href="#ziptbl", "Taulukko")
-          ),
-          tags$li(class = "nav-item",
-                  tags$a(class="toc-alueprof", href="#dotplot", "Pistekuvio")
-          ),
-          tags$li(class = "nav-item",
-                  tags$a(class="toc-alueprof", href="#zipmap", "Kartat")
-          ),
-        ),
+        # tags$li(class = "nav-item",
+        #         tags$a(class="toc-alueprof", href="#postinumerotieto", "Postinumeroalueittainen tieto")
+        # ),
+        # tags$ul(
+        #   tags$li(class = "nav-item",
+        #           tags$a(class="toc-alueprof", href="#ziptbl", "Taulukko")
+        #   ),
+        #   tags$li(class = "nav-item",
+        #           tags$a(class="toc-alueprof", href="#dotplot", "Pistekuvio")
+        #   ),
+        #   tags$li(class = "nav-item",
+        #           tags$a(class="toc-alueprof", href="#zipmap", "Kartat")
+        #   ),
+        # ),
         ## ## ##
-        uiOutput(ns("alueprofiili_html")),
+        uiOutput(ns("alueprofiili_html"))#,
         # # ## ## ##
-        tags$h4("Postinumeroalueittainen tieto", id = "postinumerotieto"),
-        tags$a(class="nav-link", href="#alueprofiili", "Alueprofiilin alkuun"),
+        # tags$h4("Postinumeroalueittainen tieto", id = "postinumerotieto"),
+        # tags$a(class="nav-link", href="#alueprofiili", "Alueprofiilin alkuun"),
         ## ## ##
-        tags$h5("Taulukko", id = "ziptbl"),
-        tags$a(class="nav-link", href="#alueprofiili", "Alueprofiilin alkuun"),
-        uiOutput(ns("zipcode_tables")),
-        ## ## ##
-        tags$h5("Pistekuvio", id = "dotplot"),
-        tags$a(class="nav-link", href="#alueprofiili", "Alueprofiilin alkuun"),
-        uiOutput(ns("zipcode_dotplot")),
+        # tags$h5("Taulukko", id = "ziptbl"),
+        # tags$a(class="nav-link", href="#alueprofiili", "Alueprofiilin alkuun"),
+        # uiOutput(ns("zipcode_tables")),
         # ## ## ##
-        tags$h5("Kartat", id = "zipmap"),
-        tags$a(class="nav-link", href="#alueprofiili", "Alueprofiilin alkuun"),
-        uiOutput(ns("zipcode_maps")),
-        tags$a(class="nav-link", href="#alueprofiili", "Alueprofiilin alkuun")
+        # tags$h5("Pistekuvio", id = "dotplot"),
+        # tags$a(class="nav-link", href="#alueprofiili", "Alueprofiilin alkuun"),
+        # uiOutput(ns("zipcode_dotplot")),
+        # # ## ## ##
+        # tags$h5("Kartat", id = "zipmap"),
+        # tags$a(class="nav-link", href="#alueprofiili", "Alueprofiilin alkuun"),
+        # uiOutput(ns("zipcode_maps")),
+        # tags$a(class="nav-link", href="#alueprofiili", "Alueprofiilin alkuun")
       )
       
     })
@@ -449,11 +450,27 @@ mod_04alueprof_server <- function(id){
     #                                             
     # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
     ## wordin tallennus ----
+    ## 
+    ## 
+
+    output$report2 <- downloadHandler(
+      
+      filename = function() {
+        file_name <- glue("alueprofiili_{tolower(janitor::make_clean_names(input$value_region_profile))}_{tolower(input$value_regio_level_profile)}{input$value_report_format}")
+        return(file_name)
+      },
+      content = function(file) {
+        download.file(glue("https://software.markuskainu.fi/diak/alueprofiilit/alueprofiili_{tolower(janitor::make_clean_names(input$value_region_profile))}_{tolower(input$value_regio_level_profile)}_{sub('\\\\.', '', input$value_report_format)}{input$value_report_format}"), 
+                      destfile = file)
+        
+      }
+    )
     
     output$output_save_word <- renderUI({
       
       tagList(
-        downloadButton(ns("report"), "Tallenna alueprofiili laitteellesi!", class="btn btn-dark"),
+        downloadButton(ns("report2"), "Tallenna alueprofiili laitteellesi!", 
+                       class="btn btn-dark"),
         radioButtons(ns("value_report_format"),
                      "Valitse tallennettavan tiedoston tiedostomuoto",
                      choiceNames = list(

@@ -298,7 +298,7 @@ print_create_timeseries_plot(varclass = muuttujaluokka,
 # Postinumeroaluekohtaiset tiedot
 
 
-```{r zip_taulu, results = "asis"}
+```{r zip_taulu, results = "asis", eval = TRUE}
 aluetaso1 <- params_region_level
 load(system.file("data", "region_data.rda", package="karttasovellus"))
 reg_code <- region_data %>%
@@ -312,7 +312,7 @@ table_zipcodes(input_value_region_selected = reg_code,
 ```
 
 
-```{r zip_kartta}
+```{r zip_kartta, eval = TRUE}
 map_zipcodes(input_value_region_selected = reg_code,
                                        input_value_regio_level = aluetaso1,
                                        input_value_variable = "Kokonaislukema",

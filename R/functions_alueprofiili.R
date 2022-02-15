@@ -463,6 +463,7 @@ for (i in 1:zz){
       dat_naapurit <- spatdat[spatdat$aluekoodi %in% naapurit,] %>% select(-value)
       dat_naapurit2 <- left_join(dat_naapurit, plot_dat %>% select(aluekoodi,value)
       )
+      nregs <- length(unique(dat_naapurit2$aluenimi))
       gg_x[[i]] <- ggplot(data = dat_naapurit2, aes(fill = value, label = value)) +                    
         geom_sf(color = alpha("white", 1/3))  +
         theme_ipsum(base_family = "Lato", 
@@ -470,9 +471,11 @@ for (i in 1:zz){
                     plot_title_size = 10,
                     plot_title_family = "Lato",
                     subtitle_family = "Lato"
-        ) +
-        scale_fill_fermenter(palette = "YlGnBu", type = "seq", direction = 1) +
-        theme(axis.text.x = element_blank(),
+        ) -> p
+      if (nregs > 1){
+        p <- p + scale_fill_fermenter(palette = "YlGnBu", type = "seq", direction = 1)  
+      }
+      gg_x[[i]] <- p + theme(axis.text.x = element_blank(),
               axis.text.y = element_blank(),
               axis.title.x =  element_blank(),
               axis.title.y =  element_blank(),
