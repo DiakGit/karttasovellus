@@ -5,12 +5,15 @@
 \title{Create zipcode map}
 \usage{
 map_zipcodes(
-  input_value_region_selected = 91,
+  input_value_region_selected = 72,
   input_value_regio_level = "Kunnat",
   input_value_variable = "Kokonaislukema",
   leaflet = FALSE,
   alueprofiili = FALSE,
-  alueprofiili_doc = FALSE
+  alueprofiili_doc = FALSE,
+  basesize = 6,
+  plottextsize = 2.5,
+  add_caption = TRUE
 )
 }
 \arguments{

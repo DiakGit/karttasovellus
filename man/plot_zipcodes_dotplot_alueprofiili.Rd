@@ -7,6 +7,9 @@
 plot_zipcodes_dotplot_alueprofiili(
   input_value_region_selected = 5,
   input_value_regio_level = "Hyvinvointialueet",
+  basesize = 12,
+  dotsize = 4,
+  plottextsize = 3,
   zipvars = c("Kokonaislukema", "Alimpaan tuloluokkaan kuuluvat taloudet",
     "Alimpaan tuloluokkaan kuuluvat täysi-ikäiset", "Työttömät",
     "Peruskoulutuksen omaavat")

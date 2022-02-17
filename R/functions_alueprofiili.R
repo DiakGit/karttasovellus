@@ -164,13 +164,15 @@ alueprofiilikartta_html <- function(input_value_regio_level_profile = "Hyvinvoin
     arrange(muuttuja,asema)
   mapdata_tmp <- left_join(region_data, lista1_tbl, by = c("region_name" = "aluenimi")) %>% 
     filter(!is.na(muuttuja))
+  
+  nregs <- length(unique(mapdata_tmp$arvo))
+  
   plot <- ggplot(data = mapdata_tmp, aes(fill = arvo)) +                    
     geom_sf(color = alpha("white", 1/3))  +
     hrbrthemes::theme_ipsum(base_family = "Lato", 
                             base_size = 11, 
                             plot_title_size = 12) +
     # scale_fill_viridis_c(option = "plasma") +
-    scale_fill_fermenter(palette = "YlGnBu", type = "seq", direction = 1) +
     theme(axis.text.x = element_blank(),
           axis.text.y = element_blank(),
           axis.title.x = element_blank(),
@@ -187,6 +189,8 @@ alueprofiilikartta_html <- function(input_value_regio_level_profile = "Hyvinvoin
     ) +
     geom_sf_label(aes(label = paste0(region_name, "\n", round(arvo,1))), 
                   color = "black", fill = "white", family = "Lato", size = 3, label.size = 0)
+  
+  if (nregs > 1) plot <- plot +  scale_fill_fermenter(palette = "YlGnBu", type = "seq", direction = 1)
   plot
 }
 
@@ -297,6 +301,7 @@ create_gt_tbl <- function(lst_df = lista1_tbl02){
   htmltools::HTML(gt_tbl) -> gt_tbl
   return(gt_tbl)
 }
+
 
 #' Process data for profile
 #' 
@@ -463,8 +468,9 @@ for (i in 1:zz){
       dat_naapurit <- spatdat[spatdat$aluekoodi %in% naapurit,] %>% select(-value)
       dat_naapurit2 <- left_join(dat_naapurit, plot_dat %>% select(aluekoodi,value)
       )
-      nregs <- length(unique(dat_naapurit2$aluenimi))
-      gg_x[[i]] <- ggplot(data = dat_naapurit2, aes(fill = value, label = value)) +                    
+      nregs <- length(unique(dat_naapurit2[dat_naapurit2$variable == vars[i],]$value))
+
+      ggplot(data = dat_naapurit2, aes(fill = value, label = value)) +                    
         geom_sf(color = alpha("white", 1/3))  +
         theme_ipsum(base_family = "Lato", 
                     base_size = 9, 

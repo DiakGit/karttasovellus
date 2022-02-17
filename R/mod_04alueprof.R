@@ -20,8 +20,12 @@ mod_04alueprof_ui <- function(id){
                       tags$div(class = "col-lg-5",
                                uiOutput(ns("output_regio_level_profile")),
                                shinycssloaders::withSpinner(uiOutput(ns("output_region_profile"))),
-                               uiOutput(ns("output_button_profile")),
-                               uiOutput(ns("output_save_word"))
+                               tags$div(class = "row", 
+                                        tags$div(class = "col-lg-6",
+                                                 uiOutput(ns("output_button_profile"))),
+                                        tags$div(class = "col-lg-6",
+                                                 uiOutput(ns("output_save_word")))
+                                        )
                       )
                       ),
              tags$div(class = "row",
@@ -460,7 +464,7 @@ mod_04alueprof_server <- function(id){
         return(file_name)
       },
       content = function(file) {
-        download.file(glue("https://software.markuskainu.fi/diak/alueprofiilit/alueprofiili_{tolower(janitor::make_clean_names(input$value_region_profile))}_{tolower(input$value_regio_level_profile)}_{sub('\\\\.', '', input$value_report_format)}{input$value_report_format}"), 
+        download.file(glue("https://software.markuskainu.fi/diak/alueprofiilit_docs/alueprofiili_{tolower(janitor::make_clean_names(input$value_region_profile))}_{tolower(input$value_regio_level_profile)}_{sub('\\\\.', '', input$value_report_format)}{input$value_report_format}"), 
                       destfile = file)
         
       }

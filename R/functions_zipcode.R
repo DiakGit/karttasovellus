@@ -92,7 +92,10 @@ map_zipcodes <- function(input_value_region_selected = 72,
                          input_value_variable = "Kokonaislukema",
                          leaflet = FALSE, 
                          alueprofiili = FALSE,
-                         alueprofiili_doc = FALSE){
+                         alueprofiili_doc = FALSE,
+                         basesize = 6, 
+                         plottextsize = 2.5,
+  add_caption = TRUE){
   
   
   # input_value_regio_level <- "Postinumeroalueet"
@@ -107,7 +110,7 @@ map_zipcodes <- function(input_value_region_selected = 72,
     zipcodes <- get_koodit_zip(regio_selected = input_value_region_selected, 
                                     value_regio_level = input_value_regio_level)
     dat <- dat %>% filter(aluekoodi %in% zipcodes)
-  nregios <- nrow(dat)
+  nregios <- dat %>% filter(!is.na(value)) %>%  nrow()
   
   # luodaan alaotsikko
   kuvan_subtitle <- glue("Aluetaso: {input_value_regio_level}")
@@ -120,6 +123,10 @@ map_zipcodes <- function(input_value_region_selected = 72,
       scale_color_manual(values = c(alpha("white", 1/3), "black")) +
       theme_ipsum(base_family = "Lato",
                   plot_title_family = "Lato",
+                  base_size = basesize,
+                  plot_title_size = basesize+5, 
+                  strip_text_size = basesize+3, 
+                  subtitle_size =  basesize+4,
                   subtitle_family = "Lato",
                   grid_col = "white",
                   plot_title_face = "plain") -> p
@@ -128,6 +135,13 @@ map_zipcodes <- function(input_value_region_selected = 72,
       p <- p +  scale_fill_fermenter(palette = "YlGnBu", type = "seq", direction = 1, 
                                      guide = guide_colourbar(direction = "horizontal", title.position = "top", barwidth = 10))
       }
+    
+    
+    if (add_caption){
+      caption_text <- glue("Huono-osaisuus Suomessa -karttasovellus (Diak)\nData: Tilastokeskus Paavo (perusdata) & Diak (mediaanisuhteutus)\nTiedot haettu:{Sys.Date()}")
+    } else {
+      caption_text <- ""
+        }
     
     p <- p + theme(axis.text.x = element_blank(),
               axis.text.y = element_blank(),
@@ -140,8 +154,11 @@ map_zipcodes <- function(input_value_region_selected = 72,
               plot.title.position = "plot") +
       labs(title = add_line_break2(glue("{input_value_variable}"),30),
            subtitle = kuvan_subtitle,
-           caption = glue("Huono-osaisuus Suomessa -karttasovellus (Diak)\nData: Tilastokeskus Paavo (perusdata) & Diak (mediaanisuhteutus)\nTiedot haettu:{Sys.Date()}"),
+           caption = caption_text,
            fill = paste0(add_line_break2(input_value_variable, 38), " (suhdeluku)"))
+    
+    
+    
     if (!alueprofiili){
     p <- p + ggrepel::geom_label_repel(data = dat %>%  
                                   sf::st_set_geometry(NULL) %>%
@@ -150,6 +167,7 @@ map_zipcodes <- function(input_value_region_selected = 72,
                                               sf::st_coordinates() %>% as_tibble()),
                                 aes(label = paste0(aluenimi,aluekoodi,"\n",
                                                    round(value)), x = X, y = Y), label.size = 0, label.padding = 0,
+                                plottextsize = 2.5,
                                 color = "black", fill = "white", family = "Lato", lineheight = .8)      
     }
     if (!alueprofiili_doc & nregios <= 20){
@@ -160,6 +178,7 @@ map_zipcodes <- function(input_value_region_selected = 72,
                                                        sf::st_coordinates() %>% as_tibble()),
                                          aes(label = paste0(aluenimi,aluekoodi, "\n",
                                                             round(value)), x = X, y = Y), label.size = 0, label.padding = 0,
+                                         plottextsize = 2.5,
                                          color = "black", fill = "white", family = "Lato", lineheight = .8)      
     }
     if (alueprofiili_doc){
@@ -174,9 +193,10 @@ map_zipcodes <- function(input_value_region_selected = 72,
                                          color = "black", 
                           fill = "white",
                           label.size = 0,  
-                          family = "Lato", size = 2.5)      
+                          family = "Lato", size = plottextsize)      
       
     }
+    
     p
   } else {
     dat_wgs84 <- sf::st_transform(x = dat, crs = "+proj=longlat +datum=WGS84")
@@ -397,6 +417,9 @@ plot_zipcodes_bar <- function(input_value_region_selected = 5,
 #' @export
 plot_zipcodes_dotplot_alueprofiili <- function(input_value_region_selected = 5,
                               input_value_regio_level = "Hyvinvointialueet",
+                              basesize = 12, 
+                              dotsize = 4,
+                              plottextsize = 3, 
                               zipvars = c('Kokonaislukema',
                                           'Alimpaan tuloluokkaan kuuluvat taloudet',
                                           'Alimpaan tuloluokkaan kuuluvat täysi-ikäiset',
@@ -428,6 +451,7 @@ plot_zipcodes_dotplot_alueprofiili <- function(input_value_region_selected = 5,
   
   aluenimet <- arrange(dat[dat$variable == "Kokonaislukema",], value) %>% pull(aluenimi)
   dat$aluenimi <- factor(dat$aluenimi, levels = aluenimet)
+  dat$variable <- add_line_break2(dat$variable, n = 15)
   
   ggplot(data = dat, aes(y = aluenimi, 
                          x = value, 
@@ -439,14 +463,18 @@ plot_zipcodes_dotplot_alueprofiili <- function(input_value_region_selected = 5,
                  color = alpha("dim grey", 1/3), 
                  alpha=1, 
                  show.legend = FALSE) +
-    geom_point(aes(fill = value), color = "dim grey", shape = 21, size = 4, show.legend = FALSE) + 
+    geom_point(aes(fill = value), color = "dim grey", shape = 21, size = dotsize, show.legend = FALSE) + 
     geom_text(aes(label = round(value,0), 
                   x = value_nudge),
               color = "black", 
-              family = "Lato") +
+              family = "Lato", size = plottextsize) +
     scale_fill_fermenter(palette = "YlGnBu", type = "seq", direction = 1) +
     scale_color_fermenter(palette = "YlGnBu", type = "seq", direction = 1) +
-    theme_ipsum(base_family = "Lato",
+    theme_ipsum(base_family = "Lato", 
+                plot_title_size = basesize+7, 
+                strip_text_size = basesize+4, 
+                subtitle_size =  basesize+5,
+                base_size = basesize,
                 plot_title_family = "Lato",
                 subtitle_family = "Lato",
                 grid_col = "white",

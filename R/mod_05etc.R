@@ -36,7 +36,7 @@ mod_05etc_ui <- function(id){
                                tags$strong("Huono-osaisuus Suomessa -verkkosovellus"),
                                tags$ul(
                                  tags$li("Sovellusversio",
-                                         tags$code("1.0")),
+                                         tags$code("1.0.1")),
                                  # tags$li("Aineistoversio",
                                          # tags$code("0.9.0001"))
                                ),
