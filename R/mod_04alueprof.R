@@ -30,7 +30,7 @@ mod_04alueprof_ui <- function(id){
                       ),
              tags$div(class = "row",
                       tags$div(class = "col-lg-12",
-                               uiOutput(ns("region_profile_html"))
+                               uiOutput(ns("region_profile_html2"))
                       )
              )
              )
@@ -311,6 +311,31 @@ mod_04alueprof_server <- function(id){
     })
     
     ### profiili_html ----
+    
+    output$region_profile_html2 <- renderUI({
+      
+      
+      aluename <- react_value_region_profile()
+      aluetaso1 <- react_value_regio_level_profile()
+      region_data <- get_region_data()
+      reg_code <- region_data[region_data$level == aluetaso1 & region_data$region_name == aluename, ]$region_code
+      
+      url <- glue("https://diakgit.github.io/alueprofiilit/{tolower(aluetaso1)}-{janitor::make_clean_names(aluename)}-{reg_code}/index.html")
+      
+      tagit <- glue('
+      <div class="embed-responsive embed-responsive-4by3" style="box-shadow: rgba(100, 100, 111, 0.2) 0px 7px 29px 0px;">
+        <iframe class="embed-responsive-item" src={url} allowfullscreen style=""></iframe>
+          </div>
+      ')
+      
+      tagList(
+        
+        tags$html(HTML(tagit))
+          
+      )
+    })
+    
+    
     output$region_profile_html <- renderUI({
       
       
@@ -464,7 +489,7 @@ mod_04alueprof_server <- function(id){
         return(file_name)
       },
       content = function(file) {
-        download.file(glue("https://software.markuskainu.fi/diak/alueprofiilit_docs/alueprofiili_{tolower(janitor::make_clean_names(input$value_region_profile))}_{tolower(input$value_regio_level_profile)}_{sub('\\\\.', '', input$value_report_format)}{input$value_report_format}"), 
+        download.file(glue("https://diakgit.github.io/alueprofiilit_docs/alueprofiili_{tolower(janitor::make_clean_names(input$value_region_profile))}_{tolower(input$value_regio_level_profile)}_{sub('\\\\.', '', input$value_report_format)}{input$value_report_format}"), 
                       destfile = file)
         
       }
