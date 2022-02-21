@@ -14,16 +14,20 @@ mod_04alueprof_ui <- function(id){
              tags$div(class = "row grey-background",
                       tags$div(class = "col-lg-7",
                                tags$h2(id = "alueprofiili", "Alueprofiili"),
+
                                tags$p("Alueprofiilissa näet kaikki aineiston osoittimet luokan mukaan ryhmiteltynä. Kustakin osoittimesta näytetään valitun alueen lisäksi sen rajanaapurit sekä osoittimen korkeimman ja matalimman arvon alueet. Alueet on järjestetty kunkin osoittimen kohdalla aseman mukaan."),
-                               tags$p("Valitse ensin aluetaso, sitten alue ja paina lopuksi", tags$em("Luo alueprofiili"), "-painiketta. Alueprofiilin luominen kestää noin minuutin ajan. Voit tallentaa profiilin laitteellesi")
+                               tags$p("Valitse ensin aluetaso, sitten alue, ja sen jälkeen valitse haluatko tarkastella alueprofiilia suoraan sovelluksessa tai omalla välilehdellään. Voit myös tallentaa alueprofiilin omalle laitteellesi Word- tai OpenDocument-muodossa.")
                       ),
                       tags$div(class = "col-lg-5",
                                uiOutput(ns("output_regio_level_profile")),
                                shinycssloaders::withSpinner(uiOutput(ns("output_region_profile"))),
                                tags$div(class = "row", 
-                                        tags$div(class = "col-lg-6",
+                                        tags$div(class = "col-lg-4",
                                                  uiOutput(ns("output_button_profile"))),
-                                        tags$div(class = "col-lg-6",
+                                        tags$div(class = "col-lg-4",
+                                                 uiOutput(ns("region_profile_link"))
+                                                 ),
+                                        tags$div(class = "col-lg-4",
                                                  uiOutput(ns("output_save_word")))
                                         )
                       )
@@ -88,7 +92,7 @@ mod_04alueprof_server <- function(id){
     output$output_button_profile <- renderUI({
       tagList(
         actionButton(ns("button"), 
-                     label = tags$strong("Luo alueprofiili sovellukseen"), 
+                     label = "Luo alueprofiili sovellukseen", 
                      class="btn btn-outline-primary")
       )
     })
@@ -312,9 +316,25 @@ mod_04alueprof_server <- function(id){
     
     ### profiili_html ----
     
+    
+    output$region_profile_link <- renderUI({
+      
+      req(input$value_regio_level_profile)
+      aluename <- input$value_region_profile
+      aluetaso1 <- input$value_regio_level_profile
+      region_data <- get_region_data()
+      reg_code <- region_data[region_data$level == aluetaso1 & region_data$region_name == aluename, ]$region_code
+      
+      url <- glue("https://diakgit.github.io/alueprofiilit/{tolower(aluetaso1)}-{janitor::make_clean_names(aluename)}-{reg_code}/index.html")
+      tagList(
+        # tags$h2("otsikko")
+        HTML(glue('<a href = "{url}" target = _blank><button type="button" class="btn btn-outline-primary">Avaa alueprofiili uuteen välilehteen</button></a>'))
+      )
+    })
+    
+
     output$region_profile_html2 <- renderUI({
-      
-      
+
       aluename <- react_value_region_profile()
       aluetaso1 <- react_value_regio_level_profile()
       region_data <- get_region_data()
@@ -499,12 +519,12 @@ mod_04alueprof_server <- function(id){
       
       tagList(
         downloadButton(ns("report2"), "Tallenna alueprofiili laitteellesi!", 
-                       class="btn btn-dark"),
+                       class="btn btn-outline-primary"),
         radioButtons(ns("value_report_format"),
-                     "Valitse tallennettavan tiedoston tiedostomuoto",
+                     "Valitse tiedostomuoto",
                      choiceNames = list(
                        "Word (.docx)",
-                       "LibreOffice/OpenOffice/Google Docs (.odt)"),
+                       "OpenDocument (.odt)"),
                      choiceValues = list(
                        ".docx",
                        ".odt"),
