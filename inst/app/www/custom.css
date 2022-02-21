@@ -40,6 +40,11 @@ body {
 
       }
       
+.embed-border {
+  border: 5px solid red;
+  box-sizing: border-box; /* prevents extra width from being added */
+}
+      
 /* headroom.js ------------------------ */
 
 .headroom {
