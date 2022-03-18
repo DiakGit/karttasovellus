@@ -402,7 +402,8 @@ muuttujakuvaukset <- read_excel("../../../data_storage/v20220222/Muuttujakuvauks
                                                             "Inhimillinen huono-osaisuus",
                                                             "Huono-osaisuuden taloudelliset seuraukset", 
                                                             "Huono-osaisuuden sosiaaliset seuraukset",
-                                                            "Postinumerotarkastelu"))) %>% 
+                                                            "Postinumerotarkastelu",
+                                                            "Gini-kerroin"))) %>% 
   arrange(Muuttujaluokka) #%>% 
 # mutate(Aluetasot = sub("Maakunnat", "Hyvinvointialueet", Aluetasot))
 
