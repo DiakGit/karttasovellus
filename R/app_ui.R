@@ -81,8 +81,9 @@ golem_add_external_resources <- function(){
     tags$script(src="https://cdnjs.cloudflare.com/ajax/libs/headroom/0.11.0/jQuery.headroom.min.js",
                 integrity="sha256-ZX/yNShbjqsohH1k95liqY9Gd8uOiE1S4vZc+9KQ1K4=",
                 crossorigin="anonymous"),
-    
-
+    # Mathjax
+    tags$script(src="https://cdn.jsdelivr.net/npm/mathjax@2/MathJax.js?config=AM_CHTML",
+                async="true"),
     tags$script(src="https://dplyr.tidyverse.org/pkgdown.js")#,
     # tags$link(rel="stylesheet",
     #           href="https://dplyr.tidyverse.org/tidyverse-2.css")

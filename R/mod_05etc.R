@@ -14,6 +14,26 @@ mod_05etc_ui <- function(id){
              tags$div(class="row",
                       tags$div(class = "col-lg-12",
                                tags$h2(id = "info", "Lisätietoja"),
+                               # tags$h4("Menetelmät"),
+                               # # tags$div(class="cmath", 
+                               # #          "`G_(x)=(sum_(i = 1)^m sum_(k = 1)^m n_(i)n_(k) abs(y_(i) - y_(k))) / (2 bar y_((w)))`"),
+                               # tags$div(class = "col-md-6",
+                               # tags$div(HTML('<div class="card">
+                               #   <div class="card-body">
+                               #   <h5 class="card-title">Gini-kerroin</h5>
+                               #   <p class="card-text">Gini-kertoimella voidaan mitata matemaattisesti tietyn jakauman epätasaisuutta. Yleisimmin Gini-kerrointa käytetään kuvaamaan tuloerojen suuruutta. Tässä sovelluksessa sillä mitataan eri hyvinvointialueiden tasolla eri indikaattoreiden kuntatason eriarvoisuutta</p>
+                               #   <p class="card-text">Tässä sovelluksessa eri indikaattoreiden gini-kerroin lasketaan painotettuna kunnan väestön määrällä, seuraavan kaavan mukaisesti:</p>
+                               #   <div class = "cmath">`G_(x)=(sum_(i = 1)^m sum_(k = 1)^m n_(i)n_(k) abs(y_(i) - y_(k))) / (2 bar y_((w)))`</div>
+                               #   <div class = "cmath">missä `i` on ... ja missä `k` on --- ja missä `w` on ... ja missä `y` on ... </div>
+                               #   <p class = "card-text">Lähteet:</p>
+                               #   <ul>
+                               #   <li><a href = "https://ndhadeliver.natlib.govt.nz/delivery/DeliveryManagerServlet?dps_pid=IE28386932">Duoba & MacGibbon 2017 Accurate calculation of a Gini index using SAS and R.</a></li>
+                               #   <li><a href = "https://www.regionalstudies.org/wp-content/uploads/2018/07/Gluschenko_-_Paper.pdf">Gluschenko 2017 Measuring Regional Inequality: To Weight or not to Weight?.</a></li>
+                               #   <li><a href = "https://www.wgtn.ac.nz/cpf/publications/pdfs/2015-pubs/WP03_2015_Gini_Inequality.pdf">Creedy 2015 A Note on Computing the Gini Inequality Measure with Weighted Data.</a></li>
+                               #   <li><a href = "https://en.wikipedia.org/wiki/Gini_coefficient">Wikipedia: Gini Coefficient</a></li>
+                               #   </ul>
+                               #   </div>
+                               #          </div>'))),
                                tags$h3("Aineisto"),
                                tags$h4("Summamuttujat"),
                                gt_output(ns("variable_desctiption_gt1")),

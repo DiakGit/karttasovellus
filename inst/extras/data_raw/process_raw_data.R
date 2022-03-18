@@ -11,10 +11,12 @@ setwd(here("./inst/extras/"))
 
 
 ## POIKKILEIKKAUSDATA ----
-dd <- read_excel("../../../data_storage/v20211104/huono_osaisuusindikaattorit_20211104.xlsx") %>% 
-  select(1:31) %>% 
+dd <- read_excel("../../../data_storage/v20220222/Huono-osaisuusindikaattorit - uusimmat.xlsx") %>% 
+  # select(1:31) %>% 
   filter(!is.na(Aika)) %>% 
   select(-Aika)
+
+dd <- dd[,colSums(is.na(dd))<nrow(dd)]
 
 df_tmp <- dd %>%
   rename(aluekoodi = Aluekoodi,
@@ -193,8 +195,8 @@ save(region_data, file = here::here("data/region_data.rda"),
      compress = "bzip2")
 
 ## AIKASARJADATA ----
-dd <- read_excel("../../../data_storage/v20211104/aikasarjadata_20211104.xlsx", 
-           col_types = c(rep("text", 4), rep("numeric", 27)))
+dd <- read_excel("../../../data_storage/v20220222/Aikasarjadata UUSIN.xlsx", 
+           col_types = c(rep("text", 4), rep("numeric", 26)))
 
 df_tmp <- dd %>%
   rename(aluekoodi = Aluekoodi,
@@ -394,7 +396,7 @@ document_data(dat = ineq_data,
                               description = "municipality level weighted ginis for all indicators at various regional breakdowns")
 
 # Muuttujakuvaukset ----
-muuttujakuvaukset <- read_excel("../../../data_storage/v20220204/Muuttujakuvaukset_uusi.xlsx") %>% 
+muuttujakuvaukset <- read_excel("../../../data_storage/v20220222/Muuttujakuvaukset - UUSI.xlsx") %>% 
   setNames(c("Muuttujaluokka","Muuttuja","Aluetasot","Kuvaus")) %>% 
   mutate(Muuttujaluokka = factor(Muuttujaluokka, levels = c("Summamuuttujat",
                                                             "Inhimillinen huono-osaisuus",
