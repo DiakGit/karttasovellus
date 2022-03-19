@@ -1,7 +1,7 @@
 
 <!-- README.md is generated from README.Rmd. Please edit that file -->
 
-# Huono-osaisuus Suomessa karttasovellus
+# Huono-osaisuus Suomessa -karttasovellus
 
 <!-- badges: start -->
 

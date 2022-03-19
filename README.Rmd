@@ -13,7 +13,7 @@ knitr::opts_chunk$set(
 )
 ```
 
-# Huono-osaisuus Suomessa karttasovellus
+# Huono-osaisuus Suomessa -karttasovellus
 
 
 <!-- badges: start -->
