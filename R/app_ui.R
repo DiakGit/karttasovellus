@@ -62,6 +62,23 @@ golem_add_external_resources <- function(){
       path = app_sys('app/www'),
       app_title = 'karttasovellus'
     ),
+    tags$html(HTML("
+    <script>
+  var _paq = window._paq = window._paq || [];
+  /* tracker methods like \"setCustomDimension\" should be called before \"trackPageView\" */
+    _paq.push(['trackPageView']);
+  _paq.push(['enableLinkTracking']);
+  (function() {
+    var u=\"https://shinyapps.matomo.cloud/\";
+    _paq.push(['setTrackerUrl', u+'matomo.php']);
+    _paq.push(['setSiteId', '1']);
+    var d=document, g=d.createElement('script'), s=d.getElementsByTagName('script')[0];
+    g.async=true; g.src='//cdn.matomo.cloud/shinyapps.matomo.cloud/matomo.js'; s.parentNode.insertBefore(g,s);
+  })();
+  </script>")),
+    
+    
+    
     # Add here other external resources
     # for example, you can add shinyalert::useShinyalert() 
                       # tags$link(rel="shortcut icon", href="favicon.ico"),
