@@ -210,7 +210,7 @@ map_zipcodes <- function(input_value_region_selected = 72,
     
     
     base <- leaflet(data = dat_wgs84) %>% 
-      addTiles(urlTemplate = "http://tiles.kartat.kapsi.fi/taustakartta/{z}/{x}/{y}.jpg",
+      addTiles(urlTemplate = "https://tiles.kartat.kapsi.fi/taustakartta/{z}/{x}/{y}.jpg",
                options = tileOptions(opacity = .4))
 
     base %>%   
@@ -275,7 +275,7 @@ map_zipcodes_alueprofiili <- function(input_value_region_selected = 91,
   dat_wgs84 <- sf::st_transform(x = dat, crs = "+proj=longlat +datum=WGS84")
     
   base <- leaflet(data = dat_wgs84) %>% 
-    addTiles(urlTemplate = "http://tiles.kartat.kapsi.fi/taustakartta/{z}/{x}/{y}.jpg",
+    addTiles(urlTemplate = "https://tiles.kartat.kapsi.fi/taustakartta/{z}/{x}/{y}.jpg",
              options = tileOptions(opacity = .4))
   
   for (ii in seq_along(zipvars)){

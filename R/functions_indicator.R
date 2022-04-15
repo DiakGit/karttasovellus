@@ -396,7 +396,7 @@ plot_map <- function(input_value_regio_level = "Hyvinvointialueet",
     
     
     base <- leaflet(data = dat_wgs84) %>% 
-      addTiles(urlTemplate = "http://tiles.kartat.kapsi.fi/taustakartta/{z}/{x}/{y}.jpg",
+      addTiles(urlTemplate = "https://tiles.kartat.kapsi.fi/taustakartta/{z}/{x}/{y}.jpg",
                options = tileOptions(opacity = .4))
     
     base %>%   
