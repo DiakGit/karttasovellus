@@ -52,15 +52,33 @@ mod_02navi_ui <- function(id){
                                   tags$div(class = "col-lg-8",
                                            tags$h1(id = "content", "Huono-osaisuus Suomessa"),
                                            tags$p(class = "lead",
-                                                  "Karttasovelluksessa voit tarkastella erilaisia huono-osaisuuden osoittimia sekä luoda profiileja alueista. Indikaattorivertailussa on kolme aluetasoa: hyvinvointialueet, seutukunnat ja kunnat. Postinumerotason tarkastelulle on oma osionsa."),
+                                                  "Karttasovelluksessa voit tarkastella erilaisia huono-osaisuuden osoittimia sekä luoda profiileja alueista. Indikaattorivertailussa on kolme aluetasoa: hyvinvointialueet, seutukunnat ja kunnat. Postinumerotason tarkastelulle on oma osionsa.")
+                                  )
+                                  ),
+                         
+                         tags$div(class = "row",
+                                  tags$html(HTML('
+<div class="accordion accordion-flush" id="accordionFlushExample">
+  <div class="accordion-item">
+    <h2 class="accordion-header" id="ohje">
+      <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#flush-collapseOne" aria-expanded="false" aria-controls="flush-collapseOne">
+        Näin käytät sovellusta
+      </button>
+    </h2>
+    <div id="flush-collapseOne" class="accordion-collapse collapse" aria-labelledby="ohje" data-bs-parent="#accordionFlushExample">
+      <div class="accordion-body">')),
+                                  
+                                  
+                                  
+                                  tags$div(class = "col-lg-8",
                                            tags$h2(id = "ohje", "Näin käytät sovellusta"),
                                            tags$p(
                                              tags$a(href = "#indikaattorivertailu", "Muuttujien tarkasteluun"), "ja", 
                                              tags$a(href = "#alueprofiili", "alueprofiilien laatimiseen"), 
                                              "on omat valikkonsa"),
                                            tags$p(
-                                           tags$strong("Indikaattorivertailun"),
-                                           tags$em("valitse muuttujaluokka"), "-valikosta voit säädellä haluatko katsoa huono-osaisuuden summatietoja vai tarkemmin kunkin huono-osaisuuden ulottuvuuden osoittimia.", tags$em("Valitse muuttuja"),"-valikosta voit valita tarkemman osoittimen ja", tags$em("valitse aluetaso"),"-valikosta aluetason. ", tags$br(),"Voit myös valita, näkyykö piste-, kartta- ja aikasarjakuviossa:"
+                                             tags$strong("Indikaattorivertailun"),
+                                             tags$em("valitse muuttujaluokka"), "-valikosta voit säädellä haluatko katsoa huono-osaisuuden summatietoja vai tarkemmin kunkin huono-osaisuuden ulottuvuuden osoittimia.", tags$em("Valitse muuttuja"),"-valikosta voit valita tarkemman osoittimen ja", tags$em("valitse aluetaso"),"-valikosta aluetason. ", tags$br(),"Voit myös valita, näkyykö piste-, kartta- ja aikasarjakuviossa:"
                                            ),
                                            tags$ul(
                                              tags$li("kaikki valitun tason alueet,"),
@@ -78,38 +96,45 @@ mod_02navi_ui <- function(id){
                                            tags$p("Indikaattorit ja muuttujat on muodostettu vuosien 2018-2020 tilastojen keskiarvosta vuosivaihtelun minimoimiseksi, ja suhteuttamalla arvo keskimmäiseen eli mediaanihyvinvointialueeseen/-seutukuntaan/-kuntaan vertailun helpottamiseksi. Mitä suurempi lukema on, sitä huonompi alueen tilanne on. Aikasarjoissa lukemat vuodesta 2010 alkaen kolmen vuoden liukuvina keskiarvoina.",
                                                   tags$a(href = "https://www.diak.fi/kumppanille-ja-kehittajalle/kehittamistyokalut/huono-osaisuus-suomessa-karttasivusto/#73053a2b", 
                                                          "Lue lisää Diakin sivuilta!"))
-                                           ),
+                                  ),
                                   tags$div(class = "col-lg-4",
                                            tags$div(style = "padding-top: 20px;"),
-                                                    tags$div(class = "col-sm",
-                                                             tags$a(href = "https://ec.europa.eu/regional_policy/fi/funding/erdf/", 
-                                                                    tags$img(src = "www/app_eu.png",
-                                                                             class="rounded mx-auto d-block",
-                                                                             style="height: 160px;",
-                                                                             alt = "Euroopan unionin lippu, jonka alla teksti: Euroopan unioni, Euroopan aluekehitysrahasto"))),
-                                                             tags$a(href = "https://www.rakennerahastot.fi", 
-                                                                    tags$img(src = "www/app_vipu.png", 
-                                                                             class="rounded mx-auto d-block",
-                                                                             style="height: 90px; padding-top: 20px;",
-                                                                             alt = "Rakennerahastot.fi -verkkopalvelun logo")),
-                                                             tags$a(href = "https://thl.fi/fi/web/hyvinvoinnin-ja-terveyden-edistamisen-johtaminen/osallisuuden-edistaminen/heikoimmassa-asemassa-olevien-osallisuus", 
-                                                                    tags$img(src = "www/app_sokra.png", 
-                                                                             class="rounded mx-auto d-block",
-                                                                             style="height: 100px;padding-top: 20px;", 
-                                                                             alt = "Sosiaalisen osallisuuden edistämisen koordinaatiohankeen Sokran logo")),
-                                                                    tags$a(href = "https://tutkittutieto.fi", 
-                                                                    tags$img(src = "www/app_diak.png", 
-                                                                             class="rounded mx-auto d-block",
-                                                                             style="height: 80px;padding-top: 20px;", 
-                                                                             alt = "Diakonia-ammattikorkeakoulun logo")),
-                                                             tags$a(href = "https://tutkittutieto.fi", 
-                                                                    tags$img(src = "www/app_teema.jpg", 
-                                                                             class="rounded mx-auto d-block",
-                                                                             style="height: 110px; padding-top: 20px;", 
-                                                                             alt = "Tutkitun tiedon teemavuoden logo"))
-                                  )))
-  )
-}
+                                           tags$div(class = "col-sm",
+                                                    tags$a(href = "https://ec.europa.eu/regional_policy/fi/funding/erdf/", 
+                                                           tags$img(src = "www/app_eu.png",
+                                                                    class="rounded mx-auto d-block",
+                                                                    style="height: 160px;",
+                                                                    alt = "Euroopan unionin lippu, jonka alla teksti: Euroopan unioni, Euroopan aluekehitysrahasto"))),
+                                           tags$a(href = "https://www.rakennerahastot.fi", 
+                                                  tags$img(src = "www/app_vipu.png", 
+                                                           class="rounded mx-auto d-block",
+                                                           style="height: 90px; padding-top: 20px;",
+                                                           alt = "Rakennerahastot.fi -verkkopalvelun logo")),
+                                           tags$a(href = "https://thl.fi/fi/web/hyvinvoinnin-ja-terveyden-edistamisen-johtaminen/osallisuuden-edistaminen/heikoimmassa-asemassa-olevien-osallisuus", 
+                                                  tags$img(src = "www/app_sokra.png", 
+                                                           class="rounded mx-auto d-block",
+                                                           style="height: 100px;padding-top: 20px;", 
+                                                           alt = "Sosiaalisen osallisuuden edistämisen koordinaatiohankeen Sokran logo")),
+                                           tags$a(href = "https://tutkittutieto.fi", 
+                                                  tags$img(src = "www/app_diak.png", 
+                                                           class="rounded mx-auto d-block",
+                                                           style="height: 80px;padding-top: 20px;", 
+                                                           alt = "Diakonia-ammattikorkeakoulun logo")),
+                                           tags$a(href = "https://tutkittutieto.fi", 
+                                                  tags$img(src = "www/app_teema.jpg", 
+                                                           class="rounded mx-auto d-block",
+                                                           style="height: 110px; padding-top: 20px;", 
+                                                           alt = "Tutkitun tiedon teemavuoden logo"))
+                                  ),
+                                  tags$html(HTML('
+      
+      </div>
+    </div>
+  </div>
+  ')))
+                                  )
+                )
+    }
     
 #' 02navi Server Functions
 #'

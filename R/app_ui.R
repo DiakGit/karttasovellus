@@ -24,7 +24,7 @@ app_ui <- function(request) {
                         twitter_card_type = "summary_large_image",
                         twitter_site = "@muuankarski"
                     ),
-                theme = bslib::bs_theme(#version = 5,
+                theme = bslib::bs_theme(version = 5,
                                         #bootswatch = "cosmo",
                                         # bootswatch = "minty",
                                         base_font = font_google("Source Sans Pro"),
