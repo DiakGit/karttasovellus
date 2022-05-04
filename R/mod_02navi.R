@@ -82,6 +82,16 @@ mod_02navi_ui <- function(id){
                                   tags$div(class = "col-lg-4",
                                            tags$div(style = "padding-top: 20px;"),
                                                     tags$div(class = "col-sm",
+                                                             tags$html(HTML('
+<div class="card">
+  <div class="card-body" >
+    <strong class="card-title">Kysy lisää karttasivustosta ja sen käytöstä!</strong>
+    <p class="card-text">Erityisasiantuntija Sakari Kainulainen, <br/>Diakonia-ammattikorkeakoulu</p>
+    <a href="mailto:sakari.kainulainen@diak.fi" class="card-link">sakari.kainulainen@diak.fi</a><br/>
+    <code>040 8696018</code>
+    </div>
+    </div>')),
+                                                             tags$div(style = "padding-top: 30px;"),
                                                              tags$a(href = "https://ec.europa.eu/regional_policy/fi/funding/erdf/", 
                                                                     tags$img(src = "www/app_eu.png",
                                                                              class="rounded mx-auto d-block",
