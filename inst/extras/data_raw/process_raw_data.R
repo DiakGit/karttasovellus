@@ -11,7 +11,7 @@ setwd(here("./inst/extras/"))
 
 
 ## POIKKILEIKKAUSDATA ----
-dd <- read_excel("../../../data_storage/v20220222/Huono-osaisuusindikaattorit - uusimmat.xlsx") %>% 
+dd <- read_excel("../../../data_storage/v20230222/Huono-osaisuusindikaattorit - uusimmat.xlsx") %>% 
   # select(1:31) %>% 
   filter(!is.na(Aika)) %>% 
   select(-Aika)
@@ -195,7 +195,7 @@ save(region_data, file = here::here("data/region_data.rda"),
      compress = "bzip2")
 
 ## AIKASARJADATA ----
-dd <- read_excel("../../../data_storage/v20220222/Aikasarjadata UUSIN.xlsx", 
+dd <- read_excel("../../../data_storage/v20230222/Aikasarjadata UUSIN.xlsx", 
            col_types = c(rep("text", 4), rep("numeric", 26)))
 
 df_tmp <- dd %>%
@@ -291,7 +291,7 @@ library(dplyr)
 library(janitor)
 pxweb_query_list <- list("Alue 2021"=c("*"), "Tiedot"=c("M411"),"Vuosi"=c("*"))
 # Download data 
-px_data <- pxweb_get(url = "https://pxnet2.stat.fi/PXWeb/api/v1/fi/Kuntien_avainluvut/2021/kuntien_avainluvut_2021_aikasarja.px",
+px_data <- pxweb_get(url = "https://pxdata.stat.fi/PXWeb/api/v1/fi/Kuntien_avainluvut/2021/kuntien_avainluvut_2021_aikasarja.px",
                      query = pxweb_query_list)
 px_tibble <- as.data.frame(px_data, 
                            column.name.type = "text", 
@@ -396,7 +396,7 @@ document_data(dat = ineq_data,
                               description = "municipality level weighted ginis for all indicators at various regional breakdowns")
 
 # Muuttujakuvaukset ----
-muuttujakuvaukset <- read_excel("../../../data_storage/v20220222/Muuttujakuvaukset - UUSI.xlsx") %>% 
+muuttujakuvaukset <- read_excel("../../../data_storage/v20230222/Muuttujakuvaukset - UUSI.xlsx") %>% 
   setNames(c("Muuttujaluokka","Muuttuja","Aluetasot","Kuvaus")) %>% 
   mutate(Muuttujaluokka = factor(Muuttujaluokka, levels = c("Summamuuttujat",
                                                             "Inhimillinen huono-osaisuus",
