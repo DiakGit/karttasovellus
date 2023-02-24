@@ -1,6 +1,6 @@
 default:
   golem_name: karttasovellus
-  golem_version: v1.0.3
+  golem_version: v1.0.3001
   app_prod: no
 production:
   app_prod: yes

@@ -17,8 +17,8 @@ if (F){
 #'
 #' @export
 process_zipdata <- function(varname = "Kokonaislukema"){
-  load(system.file("data", "dfzip_v20220202.rda", package="karttasovellus"))
-  dtmp <- dfzip_v20220202[dfzip_v20220202$variable %in% varname, ]
+  load(system.file("data", "dfzip_v20230224.rda", package="karttasovellus"))
+  dtmp <- dfzip_v20230224[dfzip_v20230224$variable %in% varname, ]
   return(dtmp)
 }
 
@@ -30,8 +30,8 @@ process_zipdata <- function(varname = "Kokonaislukema"){
 #'
 #' @export
 process_zipdata_timeseries <- function(varname = "Kokonaislukema"){
-  load(system.file("data", "dfzip_v20220202_aikasarja.rda", package="karttasovellus"))
-  dtmp <- dfzip_v20220202_aikasarja[dfzip_v20220202_aikasarja$variable %in% varname, ]
+  load(system.file("data", "dfzip_v20230224_aikasarja.rda", package="karttasovellus"))
+  dtmp <- dfzip_v20230224_aikasarja[dfzip_v20230224_aikasarja$variable %in% varname, ]
   return(dtmp)
 }
 
@@ -208,10 +208,18 @@ map_zipcodes <- function(input_value_region_selected = 72,
       dat_wgs84$region_name, dat_wgs84$region_code, dat_wgs84$kuntanimi, round(dat_wgs84$value,1)
     ) %>% lapply(htmltools::HTML)
     
+    # EPSG3067 <- leaflet::leafletCRS(crsClass = "L.Proj.CRS",
+    #                                 code = "EPSG:3067", 
+    #                                 proj4def = "+proj=utm +zone=35 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs",
+    #                                 resolutions = 1.5^(25:15))
     
-    base <- leaflet(data = dat_wgs84) %>% 
-      addTiles(urlTemplate = "https://tiles.kartat.kapsi.fi/taustakartta/{z}/{x}/{y}.jpg",
-               options = tileOptions(opacity = .4))
+    base <- leaflet(data = dat_wgs84#, 
+                    # options = leafletOptions(worldCopyJump = F, 
+                    #                          crs = EPSG3067)
+                    ) %>% 
+      addTiles(#urlTemplate = "https://tiles.kartat.kapsi.fi/taustakartta_3067/{z}/{x}/{y}.jpg",
+              urlTemplate = "https://tiles.kartat.kapsi.fi/taustakartta/{z}/{x}/{y}.jpg",
+               options = tileOptions(opacity = .4, continuousWorld = T))
 
     base %>%   
       addPolygons(fillColor = ~pal(value),
@@ -262,11 +270,11 @@ map_zipcodes_alueprofiili <- function(input_value_region_selected = 91,
                                      'Peruskoulutuksen omaavat')){
 
   region_data <- get_region_zipdata()
-  load(system.file("data", "dfzip_v20220202.rda", package="karttasovellus"))
-  # dfzip <- dfzip_v20220202 %>% 
+  load(system.file("data", "dfzip_v20230224.rda", package="karttasovellus"))
+  # dfzip <- dfzip_v20230224 %>% 
   #   pivot_wider(names_from = variable, values_from = value)  
   dat <- left_join(region_data %>% select(-kuntanro),
-                   dfzip_v20220202,by = c("region_name" = "aluenimi"), keep = TRUE)
+                   dfzip_v20230224,by = c("region_name" = "aluenimi"), keep = TRUE)
   
   zipcodes <- get_koodit_zip(regio_selected = input_value_region_selected, 
                              value_regio_level = input_value_regio_level)
@@ -575,8 +583,8 @@ table_zipcodes <- function(input_value_region_selected = 91,
   
   naapurikoodit <- get_koodit_zip(regio_selected = input_value_region_selected,
                                   value_regio_level = input_value_regio_level)
-  load(system.file("data", "dfzip_v20220202.rda", package="karttasovellus"))
-  dfzip_v20220202 %>% 
+  load(system.file("data", "dfzip_v20230224.rda", package="karttasovellus"))
+  dfzip_v20230224 %>% 
     filter(aluekoodi %in% naapurikoodit) %>% 
     select(aluekoodi, aluenimi, variable, value) %>% 
     mutate(value = round(value, 1),

@@ -17,7 +17,8 @@ print_create_timeseries_plot(
     "Kunnan yleinen pienituloisuusaste", "Alkoholikuolleisuus 35-64 vuotiailla",
     "Itsemurhakuolleisuus", "Itsensä yksinäiseksi tuntevien osuus",
     "Psyykkisesti merkittävästi kuormittuneiden osuus",
-    "Terveytensä keskitasoiseksi tai sitä huonommaksi kokevien osuus",     
+    "Terveytensä keskitasoiseksi tai sitä huonommaksi kokevien osuus", 
+    
     "Huono-osaisuuden sosiaaliset seuraukset",
     "Kodin ulkopuolelle sijoitetut 0 – 17-vuotiaat",
     "Poliisin tietoon tulleet henkeen ja terveyteen kohdistuneet rikokset",
@@ -25,7 +26,8 @@ print_create_timeseries_plot(
     "0 - 17-vuotiaat lapset, joista on tehty lastensuojeluilmoitus",
     "Rahanpuutteen vuoksi ruoasta, lääkkeistä tai lääkärikäynneistä tinkimään joutuneiden osuus",
     "Korkeat asiakasmaksut haitanneet hoidon saantia",
-    "Huono-osaisuuden taloudelliset yhteydet",     
+    "Huono-osaisuuden taloudelliset yhteydet", 
+    
     "Kunnan osarahoittama työmarkkinatuki",
     "Lastensuojelun laitos- ja perhehoidon nettokäyttökustannukset",
     "Aikuisten mielenterveyden avohoitokäynnit",
@@ -33,7 +35,8 @@ print_create_timeseries_plot(
     "Päihdehuollon avopalveluissa asiakkaita", "Täydentävä toimeentulotuki",
     "Päihteiden vaikutuksen alaisena tehdyistä rikoksista syyllisiksi epäillyt",
     "Poliisin tietoon tulleet henkeen ja terveyteen kohdistuneet rikokset",
-    "Lastensuojelun laitos- ja perhehoidon nettokäyttökustannukset",     
+    "Lastensuojelun laitos- ja perhehoidon nettokäyttökustannukset", 
+    
     "Huono-osaisuuden sosiaaliset seuraukset"),
   ncol = 2
 )

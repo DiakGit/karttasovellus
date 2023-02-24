@@ -1,14 +1,13 @@
 Package: karttasovellus
 Title: Huono-osaisuus Suomessa verkkosovellus
-Version: 1.0.1
-Date: 2022-03-18
+Version: 1.0.3001
+Date: 2023-02-24
 Authors@R: person(given = 'Diakonia-ammattikorkeakoulu', role = c('cre', 'aut'), email = "sakari.kainulainen@diak.fi")
 Description: Huono-osaisuus Suomessa on verkkosovellus, joka tuottaa eriteltyä tietoa huono-osaisuudesta hyvinvointialueittain, seutukunnittain tai kunnittain.
 License: MIT + file LICENSE
 Depends: 
     R (>= 3.5.0)
 Imports: 
-    acid,
     attempt,
     bslib,
     config (>= 0.3.1),
@@ -23,7 +22,6 @@ Imports:
     gt,
     hrbrthemes,
     htmltools,
-    hunspell,
     ineq,
     janitor,
     kableExtra,
@@ -39,14 +37,13 @@ Imports:
     sf,
     shiny (>= 1.7.1),
     shinycssloaders,
-    spelling,
     stringr,
     svglite,
     tidyr,
     xtable
 Encoding: UTF-8
 LazyData: no
-RoxygenNote: 7.1.2
+RoxygenNote: 7.2.3
 URL: https://github.com/DiakGit/karttasovellus
 BugReports: https://github.com/DiakGit/karttasovellus/issues
 Suggests: 

@@ -14,16 +14,16 @@ if (F){
 #' 
 #' @export
 get_dat <- function(){
-  load(system.file("data", "df_v20211104.rda", package="karttasovellus"))
-  return(df_v20211104)
+  load(system.file("data", "df_v20230224.rda", package="karttasovellus"))
+  return(df_v20230224)
 }
 
 #' Get time-series data
 #' 
 #' @export
 get_dat_timeseries <- function(){
-  load(system.file("data", "df_v20211104_aikasarja.rda", package="karttasovellus"))
-  return(df_v20211104_aikasarja)
+  load(system.file("data", "df_v20230224_aikasarja.rda", package="karttasovellus"))
+  return(df_v20230224_aikasarja)
 }
 
 #' Get data of regions
@@ -395,8 +395,17 @@ plot_map <- function(input_value_regio_level = "Hyvinvointialueet",
     ) %>% lapply(htmltools::HTML)
     
     
-    base <- leaflet(data = dat_wgs84) %>% 
-      addTiles(urlTemplate = "https://tiles.kartat.kapsi.fi/taustakartta/{z}/{x}/{y}.jpg",
+    # EPSG3067 <- leaflet::leafletCRS(crsClass = "L.Proj.CRS",
+    #                                 code = "EPSG:3067", 
+    #                                 proj4def = "+proj=utm +zone=35 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs",
+    #                                 resolutions = 1.5^(25:15))
+    
+    base <- leaflet(data = dat_wgs84#, 
+                    # options = leafletOptions(worldCopyJump = F, 
+                    #                          crs = EPSG3067)
+                    ) %>% 
+      addTiles(#urlTemplate = "https://tiles.kartat.kapsi.fi/taustakartta_3067/{z}/{x}/{y}.jpg",
+              urlTemplate = "https://tiles.kartat.kapsi.fi/taustakartta/{z}/{x}/{y}.jpg",
                options = tileOptions(opacity = .4))
     
     base %>%   

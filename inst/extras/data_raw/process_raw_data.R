@@ -11,7 +11,7 @@ setwd(here("./inst/extras/"))
 
 
 ## POIKKILEIKKAUSDATA ----
-dd <- read_excel("../../../data_storage/v20230222/Huono-osaisuusindikaattorit - uusimmat.xlsx") %>% 
+dd <- read_excel("../../../data_storage/v20230224/Huono-osaisuusindikaattorit - uusimmat.xlsx") %>% 
   # select(1:31) %>% 
   filter(!is.na(Aika)) %>% 
   select(-Aika)
@@ -42,7 +42,7 @@ df_tmp <- dd %>%
                            aluenimi))
 
 # korjataan hyvinvointialueiden aluekoodit
-hva_codes <- geofi::municipality_key_2021 %>% 
+hva_codes <- geofi::municipality_key_2022 %>% 
   count(hyvinvointialue_name_fi,hyvinvointialue_code) %>% 
   select(-n) %>%
   rename(aluenimi = hyvinvointialue_name_fi) %>% 
@@ -88,13 +88,13 @@ df <- df_tmp %>%
   mutate(variable = ifelse(all_upper, ekaiso(tolower(variable)), variable))
 
 # Otetaan seutukuntanimiksi Tilastokeskuksen lyhyemmät
-geofi::municipality_key_2021 %>% 
+geofi::municipality_key_2022 %>% 
   count(seutukunta_name_fi,seutukunta_code) %>% 
   rename(aluekoodi = seutukunta_code,
          aluename = seutukunta_name_fi) %>% 
   select(-n) -> sk_names
 
-df_v20211104 <- left_join(df,sk_names) %>% 
+df_v20230224 <- left_join(df,sk_names) %>% 
   mutate(aluenimi = ifelse(regio_level == "Seutukunnat", aluename, aluenimi)) %>% 
   select(-aluename) %>% 
   filter(!variable %in% c("Inhimillinen","Sosiaalinen","Taloudellinen"),
@@ -103,12 +103,12 @@ df_v20211104 <- left_join(df,sk_names) %>%
 # saveRDS(df2, here("./data/df_v20211104.RDS"), 
 #         compress = FALSE)
 
-save(df_v20211104, file = here::here("data/df_v20211104.rda"),
+save(df_v20230224, file = here::here("data/df_v20230224.rda"),
      compress = "bzip2")
 
 
 # Apudata karttojen tekoon
-muni <- geofi::get_municipalities(year = 2021) %>%
+muni <- geofi::get_municipalities(year = 2022) %>%
   filter(maakunta_name_fi != "Ahvenanmaa")
 regio_Seutukunnat <- muni %>% 
   group_by(seutukunta_code) %>% 
@@ -145,7 +145,7 @@ save(regio_Kunnat, file = here::here("data/regio_Kunnat.rda"),
 ## NAAPURIDATA ----
 
 # tehdään aluekoodi/aluenimi -data vielä
-muni <- get_municipalities(year = 2021) %>%
+muni <- get_municipalities(year = 2022) %>%
   filter(maakunta_name_fi != "Ahvenanmaa")
 bind_rows(
   muni %>% 
@@ -195,7 +195,7 @@ save(region_data, file = here::here("data/region_data.rda"),
      compress = "bzip2")
 
 ## AIKASARJADATA ----
-dd <- read_excel("../../../data_storage/v20230222/Aikasarjadata UUSIN.xlsx", 
+dd <- read_excel("../../../data_storage/v20230224/Aikasarjadata UUSIN.xlsx", 
            col_types = c(rep("text", 4), rep("numeric", 26)))
 
 df_tmp <- dd %>%
@@ -224,7 +224,7 @@ mutate(aluenimi = ifelse(aluenimi == "Helsinki (sosiaali- ja terveydenhuolto, se
                            aluenimi))
 
 # korjataan hyvinvointialueiden aluekoodit
-hva_codes <- geofi::municipality_key_2021 %>% 
+hva_codes <- geofi::municipality_key_2022 %>% 
   count(hyvinvointialue_name_fi,hyvinvointialue_code) %>% 
   select(-n) %>%
   rename(aluenimi = hyvinvointialue_name_fi) %>% 
@@ -269,19 +269,19 @@ df <- df_tmp %>%
   mutate(variable = ifelse(all_upper, ekaiso(tolower(variable)), variable))
 
 # Otetaan seutukuntanimiksi Tilastokeskuksen lyhyemmät
-geofi::municipality_key_2021 %>% 
+geofi::municipality_key_2022 %>% 
   count(seutukunta_name_fi,seutukunta_code) %>% 
   rename(aluekoodi = seutukunta_code,
          aluename = seutukunta_name_fi) %>% 
   select(-n) -> sk_names
 
-df_v20211104_aikasarja <- left_join(df,sk_names) %>% 
+df_v20230224_aikasarja <- left_join(df,sk_names) %>% 
   mutate(aluenimi = ifelse(regio_level == "Seutukunnat", aluename, aluenimi)) %>% 
   select(-aluename) %>% 
   filter(!variable %in% c("Inhimillinen","Sosiaalinen","Taloudellinen"),
          !is.na(value)) 
 
-save(df_v20211104_aikasarja, file = here::here("data/df_v20211104_aikasarja.rda"),
+save(df_v20230224_aikasarja, file = here::here("data/df_v20230224_aikasarja.rda"),
      compress = "bzip2")
 
 
@@ -303,7 +303,7 @@ pop_data_orig <- clean_names(px_tibble)
 names(pop_data_orig) <- c("aluenimi","aika","pop")
 # valitaan vaan kunnat
 pop_data_raw <- pop_data_orig %>% 
-  right_join(geofi::municipality_key_2021 %>% 
+  right_join(geofi::municipality_key_2022 %>% 
                select(municipality_name_fi,
                       seutukunta_name_fi,
                       hyvinvointialue_name_fi), 
@@ -335,23 +335,23 @@ pop_data <- bind_rows(
                                aluenimi)) %>% 
   # aluekoodit vielä
   left_join(
-    df_v20211104 %>% 
+    df_v20230224 %>% 
       distinct(regio_level,aluekoodi,aluenimi)    
   )
 
 save(pop_data, file = here::here("data/pop_data.rda"),
      compress = "bzip2")
 
-document_data(dat = pop_data, neim = "pop_data", description = "Population data for computing population weighted gini coefficients")
+karttasovellus::document_data(dat = pop_data, neim = "pop_data", description = "Population data for computing population weighted gini coefficients")
 
 
 
 
 # lasketaan kuntatason eriarvoisuus
-dat_gini_raw <- df_v20211104_aikasarja %>% 
+dat_gini_raw <- df_v20230224_aikasarja %>% 
   filter(regio_level == "Kunnat") %>% 
   left_join(pop_data) %>% 
-  left_join(geofi::municipality_key_2021 %>% 
+  left_join(geofi::municipality_key_2022 %>% 
                select(municipality_name_fi,
                       #seutukunta_name_fi,
                       hyvinvointialue_name_fi), 
@@ -385,18 +385,18 @@ dat_gini_raw %>%
 ) %>% 
   # aluekoodit vielä
   left_join(
-    df_v20211104 %>% 
+    df_v20230224 %>% 
       distinct(regio_level,aluekoodi,aluenimi))
 
 save(ineq_data, file = here::here("data/ineq_data.rda"),
      compress = "bzip2")
 
-document_data(dat = ineq_data, 
+karttasovellus::document_data(dat = ineq_data, 
                               neim = "ineq_data", 
                               description = "municipality level weighted ginis for all indicators at various regional breakdowns")
 
 # Muuttujakuvaukset ----
-muuttujakuvaukset <- read_excel("../../../data_storage/v20230222/Muuttujakuvaukset - UUSI.xlsx") %>% 
+muuttujakuvaukset <- read_excel("../../../data_storage/v20230224/Muuttujakuvaukset - UUSI.xlsx") %>% 
   setNames(c("Muuttujaluokka","Muuttuja","Aluetasot","Kuvaus")) %>% 
   mutate(Muuttujaluokka = factor(Muuttujaluokka, levels = c("Summamuuttujat",
                                                             "Inhimillinen huono-osaisuus",
@@ -422,21 +422,21 @@ if (F){
   
   sub("./data/", "", dir_ls(path = "./data"))
   # df_v20211104.rda
-  document_data(dat = df_v20211104, neim = "df_v20211104", description = "This is internal data for Karttasovellus shiny app")
+  karttasovellus::document_data(dat = df_v20211104, neim = "df_v20211104", description = "This is internal data for Karttasovellus shiny app")
   # df_v20211104_aikasarja.rda
-  document_data(dat = df_v20211104_aikasarja, neim = "df_v20211104_aikasarja", description = "This is internal data for Karttasovellus shiny app")
+  karttasovellus::document_data(dat = df_v20211104_aikasarja, neim = "df_v20211104_aikasarja", description = "This is internal data for Karttasovellus shiny app")
   # muuttujakuvaukset.rda
-  document_data(dat = muuttujakuvaukset, neim = "muuttujakuvaukset", description = "This is internal data for Karttasovellus shiny app")
+  karttasovellus::document_data(dat = muuttujakuvaukset, neim = "muuttujakuvaukset", description = "This is internal data for Karttasovellus shiny app")
   # regio_Hyvinvointialueet.rda
-  document_data(dat = regio_Hyvinvointialueet, neim = "regio_Hyvinvointialueet", description = "This is internal data for Karttasovellus shiny app")
+  karttasovellus::document_data(dat = regio_Hyvinvointialueet, neim = "regio_Hyvinvointialueet", description = "This is internal data for Karttasovellus shiny app")
   # regio_Kunnat.rda
-  document_data(dat = regio_Kunnat, neim = "regio_Kunnat", description = "This is internal data for Karttasovellus shiny app")
+  karttasovellus::document_data(dat = regio_Kunnat, neim = "regio_Kunnat", description = "This is internal data for Karttasovellus shiny app")
   # regio_Seutukunnat.rda
-  document_data(dat =  regio_Seutukunnat, neim = " regio_Seutukunnat", description = "This is internal data for Karttasovellus shiny app")
+  karttasovellus::document_data(dat =  regio_Seutukunnat, neim = " regio_Seutukunnat", description = "This is internal data for Karttasovellus shiny app")
   # regio_Suomi.rda
-  document_data(dat = regio_Suomi, neim = "regio_Suomi", description = "This is internal data for Karttasovellus shiny app")
+  karttasovellus::document_data(dat = regio_Suomi, neim = "regio_Suomi", description = "This is internal data for Karttasovellus shiny app")
   # region_data.rda
-  document_data(dat = region_data, neim = "region_data", description = "This is internal data for Karttasovellus shiny app")
+  karttasovellus::document_data(dat = region_data, neim = "region_data", description = "This is internal data for Karttasovellus shiny app")
 
   
   }
@@ -497,9 +497,9 @@ karttasovellus::document_data(dat = region_data_zip,
 
 ## Poikkileikkaus ----
 
-dd <- read_excel("../../../data_storage/v20220202/Postinumerodata_uusin.xlsx")
+dd <- read_excel("../../../data_storage/v20230224/Postinumerodata - UUSIN.xlsx")
 
-dfzip_v20220202 <- dd %>%
+dfzip_v20230224 <- dd %>%
   rename(aluekoodi = Postinumeroalue,
          aluenimi = `Postinumeroalueen nimi`,
          kuntanimi = `Kunnan nimi`,
@@ -509,18 +509,18 @@ dfzip_v20220202 <- dd %>%
          kuntanro = as.integer(kuntanro)) %>% 
   select(regio_level,everything())
 
-save(dfzip_v20220202, file = here::here("data/dfzip_v20220202.rda"),
+save(dfzip_v20230224, file = here::here("data/dfzip_v20230224.rda"),
      compress = "bzip2")
 
-karttasovellus::document_data(dat = dfzip_v20220202, 
-                              neim = "dfzip_v20220202", 
+karttasovellus::document_data(dat = dfzip_v20230224, 
+                              neim = "dfzip_v20230224", 
                               description = "Cross-sectional zipcode level attribute data")
 
 ## Aikasarja ----
 # fs::file_copy("../../../data_storage/v20220126/postinumeroaikasarjat_uusin.xlsx", "./data_raw/")
-dd <- read_excel("../../../data_storage/v20220202/Postinumeroaikasarjat_uusin.xlsx")
+dd <- read_excel("../../../data_storage/v20230224/Postinumeroaikasarjat - UUSIN.xlsx")
 
-dfzip_v20220202_aikasarja <- dd %>%
+dfzip_v20230224_aikasarja <- dd %>%
   rename(aluekoodi = Postinumeroalue,
          aluenimi = `Postinumeroalueen nimi`,
          aika = Vuosi,
@@ -532,11 +532,11 @@ dfzip_v20220202_aikasarja <- dd %>%
          aika = as.integer(sub("-.+$", "", aika))+1) %>% 
   select(regio_level,everything())
 
-save(dfzip_v20220202_aikasarja, file = here::here("data/dfzip_v20220202_aikasarja.rda"),
+save(dfzip_v20230224_aikasarja, file = here::here("data/dfzip_v20230224_aikasarja.rda"),
      compress = "bzip2")
 
-karttasovellus::document_data(dat = dfzip_v20220202_aikasarja, 
-                              neim = "dfzip_v20220202_aikasarja", 
+karttasovellus::document_data(dat = dfzip_v20230224_aikasarja, 
+                              neim = "dfzip_v20230224_aikasarja", 
                               description = "Time-series zipcode level attribute data")
 
 
