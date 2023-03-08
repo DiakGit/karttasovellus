@@ -283,8 +283,8 @@ create_raw_tbl <- function(dd1 = tabdat_tmp,
   dd2 <- dd1 %>% 
     mutate(aluenimi = paste0(aluenimi, " (", rooli, ") ")) %>% 
     select(muuttuja,aluenimi,arvo,asema) %>%
-    arrange(muuttuja,asema) %>% 
-    mutate(asema = paste0(asema,"."))
+    arrange(muuttuja,asema) #%>% 
+    # mutate(asema = paste0(asema,".")) # piste pois koska ongelma gt:llä tehdyissä taulukoissa (tulee aina nro\.)
   dd3 <- dd2[dd2$muuttuja == muuttujanimi[varnro], ] %>% 
     select(-muuttuja)
   return(dd3)
